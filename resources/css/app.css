@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/* ── Leaflet CSS ─────────────────────────────────────────────────── */
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+
+/* ── Theme Tokens ────────────────────────────────────────────────── */
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Dark-mode palette */
+    --color-surface-900: #0f1117;
+    --color-surface-800: #161921;
+    --color-surface-700: #1e2230;
+    --color-surface-600: #2a2f3f;
+    --color-surface-500: #3a4050;
+
+    --color-accent: #6366f1;
+    --color-accent-hover: #818cf8;
+
+    --color-success: #22c55e;
+    --color-warning: #eab308;
+    --color-danger: #ef4444;
+    --color-info: #3b82f6;
+
+    /* Status marker colors (PRD §7.1) */
+    --color-attended: #22c55e;
+    --color-partial: #eab308;
+    --color-not-attended: #ef4444;
+    --color-pending: #9ca3af;
+    --color-flagged: #f97316;
+}
