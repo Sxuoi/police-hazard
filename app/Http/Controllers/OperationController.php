@@ -36,7 +36,7 @@ class OperationController extends Controller
     public function create(): View
     {
         $sakers = auth()->user()->isGodAdmin()
-            ? $this->sakers->all()
+            ? $this->sakers->getAll()
             : collect([auth()->user()->saker]);
 
         return view('operations.create', compact('sakers'));
@@ -66,7 +66,7 @@ class OperationController extends Controller
         $operation = $this->operations->findOrFail($id);
         $typeIsLocked = $operation->zones()->exists();
         $sakers = auth()->user()->isGodAdmin()
-            ? $this->sakers->all()
+            ? $this->sakers->getAll()
             : collect([auth()->user()->saker]);
 
         return view('operations.edit', compact('operation', 'typeIsLocked', 'sakers'));

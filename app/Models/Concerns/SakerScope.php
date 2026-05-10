@@ -23,9 +23,20 @@ class SakerScope implements Scope
             return;
         }
 
-        $sakerId = auth()->user()?->saker_id
-            ?? session('saker_id')
-            ?? null;
+        static $isResolvingAuth = false;
+
+        if ($isResolvingAuth) {
+            return;
+        }
+
+        $isResolvingAuth = true;
+        try {
+            $sakerId = auth()->user()?->saker_id
+                ?? session('saker_id')
+                ?? null;
+        } finally {
+            $isResolvingAuth = false;
+        }
 
         // During migrations, seeding, or CLI contexts where no auth exists,
         // skip the scope to avoid runtime errors
