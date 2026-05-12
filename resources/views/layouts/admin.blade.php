@@ -71,7 +71,7 @@
                 Penugasan
             </x-sidebar-item>
 
-            <x-sidebar-item href="#" icon="bar-chart" :active="request()->routeIs('recapitulation.*')">
+            <x-sidebar-item href="{{ route('reports.index') }}" icon="bar-chart" :active="request()->routeIs('reports.*')">
                 Rekapitulasi
             </x-sidebar-item>
 

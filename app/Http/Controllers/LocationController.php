@@ -94,6 +94,12 @@ class LocationController extends Controller
     public function edit(string $id): View
     {
         $location = $this->locations->findOrFail($id);
+        
+        // Fetch raw coordinates using PostGIS
+        $coords = DB::selectOne('SELECT ST_Y(coordinates::geometry) as lat, ST_X(coordinates::geometry) as lng FROM locations WHERE id = ?', [$id]);
+        $location->lat = $coords->lat ?? '';
+        $location->lng = $coords->lng ?? '';
+        
         $operations = $this->operations->allActive();
 
         return view('locations.edit', compact('location', 'operations'));

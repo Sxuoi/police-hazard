@@ -43,14 +43,16 @@ class AssignmentController extends Controller
     public function create(): View
     {
         $operations = $this->operations->allActive();
+        $sakers = \App\Models\Saker::where('is_active', true)->get();
 
-        return view('assignments.create', compact('operations'));
+        return view('assignments.create', compact('operations', 'sakers'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'officer_id'        => ['required', 'uuid', 'exists:users,id'],
+            'officer_ids'       => ['required', 'array', 'min:1'],
+            'officer_ids.*'     => ['required', 'uuid', 'exists:users,id'],
             'location_id'       => ['required', 'uuid', 'exists:locations,id'],
             'shift_id'          => ['required', 'uuid', 'exists:shifts,id'],
             'operation_id'      => ['required', 'uuid', 'exists:operations,id'],
@@ -61,14 +63,17 @@ class AssignmentController extends Controller
 
         $location = $this->locations->findOrFail($validated['location_id']);
 
-        $this->assignOfficer->execute(
-            data: array_merge($validated, [
-                'saker_id' => $location->saker_id,
-            ]),
-            actor: $request->user(),
-        );
+        foreach ($validated['officer_ids'] as $officerId) {
+            $this->assignOfficer->execute(
+                data: array_merge($validated, [
+                    'officer_id' => $officerId,
+                    'saker_id' => $location->saker_id,
+                ]),
+                actor: $request->user(),
+            );
+        }
 
-        $count = count($validated['dates']);
+        $count = count($validated['dates']) * count($validated['officer_ids']);
 
         return redirect()->route('assignments.index')
             ->with('success', "{$count} penugasan berhasil dibuat.");

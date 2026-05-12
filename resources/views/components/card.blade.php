@@ -19,7 +19,7 @@
     <div class="flex items-start justify-between">
         <div>
             <p class="text-sm text-gray-400">{{ $title }}</p>
-            <p class="text-3xl font-bold text-white mt-1">{{ $value }}</p>
+            <p class="text-3xl font-bold text-white mt-1" {{ $attributes->only('x-text') }}>{{ $value }}</p>
             @if($subtitle)
                 <p class="text-xs text-gray-500 mt-1">{{ $subtitle }}</p>
             @endif

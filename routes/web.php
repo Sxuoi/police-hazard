@@ -27,6 +27,7 @@ Route::middleware(['auth', 'god.admin'])->group(function () {
 
     Route::get('/', fn () => redirect()->route('dashboard'));
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/map-data', [DashboardController::class, 'mapData'])->name('dashboard.map-data');
 
     // ── Operations ──────────────────────────────────────────────────
     Route::resource('operations', \App\Http\Controllers\OperationController::class)
@@ -64,4 +65,10 @@ Route::middleware(['auth', 'god.admin'])->group(function () {
     // ── Audit Logs (read-only) ────────────────────────────────────────
     Route::get('audit-logs', [\App\Http\Controllers\AuditLogController::class, 'index'])
         ->name('audit-logs.index');
+
+    // ── Reports ──────────────────────────────────────────────────────
+    Route::get('reports', [\App\Http\Controllers\ReportController::class, 'index'])
+        ->name('reports.index');
+    Route::get('reports/export', [\App\Http\Controllers\ReportController::class, 'export'])
+        ->name('reports.export');
 });
