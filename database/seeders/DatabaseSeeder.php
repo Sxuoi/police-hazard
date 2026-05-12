@@ -21,23 +21,23 @@ class DatabaseSeeder extends Seeder
     {
         // ── 1. Sakers (3-level hierarchy) ────────────────────────────
         $polda = Saker::create([
-            'name'    => 'POLDA JAWA TIMUR',
-            'code'    => 'POLDA-JATIM',
+            'name'    => 'POLDA JAWA TENGAH',
+            'code'    => 'POLDA-JATENG',
             'type'    => 'POLDA',
             'is_active' => true,
         ]);
 
         $polrestabes = Saker::create([
-            'name'      => 'POLRESTABES SURABAYA',
-            'code'      => 'PRTBS-SBY',
+            'name'      => 'POLRESTABES SEMARANG',
+            'code'      => 'PRTBS-SMG',
             'type'      => 'POLRESTABES',
             'parent_id' => $polda->id,
             'is_active'  => true,
         ]);
 
         $polsek = Saker::create([
-            'name'      => 'POLSEK GUBENG',
-            'code'      => 'PLSK-GBG',
+            'name'      => 'POLSEK SEMARANG TENGAH',
+            'code'      => 'PLSK-SMGTGH',
             'type'      => 'POLSEK',
             'parent_id' => $polrestabes->id,
             'is_active'  => true,
@@ -92,28 +92,28 @@ class DatabaseSeeder extends Seeder
             'description'    => 'Pengamanan tempat ibadah dan pusat perbelanjaan.',
             'operation_type' => 'PH',
             'status'         => 'active',
-            'start_date'     => '2026-05-01',
-            'end_date'       => '2026-06-30',
+            'start_time'     => '06:00',
+            'end_time'       => '18:00',
             'created_by'     => $godAdmin->id,
         ]);
         $ops[] = Operation::create([
             'saker_id'       => $polrestabes->id,
-            'name'           => 'Patroli Wilayah Timur',
-            'description'    => 'Patroli rutin wilayah Surabaya Timur.',
+            'name'           => 'Patroli Wilayah Semarang',
+            'description'    => 'Patroli rutin wilayah Semarang.',
             'operation_type' => 'PATROL',
             'status'         => 'active',
-            'start_date'     => '2026-05-01',
-            'end_date'       => '2026-07-31',
+            'start_time'     => '18:00',
+            'end_time'       => '06:00',
             'created_by'     => $sakerAdmins[$polrestabes->id]->id,
         ]);
         $ops[] = Operation::create([
             'saker_id'       => $polsek->id,
-            'name'           => 'PH Pos Pemeriksaan Gubeng',
+            'name'           => 'PH Pos Pemeriksaan Semarang Tengah',
             'description'    => 'Pengamanan stasiun dan area komersil.',
             'operation_type' => 'PH',
             'status'         => 'active',
-            'start_date'     => '2026-05-01',
-            'end_date'       => null,
+            'start_time'     => '08:00',
+            'end_time'       => null,
             'created_by'     => $sakerAdmins[$polsek->id]->id,
         ]);
         $ops[] = Operation::create([
@@ -122,8 +122,8 @@ class DatabaseSeeder extends Seeder
             'description'    => 'Rencana operasi akhir tahun 2026.',
             'operation_type' => 'PH',
             'status'         => 'draft',
-            'start_date'     => '2026-12-01',
-            'end_date'       => '2027-01-05',
+            'start_time'     => '20:00',
+            'end_time'       => '02:00',
             'created_by'     => $godAdmin->id,
         ]);
 
@@ -131,8 +131,8 @@ class DatabaseSeeder extends Seeder
         $zones = [];
         $zoneData = [
             [$ops[0], $polda, 'Zona Utara', 'Zona Selatan'],
-            [$ops[1], $polrestabes, 'Zona Rungkut', 'Zona Mulyosari'],
-            [$ops[2], $polsek, 'Zona Stasiun', 'Zona Pasar'],
+            [$ops[1], $polrestabes, 'Zona Tembalang', 'Zona Banyumanik'],
+            [$ops[2], $polsek, 'Zona Simpang Lima', 'Zona Pasar Johar'],
             [$ops[3], $polda, 'Zona Pusat', 'Zona Barat'],
         ];
         foreach ($zoneData as [$op, $saker, $name1, $name2]) {
@@ -152,29 +152,29 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // ── 5. Locations (with real Surabaya coordinates) ────────────
+        // ── 5. Locations (with real Semarang coordinates) ────────────
         $locationData = [
             // Zone 0 — Zona Utara (POLDA)
-            [$zones[0], $polda, 'Masjid Al-Akbar Surabaya', -7.3160, 112.7275, 'Jl. Masjid Al Akbar Timur No.1'],
-            [$zones[0], $polda, 'Tugu Pahlawan', -7.2458, 112.7378, 'Jl. Pahlawan'],
-            [$zones[0], $polda, 'Balai Kota Surabaya', -7.2575, 112.7521, 'Jl. Taman Surya No.1'],
+            [$zones[0], $polda, 'Masjid Agung Jawa Tengah', -6.9836, 110.4452, 'Jl. Gajah Raya'],
+            [$zones[0], $polda, 'Tugu Muda', -6.9844, 110.4100, 'Jl. Pemuda'],
+            [$zones[0], $polda, 'Balai Kota Semarang', -6.9822, 110.4137, 'Jl. Pemuda No.148'],
             // Zone 1 — Zona Selatan (POLDA)
-            [$zones[1], $polda, 'Kebun Binatang Surabaya', -7.2930, 112.7363, 'Jl. Setail No.1'],
-            [$zones[1], $polda, 'Monumen Kapal Selam', -7.2652, 112.7538, 'Jl. Pemuda'],
-            // Zone 2 — Zona Rungkut (POLRESTABES)
-            [$zones[2], $polrestabes, 'SIER Industrial Park', -7.3283, 112.7620, 'Jl. Rungkut Industri'],
-            [$zones[2], $polrestabes, 'Pasar Rungkut', -7.3321, 112.7701, 'Jl. Rungkut Mejoyo'],
-            [$zones[2], $polrestabes, 'Terminal Bratang', -7.2948, 112.7603, 'Jl. Bratang Binangun'],
-            // Zone 3 — Zona Mulyosari (POLRESTABES)
-            [$zones[3], $polrestabes, 'ITS Sukolilo', -7.2819, 112.7950, 'Kampus ITS Sukolilo'],
-            [$zones[3], $polrestabes, 'Pakuwon City Mall', -7.2835, 112.8025, 'Jl. Laguna'],
-            // Zone 4 — Zona Stasiun (POLSEK)
-            [$zones[4], $polsek, 'Stasiun Gubeng', -7.2655, 112.7521, 'Jl. Gubeng Masjid'],
-            [$zones[4], $polsek, 'Hotel Majapahit', -7.2619, 112.7470, 'Jl. Tunjungan No.65'],
-            [$zones[4], $polsek, 'Plaza Surabaya', -7.2692, 112.7508, 'Jl. Pemuda No.31-37'],
-            // Zone 5 — Zona Pasar (POLSEK)
-            [$zones[5], $polsek, 'Pasar Genteng', -7.2574, 112.7435, 'Jl. Genteng Besar'],
-            [$zones[5], $polsek, 'Pasar Kapasan', -7.2380, 112.7451, 'Jl. Kapasan'],
+            [$zones[1], $polda, 'Lawang Sewu', -6.9840, 110.4104, 'Jl. Pemuda'],
+            [$zones[1], $polda, 'Sam Poo Kong', -6.9961, 110.3980, 'Jl. Simongan'],
+            // Zone 2 — Zona Tembalang (POLRESTABES)
+            [$zones[2], $polrestabes, 'UNDIP Tembalang', -7.0494, 110.4400, 'Jl. Prof. Sudarto'],
+            [$zones[2], $polrestabes, 'RSND', -7.0526, 110.4371, 'Tembalang'],
+            [$zones[2], $polrestabes, 'Tol Banyumanik', -7.0754, 110.4287, 'Banyumanik'],
+            // Zone 3 — Zona Banyumanik (POLRESTABES)
+            [$zones[3], $polrestabes, 'Transmart Setiabudi', -7.0505, 110.4146, 'Jl. Setiabudi'],
+            [$zones[3], $polrestabes, 'Taman Tirto Agung', -7.0573, 110.4246, 'Jl. Tirto Agung'],
+            // Zone 4 — Zona Simpang Lima (POLSEK)
+            [$zones[4], $polsek, 'Simpang Lima', -6.9904, 110.4228, 'Simpang Lima'],
+            [$zones[4], $polsek, 'Citraland Mall', -6.9912, 110.4239, 'Simpang Lima'],
+            [$zones[4], $polsek, 'Masjid Raya Baiturrahman', -6.9906, 110.4219, 'Simpang Lima'],
+            // Zone 5 — Zona Pasar Johar (POLSEK)
+            [$zones[5], $polsek, 'Pasar Johar', -6.9740, 110.4243, 'Jl. KH. Agus Salim'],
+            [$zones[5], $polsek, 'Kota Lama', -6.9680, 110.4276, 'Jl. Letjen Suprapto'],
         ];
 
         $locations = [];
@@ -262,8 +262,8 @@ class DatabaseSeeder extends Seeder
             $isWithin = $distance <= ($loc->radius_meters ?? 50);
 
             $attId = Uuid::uuid7()->toString();
-            $lat = -7.26 + fake()->randomFloat(4, -0.05, 0.05);
-            $lng = 112.75 + fake()->randomFloat(4, -0.03, 0.03);
+            $lat = -6.99 + fake()->randomFloat(4, -0.05, 0.05);
+            $lng = 110.42 + fake()->randomFloat(4, -0.03, 0.03);
 
             // Single INSERT with PostGIS coordinates (cannot UPDATE — immutable table)
             DB::statement("

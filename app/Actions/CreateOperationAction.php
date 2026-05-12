@@ -24,8 +24,8 @@ class CreateOperationAction
             'description'    => $data['description'] ?? null,
             'operation_type' => $data['operation_type'],
             'status'         => 'draft',
-            'start_date'     => $data['start_date'],
-            'end_date'       => $data['end_date'] ?? null,
+            'start_time'     => $data['start_time'],
+            'end_time'       => $data['end_time'] ?? null,
             'created_by'     => $actor->id,
             'updated_by'     => $actor->id,
         ]);

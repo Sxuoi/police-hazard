@@ -19,8 +19,8 @@ class StoreOperationRequest extends FormRequest
             'name'           => ['required', 'string', 'max:150'],
             'description'    => ['nullable', 'string', 'max:500'],
             'operation_type' => ['required', 'in:PH,PATROL'],
-            'start_date'     => ['required', 'date'],
-            'end_date'       => ['nullable', 'date', 'after:start_date'],
+            'start_time'     => ['required', 'date_format:H:i'],
+            'end_time'       => ['nullable', 'date_format:H:i'],
         ];
     }
 
@@ -28,8 +28,8 @@ class StoreOperationRequest extends FormRequest
     {
         return [
             'operation_type' => 'tipe operasi',
-            'start_date'     => 'tanggal mulai',
-            'end_date'       => 'tanggal selesai',
+            'start_time'     => 'waktu mulai',
+            'end_time'       => 'waktu selesai',
         ];
     }
 }

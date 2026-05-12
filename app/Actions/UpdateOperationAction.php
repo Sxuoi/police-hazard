@@ -35,8 +35,8 @@ class UpdateOperationAction
             'description'    => $data['description'] ?? $operation->description,
             'operation_type' => $data['operation_type'] ?? $operation->operation_type,
             'status'         => $data['status'] ?? $operation->status,
-            'start_date'     => $data['start_date'],
-            'end_date'       => $data['end_date'] ?? null,
+            'start_time'     => $data['start_time'],
+            'end_time'       => $data['end_time'] ?? null,
             'updated_by'     => $actor->id,
         ]);
 

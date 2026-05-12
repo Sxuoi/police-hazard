@@ -20,8 +20,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('operation_type', 20);
             $table->string('status', 20)->default('draft');
-            $table->date('start_date');
-            $table->date('end_date')->nullable();
+            $table->time('start_time');
+            $table->time('end_time')->nullable();
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
             $table->uuid('created_by');
@@ -36,7 +36,6 @@ return new class extends Migration
 
         DB::statement("ALTER TABLE operations ADD CONSTRAINT chk_operation_type CHECK (operation_type IN ('PH','PATROL'))");
         DB::statement("ALTER TABLE operations ADD CONSTRAINT chk_operation_status CHECK (status IN ('draft','active','suspended','completed','archived'))");
-        DB::statement("ALTER TABLE operations ADD CONSTRAINT chk_date_order CHECK (end_date IS NULL OR end_date >= start_date)");
     }
 
     public function down(): void

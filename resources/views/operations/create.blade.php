@@ -53,7 +53,7 @@
                     <label class="relative cursor-pointer">
                         <input type="radio" name="operation_type" value="PH" x-model="type" class="sr-only peer" />
                         <div class="p-4 rounded-xl border-2 border-[var(--color-surface-500)] peer-checked:border-[var(--color-accent)] peer-checked:bg-[var(--color-accent)]/5 transition-all">
-                            <div class="font-medium text-white text-sm">PH (Pos Hadang)</div>
+                            <div class="font-medium text-white text-sm">PH (Polisi Hazard)</div>
                             <div class="text-xs text-gray-400 mt-1">Titik patroli statis, satu officer per shift</div>
                         </div>
                     </label>
@@ -68,16 +68,16 @@
                 <p class="text-xs text-yellow-400/80 mt-2">⚠️ Tipe tidak dapat diubah setelah zona pertama dibuat.</p>
             </div>
 
-            {{-- Date Range --}}
+            {{-- Time Range --}}
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div>
-                    <label for="start_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Mulai <span class="text-red-400">*</span></label>
-                    <input type="date" id="start_date" name="start_date" value="{{ old('start_date') }}" required
+                    <label for="start_time" class="block text-sm font-medium text-gray-300 mb-2">Waktu Mulai <span class="text-red-400">*</span></label>
+                    <input type="time" id="start_time" name="start_time" value="{{ old('start_time') }}" required
                            class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
                 </div>
                 <div>
-                    <label for="end_date" class="block text-sm font-medium text-gray-300 mb-2">Tanggal Selesai</label>
-                    <input type="date" id="end_date" name="end_date" value="{{ old('end_date') }}"
+                    <label for="end_time" class="block text-sm font-medium text-gray-300 mb-2">Waktu Selesai</label>
+                    <input type="time" id="end_time" name="end_time" value="{{ old('end_time') }}"
                            class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
                     <p class="text-xs text-gray-500 mt-1">Kosongkan jika tidak ada batas akhir.</p>
                 </div>

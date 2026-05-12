@@ -18,8 +18,8 @@ class UpdateOperationRequest extends FormRequest
             'description'    => ['nullable', 'string', 'max:500'],
             'operation_type' => ['required', 'in:PH,PATROL'],
             'status'         => ['required', 'in:draft,active,suspended,completed,archived'],
-            'start_date'     => ['required', 'date'],
-            'end_date'       => ['nullable', 'date', 'after:start_date'],
+            'start_time'     => ['required', 'date_format:H:i'],
+            'end_time'       => ['nullable', 'date_format:H:i'],
         ];
     }
 }

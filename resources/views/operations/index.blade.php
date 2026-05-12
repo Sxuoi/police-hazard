@@ -54,7 +54,7 @@
                     <tr class="border-b border-[var(--color-surface-600)]">
                         <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Nama</th>
                         <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tipe</th>
-                        <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tanggal</th>
+                        <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Waktu</th>
                         <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
                         <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Zona</th>
                         <th class="px-5 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Aksi</th>
@@ -75,9 +75,9 @@
                                 </x-badge>
                             </td>
                             <td class="px-5 py-4 text-gray-300">
-                                {{ \Carbon\Carbon::parse($op->start_date)->format('d M Y') }}
-                                @if($op->end_date)
-                                    — {{ \Carbon\Carbon::parse($op->end_date)->format('d M Y') }}
+                                {{ substr($op->start_time, 0, 5) }}
+                                @if($op->end_time)
+                                    — {{ substr($op->end_time, 0, 5) }}
                                 @else
                                     <span class="text-gray-500">— tanpa batas</span>
                                 @endif
