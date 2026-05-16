@@ -23,12 +23,12 @@ class CreateZoneAction
 
         $zone = Zone::create([
             'operation_id' => $operation->id,
-            'saker_id'     => $actor->isGodAdmin() ? ($data['saker_id'] ?? $actor->saker_id) : $actor->saker_id,
-            'name'         => $data['name'],
-            'description'  => $data['description'] ?? null,
-            'is_active'    => true,
-            'created_by'   => $actor->id,
-            'updated_by'   => $actor->id,
+            'saker_id' => $actor->isGodAdmin() ? ($data['saker_id'] ?? $actor->saker_id) : $actor->saker_id,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'is_active' => true,
+            'created_by' => $actor->id,
+            'updated_by' => $actor->id,
         ]);
 
         $this->auditService->log('ZONE_CREATED', $zone, [

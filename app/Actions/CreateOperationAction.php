@@ -19,15 +19,15 @@ class CreateOperationAction
     public function execute(array $data, User $actor): Operation
     {
         $operation = Operation::create([
-            'saker_id'       => $actor->isGodAdmin() ? $data['saker_id'] : $actor->saker_id,
-            'name'           => $data['name'],
-            'description'    => $data['description'] ?? null,
+            'saker_id' => $actor->isGodAdmin() ? $data['saker_id'] : $actor->saker_id,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
             'operation_type' => $data['operation_type'],
-            'status'         => 'draft',
-            'start_time'     => $data['start_time'],
-            'end_time'       => $data['end_time'] ?? null,
-            'created_by'     => $actor->id,
-            'updated_by'     => $actor->id,
+            'status' => 'draft',
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'] ?? null,
+            'created_by' => $actor->id,
+            'updated_by' => $actor->id,
         ]);
 
         $this->auditService->log('OPERATION_CREATED', $operation, [

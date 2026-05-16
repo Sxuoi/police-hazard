@@ -14,12 +14,12 @@ class UpdateOperationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'           => ['required', 'string', 'max:150'],
-            'description'    => ['nullable', 'string', 'max:500'],
+            'name' => ['required', 'string', 'max:150'],
+            'description' => ['nullable', 'string', 'max:500'],
             'operation_type' => ['required', 'in:PH,PATROL'],
-            'status'         => ['required', 'in:draft,active,suspended,completed,archived'],
-            'start_time'     => ['required', 'date_format:H:i'],
-            'end_time'       => ['nullable', 'date_format:H:i'],
+            'status' => ['required', 'in:draft,active,suspended,completed,archived'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['nullable', 'date_format:H:i'],
         ];
     }
 }

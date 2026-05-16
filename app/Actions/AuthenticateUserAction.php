@@ -25,7 +25,7 @@ class AuthenticateUserAction
     {
         $user = User::withoutGlobalScopes()->where('nrp', $nrp)->first();
 
-        if (!$user || !Hash::check($password, $user->password)) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             if ($user) {
                 $this->auditService->log('USER_LOGIN_FAILED', $user, [
                     'ip' => $ip,
@@ -38,7 +38,7 @@ class AuthenticateUserAction
             ]);
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             $this->auditService->log('USER_LOGIN_FAILED', $user, [
                 'ip' => $ip,
                 'reason' => 'account_disabled',

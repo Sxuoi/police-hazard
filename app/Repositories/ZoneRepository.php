@@ -48,11 +48,11 @@ class ZoneRepository implements ZoneRepositoryInterface
         $query = Zone::with(['operation:id,name,operation_type', 'saker:id,code,type'])
             ->withCount('locations');
 
-        if (!empty($filters['operation_id'])) {
+        if (! empty($filters['operation_id'])) {
             $query->where('operation_id', $filters['operation_id']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where('name', 'ilike', "%{$filters['search']}%");
         }
 

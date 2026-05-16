@@ -31,13 +31,13 @@ class UpdateOperationAction
         }
 
         $operation->update([
-            'name'           => $data['name'],
-            'description'    => $data['description'] ?? $operation->description,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? $operation->description,
             'operation_type' => $data['operation_type'] ?? $operation->operation_type,
-            'status'         => $data['status'] ?? $operation->status,
-            'start_time'     => $data['start_time'],
-            'end_time'       => $data['end_time'] ?? null,
-            'updated_by'     => $actor->id,
+            'status' => $data['status'] ?? $operation->status,
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'] ?? null,
+            'updated_by' => $actor->id,
         ]);
 
         $this->auditService->log('OPERATION_UPDATED', $operation, [

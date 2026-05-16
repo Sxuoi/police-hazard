@@ -20,7 +20,7 @@ use Laravel\Sanctum\HasApiTokens;
 #[ScopedBy([SakerScope::class])]
 class User extends Authenticatable
 {
-    use HasApiTokens, HasUuidV7, HasAuditTrail;
+    use HasApiTokens, HasAuditTrail, HasUuidV7;
 
     protected $fillable = [
         'saker_id',
@@ -43,8 +43,8 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password'      => 'hashed',
-            'is_active'     => 'boolean',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
             'last_login_at' => 'datetime',
         ];
     }

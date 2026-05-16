@@ -47,6 +47,6 @@ class SakerScope implements Scope
             throw new \RuntimeException('Saker context not set — cannot query tenant-scoped data without authentication.');
         }
 
-        $builder->where($model->getTable() . '.saker_id', $sakerId);
+        $builder->where($model->getTable().'.saker_id', $sakerId);
     }
 }

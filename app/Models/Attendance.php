@@ -48,16 +48,16 @@ class Attendance extends Model
     protected function casts(): array
     {
         return [
-            'is_within_geofence'  => 'boolean',
-            'is_within_shift'     => 'boolean',
-            'is_manual_bypass'    => 'boolean',
-            'spoofing_score'      => 'integer',
-            'spoofing_signals'    => 'array',
-            'device_metadata'     => 'array',
-            'checked_in_at'       => 'datetime',
-            'shift_window_start'  => 'datetime',
-            'shift_window_end'    => 'datetime',
-            'created_at'          => 'datetime',
+            'is_within_geofence' => 'boolean',
+            'is_within_shift' => 'boolean',
+            'is_manual_bypass' => 'boolean',
+            'spoofing_score' => 'integer',
+            'spoofing_signals' => 'array',
+            'device_metadata' => 'array',
+            'checked_in_at' => 'datetime',
+            'shift_window_start' => 'datetime',
+            'shift_window_end' => 'datetime',
+            'created_at' => 'datetime',
             'gps_accuracy_meters' => 'float',
             'distance_from_point' => 'float',
         ];

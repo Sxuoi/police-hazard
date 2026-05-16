@@ -53,6 +53,41 @@ In order to ensure that the Laravel community is welcoming to all, please review
 
 If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
+## Production Scheduler
+
+The application relies on Laravel's task scheduler for bypass request expiration and escalation. In production, add the following cron entry to ensure these jobs fire every minute:
+
+```
+* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Without this cron entry, pending bypass requests will not expire automatically and escalation notifications to God Admins / email will not fire.
+
+## Mobile Officer Check-In
+
+Officers access the mobile check-in interface at `/officer/login` from their phone's browser. The UI is a responsive Blade + Alpine.js application that uses the browser's Geolocation API and MediaDevices camera API.
+
+### Access
+
+1. Open `https://your-domain.com/officer/login` on the officer's phone browser.
+2. Log in with NRP (badge number) and password.
+3. The token is stored in `sessionStorage` — it expires when the browser tab closes or after the configured `PH_TOKEN_EXPIRY_HOURS` (default 12h).
+
+### HTTPS Requirement
+
+The mobile officer UI **requires HTTPS** in production. The browser Geolocation and Camera APIs are only available in secure contexts. The UI includes a client-side guard that blocks usage over plain HTTP and displays an error message.
+
+For local development, `http://localhost` and `http://127.0.0.1` are treated as secure contexts by browsers and will work without TLS.
+
+### Screens
+
+- **Login** — NRP + password form
+- **Assignments** — today's assignments with ±7 day navigation
+- **Assignment Detail** — location info, Leaflet mini-map, live GPS distance indicator
+- **Check-In** — GPS acquisition → camera capture → preview → submit
+- **Bypass Request** — form for rejected check-ins, pending status poller, terminal result screens
+- **History** — paginated attendance history with photo lightbox
+
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

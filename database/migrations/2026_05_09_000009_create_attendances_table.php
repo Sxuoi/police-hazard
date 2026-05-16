@@ -60,22 +60,22 @@ return new class extends Migration
         });
 
         // PostGIS geometry column for check-in coordinates
-        DB::statement("ALTER TABLE attendances ADD COLUMN checkin_coordinates GEOMETRY(POINT, 4326) NOT NULL");
-        DB::statement("CREATE INDEX idx_attendances_coordinates ON attendances USING GIST(checkin_coordinates)");
+        DB::statement('ALTER TABLE attendances ADD COLUMN checkin_coordinates GEOMETRY(POINT, 4326) NOT NULL');
+        DB::statement('CREATE INDEX idx_attendances_coordinates ON attendances USING GIST(checkin_coordinates)');
 
         // CHECK constraints
         DB::statement("ALTER TABLE attendances ADD CONSTRAINT chk_attendance_status CHECK (status IN ('verified','flagged','rejected'))");
         DB::statement("ALTER TABLE attendances ADD CONSTRAINT chk_photo_status CHECK (photo_status IN ('pending','processed','failed'))");
 
         // IMMUTABLE — Enforce append-only at database level (PRD §6.2)
-        DB::statement("CREATE RULE no_update_attendances AS ON UPDATE TO attendances DO INSTEAD NOTHING");
-        DB::statement("CREATE RULE no_delete_attendances AS ON DELETE TO attendances DO INSTEAD NOTHING");
+        DB::statement('CREATE RULE no_update_attendances AS ON UPDATE TO attendances DO INSTEAD NOTHING');
+        DB::statement('CREATE RULE no_delete_attendances AS ON DELETE TO attendances DO INSTEAD NOTHING');
     }
 
     public function down(): void
     {
-        DB::statement("DROP RULE IF EXISTS no_update_attendances ON attendances");
-        DB::statement("DROP RULE IF EXISTS no_delete_attendances ON attendances");
+        DB::statement('DROP RULE IF EXISTS no_update_attendances ON attendances');
+        DB::statement('DROP RULE IF EXISTS no_delete_attendances ON attendances');
         Schema::dropIfExists('attendances');
     }
 };

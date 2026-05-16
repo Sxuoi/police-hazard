@@ -77,8 +77,21 @@
 
             <p class="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider mt-6 mb-2">Sistem</p>
 
-            <x-sidebar-item href="#" icon="shield" :active="request()->routeIs('bypass.*')">
-                Bypass
+            <x-sidebar-item href="{{ route('bypass-approvals.index') }}" icon="shield" :active="request()->routeIs('bypass-approvals.*')">
+                <span class="flex items-center justify-between w-full">
+                    <span>Bypass</span>
+                    @php
+                        $pendingBypassCount = \App\Models\ManualBypassApproval::withoutGlobalScopes()
+                            ->where('status', 'pending')
+                            ->when(!auth()->user()->isGodAdmin(), fn($q) => $q->where('saker_id', auth()->user()->saker_id))
+                            ->count();
+                    @endphp
+                    @if($pendingBypassCount > 0)
+                        <span class="ml-2 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
+                            {{ $pendingBypassCount > 99 ? '99+' : $pendingBypassCount }}
+                        </span>
+                    @endif
+                </span>
             </x-sidebar-item>
 
             <x-sidebar-item href="{{ route('audit-logs.index') }}" icon="scroll" :active="request()->routeIs('audit-logs.*')">

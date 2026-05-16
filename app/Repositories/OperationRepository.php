@@ -52,6 +52,7 @@ class OperationRepository implements OperationRepositoryInterface
     public function update(Operation $operation, array $data): Operation
     {
         $operation->update($data);
+
         return $operation->fresh();
     }
 
@@ -60,15 +61,15 @@ class OperationRepository implements OperationRepositoryInterface
         $query = Operation::with('saker:id,code,type')
             ->withCount(['zones', 'assignments']);
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['type'])) {
+        if (! empty($filters['type'])) {
             $query->where('operation_type', $filters['type']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where('name', 'ilike', "%{$filters['search']}%");
         }
 

@@ -36,9 +36,9 @@ class AuditLog extends Model
     {
         return [
             'payload_before' => 'array',
-            'payload_after'  => 'array',
-            'metadata'       => 'array',
-            'created_at'     => 'datetime',
+            'payload_after' => 'array',
+            'metadata' => 'array',
+            'created_at' => 'datetime',
         ];
     }
 

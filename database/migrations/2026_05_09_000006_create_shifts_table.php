@@ -33,7 +33,7 @@ return new class extends Migration
         DB::statement("ALTER TABLE shifts ADD COLUMN active_days SMALLINT[] NOT NULL DEFAULT '{}'");
 
         // CHECK constraint: shift_end must be after shift_start
-        DB::statement("ALTER TABLE shifts ADD CONSTRAINT chk_shift_time CHECK (shift_end > shift_start)");
+        DB::statement('ALTER TABLE shifts ADD CONSTRAINT chk_shift_time CHECK (shift_end > shift_start)');
     }
 
     public function down(): void

@@ -44,14 +44,14 @@ return new class extends Migration
         });
 
         // Add PostGIS geometry column — SRID 4326 (WGS84)
-        DB::statement("ALTER TABLE locations ADD COLUMN coordinates GEOMETRY(POINT, 4326) NOT NULL");
+        DB::statement('ALTER TABLE locations ADD COLUMN coordinates GEOMETRY(POINT, 4326) NOT NULL');
 
         // Mandatory GIST index for ST_DWithin performance (PRD §16.3)
-        DB::statement("CREATE INDEX idx_locations_coordinates ON locations USING GIST(coordinates)");
+        DB::statement('CREATE INDEX idx_locations_coordinates ON locations USING GIST(coordinates)');
 
         // CHECK constraints per PRD
-        DB::statement("ALTER TABLE locations ADD CONSTRAINT chk_radius_meters CHECK (radius_meters BETWEEN 10 AND 500)");
-        DB::statement("ALTER TABLE locations ADD CONSTRAINT chk_minimum_officer CHECK (minimum_officer >= 1)");
+        DB::statement('ALTER TABLE locations ADD CONSTRAINT chk_radius_meters CHECK (radius_meters BETWEEN 10 AND 500)');
+        DB::statement('ALTER TABLE locations ADD CONSTRAINT chk_minimum_officer CHECK (minimum_officer >= 1)');
     }
 
     public function down(): void

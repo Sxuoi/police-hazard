@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\AssignOfficerToLocationAction;
+use App\Models\Saker;
 use App\Repositories\Contracts\AssignmentRepositoryInterface;
 use App\Repositories\Contracts\LocationRepositoryInterface;
 use App\Repositories\Contracts\OperationRepositoryInterface;
@@ -43,7 +44,7 @@ class AssignmentController extends Controller
     public function create(): View
     {
         $operations = $this->operations->allActive();
-        $sakers = \App\Models\Saker::where('is_active', true)->get();
+        $sakers = Saker::where('is_active', true)->get();
 
         return view('assignments.create', compact('operations', 'sakers'));
     }
@@ -51,13 +52,13 @@ class AssignmentController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'officer_ids'       => ['required', 'array', 'min:1'],
-            'officer_ids.*'     => ['required', 'uuid', 'exists:users,id'],
-            'location_id'       => ['required', 'uuid', 'exists:locations,id'],
-            'shift_id'          => ['required', 'uuid', 'exists:shifts,id'],
-            'operation_id'      => ['required', 'uuid', 'exists:operations,id'],
-            'dates'             => ['required', 'array', 'min:1'],
-            'dates.*'           => ['required', 'date'],
+            'officer_ids' => ['required', 'array', 'min:1'],
+            'officer_ids.*' => ['required', 'uuid', 'exists:users,id'],
+            'location_id' => ['required', 'uuid', 'exists:locations,id'],
+            'shift_id' => ['required', 'uuid', 'exists:shifts,id'],
+            'operation_id' => ['required', 'uuid', 'exists:operations,id'],
+            'dates' => ['required', 'array', 'min:1'],
+            'dates.*' => ['required', 'date'],
             'assigned_saker_id' => ['required', 'uuid', 'exists:sakers,id'],
         ]);
 
@@ -95,7 +96,7 @@ class AssignmentController extends Controller
         ]);
 
         $assignment->update([
-            'status'      => 'cancelled',
+            'status' => 'cancelled',
             'cancel_reason' => $request->reason,
         ]);
 

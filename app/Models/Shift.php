@@ -30,9 +30,9 @@ class Shift extends Model
     {
         return [
             'active_days' => PostgresArray::class,
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
             'shift_start' => 'string',
-            'shift_end'   => 'string',
+            'shift_end' => 'string',
         ];
     }
 

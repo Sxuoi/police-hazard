@@ -33,14 +33,14 @@ return new class extends Migration
         });
 
         // Append-only rules
-        DB::statement("CREATE RULE no_update_amendments AS ON UPDATE TO attendance_amendments DO INSTEAD NOTHING");
-        DB::statement("CREATE RULE no_delete_amendments AS ON DELETE TO attendance_amendments DO INSTEAD NOTHING");
+        DB::statement('CREATE RULE no_update_amendments AS ON UPDATE TO attendance_amendments DO INSTEAD NOTHING');
+        DB::statement('CREATE RULE no_delete_amendments AS ON DELETE TO attendance_amendments DO INSTEAD NOTHING');
     }
 
     public function down(): void
     {
-        DB::statement("DROP RULE IF EXISTS no_update_amendments ON attendance_amendments");
-        DB::statement("DROP RULE IF EXISTS no_delete_amendments ON attendance_amendments");
+        DB::statement('DROP RULE IF EXISTS no_update_amendments ON attendance_amendments');
+        DB::statement('DROP RULE IF EXISTS no_delete_amendments ON attendance_amendments');
         Schema::dropIfExists('attendance_amendments');
     }
 };

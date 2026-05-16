@@ -45,7 +45,7 @@ class UserRepository implements UserRepositoryInterface
             ->where('is_active', true)
             ->where(function ($q) use ($query) {
                 $q->where('name', 'ilike', "%{$query}%")
-                  ->orWhere('nrp', 'ilike', "%{$query}%");
+                    ->orWhere('nrp', 'ilike', "%{$query}%");
             })
             ->when($sakerId, fn ($q) => $q->where('saker_id', $sakerId))
             ->with('saker:id,code,type')
@@ -61,6 +61,7 @@ class UserRepository implements UserRepositoryInterface
     public function update(User $user, array $data): User
     {
         $user->update($data);
+
         return $user->fresh();
     }
 
@@ -93,7 +94,7 @@ class UserRepository implements UserRepositoryInterface
             ])
             ->when(isset($filters['search']), fn ($q) => $q->where(function ($sq) use ($filters) {
                 $sq->where('name', 'ilike', "%{$filters['search']}%")
-                   ->orWhere('nrp', 'ilike', "%{$filters['search']}%");
+                    ->orWhere('nrp', 'ilike', "%{$filters['search']}%");
             }))
             ->when(isset($filters['saker_id']), fn ($q) => $q->where('saker_id', $filters['saker_id']))
             ->when(isset($filters['status']) && $filters['status'] === 'active', fn ($q) => $q->where('is_active', true))

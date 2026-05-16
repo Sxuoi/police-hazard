@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[ScopedBy([SakerScope::class])]
 class Zone extends Model
 {
-    use HasUuidV7, HasAuditTrail;
+    use HasAuditTrail, HasUuidV7;
 
     protected $fillable = [
         'operation_id',

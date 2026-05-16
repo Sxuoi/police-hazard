@@ -9,7 +9,6 @@ use App\Services\AuditService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Ramsey\Uuid\Uuid;
 
@@ -42,23 +41,23 @@ class LocationController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'zone_id'         => ['required', 'uuid', 'exists:zones,id'],
-            'name'            => ['required', 'string', 'max:200'],
-            'address'         => ['nullable', 'string', 'max:500'],
-            'latitude'        => ['required', 'numeric', 'between:-90,90'],
-            'longitude'       => ['required', 'numeric', 'between:-180,180'],
-            'radius_meters'   => ['required', 'integer', 'between:10,500'],
+            'zone_id' => ['required', 'uuid', 'exists:zones,id'],
+            'name' => ['required', 'string', 'max:200'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'radius_meters' => ['required', 'integer', 'between:10,500'],
             'minimum_officer' => ['required', 'integer', 'min:1'],
-            'description'     => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
         ]);
 
         $zone = $this->zones->findOrFail($validated['zone_id']);
-        $id   = Uuid::uuid7()->toString();
+        $id = Uuid::uuid7()->toString();
 
-        DB::statement("
+        DB::statement('
             INSERT INTO locations (id, zone_id, saker_id, name, address, coordinates, radius_meters, minimum_officer, coords_locked, is_active, created_by, updated_by, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), ?, ?, false, true, ?, ?, NOW(), NOW())
-        ", [
+        ', [
             $id,
             $zone->id,
             $zone->saker_id,
@@ -94,12 +93,12 @@ class LocationController extends Controller
     public function edit(string $id): View
     {
         $location = $this->locations->findOrFail($id);
-        
+
         // Fetch raw coordinates using PostGIS
         $coords = DB::selectOne('SELECT ST_Y(coordinates::geometry) as lat, ST_X(coordinates::geometry) as lng FROM locations WHERE id = ?', [$id]);
         $location->lat = $coords->lat ?? '';
         $location->lng = $coords->lng ?? '';
-        
+
         $operations = $this->operations->allActive();
 
         return view('locations.edit', compact('location', 'operations'));
@@ -110,36 +109,36 @@ class LocationController extends Controller
         $location = $this->locations->findOrFail($id);
 
         $rules = [
-            'name'            => ['required', 'string', 'max:200'],
-            'address'         => ['nullable', 'string', 'max:500'],
-            'radius_meters'   => ['required', 'integer', 'between:10,500'],
+            'name' => ['required', 'string', 'max:200'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'radius_meters' => ['required', 'integer', 'between:10,500'],
             'minimum_officer' => ['required', 'integer', 'min:1'],
-            'description'     => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
         ];
 
         // Coordinates are ONLY editable if not locked (PRD §7.5)
-        if (!$location->coords_locked) {
-            $rules['latitude']  = ['required', 'numeric', 'between:-90,90'];
+        if (! $location->coords_locked) {
+            $rules['latitude'] = ['required', 'numeric', 'between:-90,90'];
             $rules['longitude'] = ['required', 'numeric', 'between:-180,180'];
         }
 
         $validated = $request->validate($rules);
 
         $updates = [
-            'name'            => $validated['name'],
-            'address'         => $validated['address'] ?? $location->address,
-            'radius_meters'   => $validated['radius_meters'],
+            'name' => $validated['name'],
+            'address' => $validated['address'] ?? $location->address,
+            'radius_meters' => $validated['radius_meters'],
             'minimum_officer' => $validated['minimum_officer'],
-            'description'     => $validated['description'] ?? $location->description,
-            'updated_by'      => $request->user()->id,
+            'description' => $validated['description'] ?? $location->description,
+            'updated_by' => $request->user()->id,
         ];
 
         $location->update($updates);
 
         // Update coordinates if not locked
-        if (!$location->coords_locked && isset($validated['latitude'])) {
+        if (! $location->coords_locked && isset($validated['latitude'])) {
             DB::statement(
-                "UPDATE locations SET coordinates = ST_SetSRID(ST_MakePoint(?, ?), 4326) WHERE id = ?",
+                'UPDATE locations SET coordinates = ST_SetSRID(ST_MakePoint(?, ?), 4326) WHERE id = ?',
                 [$validated['longitude'], $validated['latitude'], $location->id]
             );
         }

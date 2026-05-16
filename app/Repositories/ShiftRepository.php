@@ -34,6 +34,7 @@ class ShiftRepository implements ShiftRepositoryInterface
     public function update(Shift $shift, array $data): Shift
     {
         $shift->update($data);
+
         return $shift->fresh();
     }
 

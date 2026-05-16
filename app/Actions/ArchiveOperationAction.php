@@ -34,7 +34,7 @@ class ArchiveOperationAction
         }
 
         $operation->update([
-            'status'     => 'archived',
+            'status' => 'archived',
             'updated_by' => $actor->id,
         ]);
 
