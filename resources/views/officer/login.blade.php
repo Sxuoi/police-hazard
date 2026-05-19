@@ -30,8 +30,6 @@
                 <input
                     id="nrp"
                     type="text"
-                    inputmode="numeric"
-                    pattern="[0-9]*"
                     x-model="nrp"
                     placeholder="Masukkan NRP"
                     required

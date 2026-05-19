@@ -74,14 +74,15 @@ export function registerOfficerComponents() {
                 const body = await res.json();
 
                 if (res.ok) {
-                    sessionStorage.setItem('ph_token', body.data.token);
-                    sessionStorage.setItem('ph_token_exp', body.data.expires_at);
-                    sessionStorage.setItem('ph_officer', JSON.stringify(body.data.officer));
+                    sessionStorage.setItem('ph_token', body.token);
+                    sessionStorage.setItem('ph_token_exp', body.token_expires_at);
+                    sessionStorage.setItem('ph_officer', JSON.stringify(body.officer));
                     window.location.href = '/officer/assignments';
                 } else {
                     this.error = body.detail || body.message || 'Login gagal. Periksa NRP dan password.';
                 }
             } catch (err) {
+                console.error('Login Error:', err);
                 this.error = 'Koneksi gagal. Periksa jaringan Anda.';
             } finally {
                 this.loading = false;
