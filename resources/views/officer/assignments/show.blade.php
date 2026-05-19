@@ -33,7 +33,7 @@
                 <div class="space-y-2 text-sm text-gray-400">
                     <p class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span x-text="assignment.shift_label"></span>
+                        <span x-text="assignment.shift_name"></span>
                     </p>
                     <p class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -55,7 +55,7 @@
             <div class="rounded-xl bg-[var(--color-surface-800)] border border-[var(--color-surface-600)] p-4">
                 <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-400">Jarak ke lokasi</span>
-                    <span class="text-sm font-medium" :class="distance !== null && distance <= (assignment.geofence_radius || 100) ? 'text-green-400' : 'text-yellow-400'">
+                    <span class="text-sm font-medium" :class="distance !== null && distance <= (assignment.location_radius_meters || 100) ? 'text-green-400' : 'text-yellow-400'">
                         <template x-if="distance !== null">
                             <span x-text="distance.toFixed(0) + ' m'"></span>
                         </template>
@@ -67,7 +67,7 @@
                 <div class="mt-2 h-2 rounded-full bg-[var(--color-surface-600)] overflow-hidden">
                     <div
                         class="h-full rounded-full transition-all duration-500"
-                        :class="distance !== null && distance <= (assignment.geofence_radius || 100) ? 'bg-green-500' : 'bg-yellow-500'"
+                        :class="distance !== null && distance <= (assignment.location_radius_meters || 100) ? 'bg-green-500' : 'bg-yellow-500'"
                         :style="'width: ' + Math.min(100, Math.max(5, distance !== null ? (1 - distance / 500) * 100 : 0)) + '%'"
                     ></div>
                 </div>
@@ -75,7 +75,7 @@
 
             {{-- Check-in Button --}}
             <a
-                :href="'/officer/checkin/' + assignment.id"
+                :href="'/officer/checkin/' + assignment.assignment_id"
                 class="block w-full py-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-semibold text-center transition-colors"
                 x-show="assignment.status !== 'attended'"
             >

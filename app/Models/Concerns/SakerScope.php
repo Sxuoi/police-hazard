@@ -31,7 +31,9 @@ class SakerScope implements Scope
 
         $isResolvingAuth = true;
         try {
-            $sakerId = auth()->user()?->saker_id
+            $sakerId = request()->attributes->get('saker_id')
+                ?? auth()->user()?->saker_id
+                ?? auth('sanctum')->user()?->saker_id
                 ?? session('saker_id')
                 ?? null;
         } finally {
