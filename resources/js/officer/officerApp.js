@@ -172,6 +172,9 @@ export function registerOfficerComponents() {
         loading: false,
         distance: null,
         watchId: null,
+        gpsError: null,
+        map: null,
+        officerMarker: null,
 
         async fetchAssignment() {
             this.loading = true;
@@ -182,6 +185,10 @@ export function registerOfficerComponents() {
                 if (res.ok) {
                     const body = await res.json();
                     this.assignment = body.data || body;
+                    // Wait for the Alpine template to render the #officer-minimap
+                    // div before we touch it with Leaflet.
+                    await this.$nextTick();
+                    this.renderMap();
                     this.startWatchingPosition();
                 }
             } catch (err) {
@@ -191,22 +198,92 @@ export function registerOfficerComponents() {
             }
         },
 
+        renderMap() {
+            if (!window.L || !this.assignment) return;
+            const coords = this.assignment.location_coordinates;
+            if (!coords || coords.lat == null || coords.lng == null) return;
+
+            const el = document.getElementById('officer-minimap');
+            if (!el || this.map) return;
+
+            this.map = window.L.map(el, {
+                zoomControl: false,
+                attributionControl: false,
+                dragging: true,
+                scrollWheelZoom: false,
+            }).setView([coords.lat, coords.lng], 17);
+
+            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(this.map);
+
+            // Location marker + geofence circle.
+            window.L.marker([coords.lat, coords.lng]).addTo(this.map)
+                .bindPopup(this.assignment.location_name || 'Lokasi');
+
+            const radius = this.assignment.location_radius_meters || 50;
+            window.L.circle([coords.lat, coords.lng], {
+                radius,
+                color: '#3b82f6',
+                fillColor: '#3b82f6',
+                fillOpacity: 0.15,
+                weight: 2,
+            }).addTo(this.map);
+
+            // Force Leaflet to recompute size in case the container was
+            // hidden/zero-height when the tile layer attached.
+            setTimeout(() => this.map?.invalidateSize(), 100);
+        },
+
+        updateOfficerMarker(lat, lng) {
+            if (!this.map || !window.L) return;
+            if (this.officerMarker) {
+                this.officerMarker.setLatLng([lat, lng]);
+            } else {
+                this.officerMarker = window.L.circleMarker([lat, lng], {
+                    radius: 8,
+                    color: '#22c55e',
+                    fillColor: '#22c55e',
+                    fillOpacity: 0.8,
+                    weight: 2,
+                }).addTo(this.map).bindPopup('Posisi Anda');
+            }
+        },
+
         startWatchingPosition() {
             if (!navigator.geolocation || !this.assignment) return;
 
+            // Geolocation API requires a secure context (HTTPS or localhost).
+            // Fail loudly so the officer knows why the distance never updates.
+            const host = window.location.hostname;
+            const localhostOk = host === 'localhost' || host === '127.0.0.1';
+            if (!window.isSecureContext && !localhostOk) {
+                this.gpsError = 'GPS membutuhkan HTTPS atau localhost';
+                return;
+            }
+
+            // API returns coordinates as { lat, lng } under location_coordinates,
+            // not as flat latitude/longitude on the assignment.
+            const coords = this.assignment.location_coordinates;
+            if (!coords || coords.lat == null || coords.lng == null) return;
+
             this.watchId = navigator.geolocation.watchPosition(
                 (pos) => {
-                    if (this.assignment.latitude && this.assignment.longitude) {
-                        this.distance = this.calculateDistance(
-                            pos.coords.latitude,
-                            pos.coords.longitude,
-                            this.assignment.latitude,
-                            this.assignment.longitude
-                        );
-                    }
+                    this.gpsError = null;
+                    this.distance = this.calculateDistance(
+                        pos.coords.latitude,
+                        pos.coords.longitude,
+                        coords.lat,
+                        coords.lng
+                    );
+                    this.updateOfficerMarker(pos.coords.latitude, pos.coords.longitude);
                 },
-                () => { /* silent */ },
-                { enableHighAccuracy: true, maximumAge: 5000 }
+                (err) => {
+                    if (err.code === 1) this.gpsError = 'Izin lokasi ditolak';
+                    else if (err.code === 2) this.gpsError = 'Posisi tidak tersedia';
+                    else if (err.code === 3) this.gpsError = 'Timeout GPS';
+                },
+                { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
             );
         },
 
@@ -260,12 +337,12 @@ export function registerOfficerComponents() {
         async fetchHistory() {
             this.loading = true;
             try {
-                const res = await officerFetch('GET', `/api/v1/officer/attendance-history?page=${this.page}`);
+                const res = await officerFetch('GET', `/api/v1/officer/attendance/history?page=${this.page}`);
                 if (!res) return;
                 if (res.ok) {
                     const body = await res.json();
                     this.records = body.data || [];
-                    this.totalPages = body.meta?.last_page || 1;
+                    this.totalPages = body.meta?.last_page || body.last_page || 1;
                 }
             } catch (err) {
                 // Silent fail
@@ -299,7 +376,7 @@ export function registerOfficerComponents() {
             this.loading = true;
             const id = window.location.pathname.split('/').pop();
             try {
-                const res = await officerFetch('GET', `/api/v1/officer/attendance-history/${id}`);
+                const res = await officerFetch('GET', `/api/v1/officer/attendance/${id}`);
                 if (!res) return;
                 if (res.ok) {
                     const body = await res.json();

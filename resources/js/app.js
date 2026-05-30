@@ -5,9 +5,17 @@ window.Alpine = Alpine;
 
 // Conditionally load officer or admin modules based on URL
 if (window.location.pathname.startsWith('/officer')) {
-    // Officer mobile UI — register officer Alpine components
-    // Officer screens don't use Leaflet for the admin dashboard map.
-    import('./officer/officerApp.js').then(({ registerOfficerComponents }) => {
+    // Officer mobile UI — register officer Alpine components.
+    // Leaflet is needed on /officer/assignments/{id} for the location mini-map,
+    // so we load it before Alpine starts and expose it on window.L just like
+    // the admin bundle does.
+    Promise.all([
+        import('leaflet'),
+        import('leaflet/dist/leaflet.css'),
+    ]).then(([L]) => {
+        window.L = L.default;
+        return import('./officer/officerApp.js');
+    }).then(({ registerOfficerComponents }) => {
         registerOfficerComponents();
         Alpine.start();
     });

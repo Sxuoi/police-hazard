@@ -60,12 +60,22 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">Operasi</label>
-                <select name="operation_id" x-model="operation_id" @change="fetchZones" required class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white">
+                <select name="operation_id" x-model="operation_id" @change="onOperationChange" required class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white">
                     <option value="">-- Pilih Operasi --</option>
                     @foreach($operations as $op)
-                        <option value="{{ $op->id }}">{{ $op->name }}</option>
+                        <option
+                            value="{{ $op->id }}"
+                            data-start="{{ \Illuminate\Support\Str::substr($op->start_time, 0, 5) }}"
+                            data-end="{{ $op->end_time ? \Illuminate\Support\Str::substr($op->end_time, 0, 5) : '' }}"
+                        >{{ $op->name }}</option>
                     @endforeach
                 </select>
+                <template x-if="operationStart">
+                    <div class="mt-2 text-xs text-gray-400 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Waktu Operasi: <span class="text-white font-medium" x-text="operationStart + (operationEnd ? ' – ' + operationEnd : '')"></span></span>
+                    </div>
+                </template>
             </div>
 
             <div>
@@ -80,20 +90,10 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">Lokasi <span x-show="isLoadingLocations" class="text-xs text-[var(--color-accent)] animate-pulse ml-2">Loading...</span></label>
-                <select name="location_id" x-model="location_id" @change="fetchShifts" required :disabled="!zone_id || isLoadingLocations" class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white disabled:opacity-50">
+                <select name="location_id" x-model="location_id" required :disabled="!zone_id || isLoadingLocations" class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white disabled:opacity-50">
                     <option value="">-- Pilih Lokasi --</option>
                     <template x-for="loc in locations" :key="loc.id">
                         <option :value="loc.id" x-text="loc.name"></option>
-                    </template>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Shift Waktu <span x-show="isLoadingShifts" class="text-xs text-[var(--color-accent)] animate-pulse ml-2">Loading...</span></label>
-                <select name="shift_id" x-model="shift_id" required :disabled="!location_id || isLoadingShifts" class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white disabled:opacity-50">
-                    <option value="">-- Pilih Shift --</option>
-                    <template x-for="shift in shifts" :key="shift.id">
-                        <option :value="shift.id" x-text="shift.name + ' (' + shift.start_time + ' - ' + shift.end_time + ')'"></option>
                     </template>
                 </select>
             </div>
@@ -227,14 +227,14 @@ document.addEventListener('alpine:init', () => {
         // Data sources
         zones: [],
         locations: [],
-        shifts: [],
         searchResults: [],
         
         // Form states
         operation_id: '',
+        operationStart: '',
+        operationEnd: '',
         zone_id: '',
         location_id: '',
-        shift_id: '',
         dates: [],
         newDate: '',
         searchQuery: '',
@@ -243,11 +243,10 @@ document.addEventListener('alpine:init', () => {
         // Loading states
         isLoadingZones: false,
         isLoadingLocations: false,
-        isLoadingShifts: false,
         isSearching: false,
         
         get canProceedToStep2() {
-            return this.operation_id && this.zone_id && this.location_id && this.shift_id && this.dates.length > 0;
+            return this.operation_id && this.zone_id && this.location_id && this.dates.length > 0;
         },
         
         addDate() {
@@ -261,15 +260,23 @@ document.addEventListener('alpine:init', () => {
         removeDate(index) {
             this.dates.splice(index, 1);
         },
-        
+
+        onOperationChange(event) {
+            // Pull start/end times from the selected <option>'s data attributes
+            // so the admin sees the operation's window without picking a shift.
+            const opt = event.target.selectedOptions[0];
+            this.operationStart = opt?.dataset.start || '';
+            this.operationEnd = opt?.dataset.end || '';
+            this.fetchZones();
+        },
+
         async fetchZones() {
             this.zone_id = '';
             this.location_id = '';
-            this.shift_id = '';
             this.zones = [];
-            
+
             if (!this.operation_id) return;
-            
+
             this.isLoadingZones = true;
             try {
                 const res = await fetch(`/ajax/zones-by-operation?operation_id=${this.operation_id}`);
@@ -277,34 +284,19 @@ document.addEventListener('alpine:init', () => {
             } catch(e) { console.error(e); }
             this.isLoadingZones = false;
         },
-        
+
         async fetchLocations() {
             this.location_id = '';
-            this.shift_id = '';
             this.locations = [];
-            
+
             if (!this.zone_id) return;
-            
+
             this.isLoadingLocations = true;
             try {
                 const res = await fetch(`/ajax/locations-by-zone?zone_id=${this.zone_id}`);
                 this.locations = await res.json();
             } catch(e) { console.error(e); }
             this.isLoadingLocations = false;
-        },
-        
-        async fetchShifts() {
-            this.shift_id = '';
-            this.shifts = [];
-            
-            if (!this.location_id) return;
-            
-            this.isLoadingShifts = true;
-            try {
-                const res = await fetch(`/ajax/shifts-by-location?location_id=${this.location_id}`);
-                this.shifts = await res.json();
-            } catch(e) { console.error(e); }
-            this.isLoadingShifts = false;
         },
         
         async searchOfficers() {

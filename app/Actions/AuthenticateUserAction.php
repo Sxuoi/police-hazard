@@ -51,7 +51,7 @@ class AuthenticateUserAction
 
         if ($user->isOfficer()) {
             throw ValidationException::withMessages([
-                'nrp' => [__('Akun Officer hanya dapat login melalui aplikasi mobile.')],
+                'nrp' => [__('Akun Anggota tidak dapat masuk di sini. Silakan gunakan halaman /officer/login.')],
             ]);
         }
 
