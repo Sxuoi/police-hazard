@@ -31,9 +31,9 @@ class SakerScope implements Scope
 
         $isResolvingAuth = true;
         try {
+            $user = auth()->user() ?? auth('sanctum')->user();
             $sakerId = request()->attributes->get('saker_id')
-                ?? auth()->user()?->saker_id
-                ?? auth('sanctum')->user()?->saker_id
+                ?? $user?->saker_id
                 ?? session('saker_id')
                 ?? null;
         } finally {
@@ -49,6 +49,18 @@ class SakerScope implements Scope
             throw new \RuntimeException('Saker context not set — cannot query tenant-scoped data without authentication.');
         }
 
-        $builder->where($model->getTable().'.saker_id', $sakerId);
+        // Hierarchical visibility for Saker Admins (and any non-officer
+        // role that reaches this scope): own saker + every descendant.
+        // Officers stay strictly own-saker. If we cannot resolve the user
+        // (e.g. background job), fall back to strict equality.
+        $sakerIds = $user && method_exists($user, 'accessibleSakerIds') && ! $user->isOfficer()
+            ? $user->accessibleSakerIds()
+            : [$sakerId];
+
+        if (count($sakerIds) === 1) {
+            $builder->where($model->getTable().'.saker_id', $sakerIds[0]);
+        } else {
+            $builder->whereIn($model->getTable().'.saker_id', $sakerIds);
+        }
     }
 }

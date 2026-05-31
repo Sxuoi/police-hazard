@@ -66,6 +66,55 @@ class User extends Authenticatable
         return $this->role === 'officer';
     }
 
+    /**
+     * IDs of every Saker this user can read.
+     *
+     * - God Admin: empty array (caller should use the SakerScope bypass instead).
+     * - Officer: own saker only — strict isolation per PRD invariant. Officers
+     *   never see other Sakers regardless of hierarchy.
+     * - Saker Admin: own saker plus every descendant (POLDA → POLRESTABES → POLSEK).
+     *
+     * @return array<int, string>
+     */
+    public function accessibleSakerIds(): array
+    {
+        if ($this->isGodAdmin()) {
+            return [];
+        }
+
+        if (! $this->saker_id) {
+            return [];
+        }
+
+        if ($this->isOfficer()) {
+            return [$this->saker_id];
+        }
+
+        // Saker Admin — load (cached) saker and walk the hierarchy.
+        $saker = $this->saker;
+        if (! $saker) {
+            return [$this->saker_id];
+        }
+
+        return $saker->descendantIds();
+    }
+
+    /**
+     * True when this user can read resources owned by the given saker_id.
+     */
+    public function canAccessSaker(?string $sakerId): bool
+    {
+        if ($this->isGodAdmin()) {
+            return true;
+        }
+
+        if (! $sakerId) {
+            return false;
+        }
+
+        return in_array($sakerId, $this->accessibleSakerIds(), true);
+    }
+
     // ── Relationships ────────────────────────────────────────────────
 
     public function saker(): BelongsTo

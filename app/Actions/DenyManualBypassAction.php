@@ -41,8 +41,10 @@ final class DenyManualBypassAction
                 throw new BypassExpiredException;
             }
 
-            // Assert same tenant or god admin (R5.10)
-            if ($bypass->saker_id !== $reviewer->saker_id && ! $reviewer->isGodAdmin()) {
+            // Assert reviewer can access this bypass — God Admin always,
+            // Saker Admin if the bypass belongs to their saker or any
+            // descendant in the POLDA → POLRESTABES → POLSEK hierarchy (R5.10)
+            if (! $reviewer->canAccessSaker($bypass->saker_id)) {
                 throw new AccessDeniedHttpException('Cross-tenant bypass denial not permitted.');
             }
 

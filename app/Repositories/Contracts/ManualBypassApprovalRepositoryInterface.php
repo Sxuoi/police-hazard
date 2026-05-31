@@ -45,9 +45,15 @@ interface ManualBypassApprovalRepositoryInterface
 
     /**
      * Paginated list of bypass requests for supervisor review.
-     * Uses SakerScope unless sakerId is null (God Admin sees all).
+     *
+     * - null     → no saker filter (God Admin only).
+     * - string   → single saker_id filter (legacy single-tenant Saker Admin).
+     * - array    → restrict to the given saker_ids (POLDA Saker Admin sees
+     *              every saker in their hierarchy, etc.).
+     *
+     * @param  string|array<int, string>|null  $sakerId
      */
-    public function listForSupervisor(?string $sakerId, array $filters, int $page): LengthAwarePaginator;
+    public function listForSupervisor(string|array|null $sakerId, array $filters, int $page): LengthAwarePaginator;
 
     /**
      * List pending bypass requests at a given escalation level that have been pending

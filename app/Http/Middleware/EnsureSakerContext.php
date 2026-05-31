@@ -48,8 +48,8 @@ class EnsureSakerContext
             ?? $request->input('saker_id')
             ?? null;
 
-        if ($resourceSakerId && $resourceSakerId !== $userSakerId) {
-            // Log unauthorized cross-tenant access attempt
+        if ($resourceSakerId && ! $user->canAccessSaker($resourceSakerId)) {
+            // Cross-tenant access attempt outside the user's hierarchy.
             abort(403, 'Akses lintas Satuan Kerja tidak diizinkan.');
         }
 

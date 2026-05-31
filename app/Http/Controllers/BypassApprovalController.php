@@ -31,7 +31,11 @@ class BypassApprovalController extends Controller
     public function index(Request $request): View
     {
         $user = $request->user();
-        $sakerId = $user->isGodAdmin() ? null : $user->saker_id;
+
+        // God Admin → null (no saker filter).
+        // Saker Admin → entire hierarchy under them. POLDA admin gets POLDA
+        // + every POLRESTABES + every POLSEK; POLSEK admin gets just POLSEK.
+        $sakerScope = $user->isGodAdmin() ? null : $user->accessibleSakerIds();
 
         $filters = [
             'status' => $request->query('status', 'pending'),
@@ -41,7 +45,7 @@ class BypassApprovalController extends Controller
 
         $page = (int) $request->query('page', 1);
 
-        $bypasses = $this->bypassRepo->listForSupervisor($sakerId, $filters, $page);
+        $bypasses = $this->bypassRepo->listForSupervisor($sakerScope, $filters, $page);
 
         return view('bypass-approvals.index', compact('bypasses', 'filters'));
     }

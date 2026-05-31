@@ -65,13 +65,17 @@ class ManualBypassApprovalRepository implements ManualBypassApprovalRepositoryIn
         ]);
     }
 
-    public function listForSupervisor(?string $sakerId, array $filters, int $page): LengthAwarePaginator
+    public function listForSupervisor(string|array|null $sakerId, array $filters, int $page): LengthAwarePaginator
     {
         $query = ManualBypassApproval::withoutGlobalScopes()
             ->with(['officer:id,name,nrp', 'assignment.location:id,name', 'reviewer:id,name']);
 
-        // Saker Admin sees only their own tenant; God Admin (null sakerId) sees all
-        if ($sakerId !== null) {
+        // null  → no filter (God Admin sees all).
+        // array → restrict to the listed saker_ids (Saker Admin hierarchy).
+        // string → legacy single-saker filter.
+        if (is_array($sakerId) && ! empty($sakerId)) {
+            $query->whereIn('saker_id', $sakerId);
+        } elseif (is_string($sakerId) && $sakerId !== '') {
             $query->where('saker_id', $sakerId);
         }
 
