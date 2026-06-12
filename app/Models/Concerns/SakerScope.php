@@ -40,6 +40,13 @@ class SakerScope implements Scope
             $isResolvingAuth = false;
         }
 
+        // God Admin bypasses tenant scoping entirely — check the resolved
+        // user directly because the SetGodAdminContext middleware may not
+        // have run yet (e.g. during session-based auth resolution).
+        if ($user && method_exists($user, 'isGodAdmin') && $user->isGodAdmin()) {
+            return;
+        }
+
         // During migrations, seeding, or CLI contexts where no auth exists,
         // skip the scope to avoid runtime errors
         if ($sakerId === null) {
