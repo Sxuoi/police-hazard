@@ -13,6 +13,18 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+
+    // ── Fitur 110 (Public/Guest) ────────────────────────────────────
+    Route::get('/laporan-110/isi/{token}', [\App\Http\Controllers\Report110PamaptaController::class, 'show'])
+        ->name('pamapta.report.show');
+    Route::post('/laporan-110/isi/{token}/arrive', [\App\Http\Controllers\Report110PamaptaController::class, 'arrive'])
+        ->name('pamapta.report.arrive');
+    Route::post('/laporan-110/isi/{token}/location', [\App\Http\Controllers\Report110PamaptaController::class, 'updateLocation'])
+        ->name('pamapta.report.location');
+    Route::post('/laporan-110/isi/{token}/unlock', [\App\Http\Controllers\Report110PamaptaController::class, 'unlock'])
+        ->name('pamapta.report.unlock');
+    Route::post('/laporan-110/isi/{token}/complete', [\App\Http\Controllers\Report110PamaptaController::class, 'complete'])
+        ->name('pamapta.report.complete');
 });
 
 /*
@@ -71,4 +83,15 @@ Route::middleware(['auth', 'god.admin'])->group(function () {
         ->name('reports.index');
     Route::get('reports/export', [\App\Http\Controllers\ReportController::class, 'export'])
         ->name('reports.export');
+
+    // ── Fitur 110: Manajemen Unit ────────────────────────────────────
+    Route::resource('units', \App\Http\Controllers\UnitController::class);
+
+    // ── Fitur 110: Dashboard Operator 110 ────────────────────────────
+    Route::get('operator-110', [\App\Http\Controllers\Report110OperatorController::class, 'index'])->name('operator-110.index');
+    Route::post('operator-110', [\App\Http\Controllers\Report110OperatorController::class, 'store'])->name('operator-110.store');
+    Route::get('operator-110/monitor', [\App\Http\Controllers\Report110OperatorController::class, 'monitor'])->name('operator-110.monitor');
+    Route::get('operator-110/{report}', [\App\Http\Controllers\Report110OperatorController::class, 'show'])->name('operator-110.show');
+    Route::put('operator-110/{report}', [\App\Http\Controllers\Report110OperatorController::class, 'update'])->name('operator-110.update');
+    Route::delete('operator-110/{report}', [\App\Http\Controllers\Report110OperatorController::class, 'destroy'])->name('operator-110.destroy');
 });

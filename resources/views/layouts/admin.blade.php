@@ -7,6 +7,9 @@
     <meta name="description" content="Police Hazard — Admin Panel">
     <title>@yield('title', 'Dashboard') — Police Hazard</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
     @stack('styles')
 </head>
 <body
@@ -44,36 +47,67 @@
         </div>
 
         {{-- Navigation --}}
-        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        @php
+            $isPoliceHazardActive = request()->routeIs(['dashboard', 'operations.*', 'zones.*', 'locations.*', 'officers.*', 'assignments.*', 'reports.*']);
+            $isLayanan110Active = request()->routeIs(['units.*', 'operator-110.*']);
+            $defaultMenu = $isLayanan110Active ? "'layanan_110'" : ($isPoliceHazardActive ? "'police_hazard'" : "''");
+        @endphp
+        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1" x-data="{ openMenu: {{ $defaultMenu }} }">
             <p class="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Menu Utama</p>
 
-            <x-sidebar-item href="{{ route('dashboard') }}" icon="home" :active="request()->routeIs('dashboard')">
-                Beranda
-            </x-sidebar-item>
+            {{-- Dropdown Police Hazard --}}
+            <div class="mb-2">
+                <button @click="openMenu = openMenu === 'police_hazard' ? '' : 'police_hazard'"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ $isPoliceHazardActive ? 'bg-[var(--color-surface-600)] text-white' : 'text-gray-400 hover:text-white hover:bg-[var(--color-surface-600)]' }}">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 {{ $isPoliceHazardActive ? 'text-[#3b82f6]' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <span>Police Hazard</span>
+                    </div>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu === 'police_hazard' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div x-show="openMenu === 'police_hazard'" 
+                     x-transition:enter="transition-all ease-in-out duration-200"
+                     x-transition:enter-start="opacity-0 max-h-0"
+                     x-transition:enter-end="opacity-100 max-h-screen"
+                     x-transition:leave="transition-all ease-in-out duration-200"
+                     x-transition:leave-start="opacity-100 max-h-screen"
+                     x-transition:leave-end="opacity-0 max-h-0"
+                     class="overflow-hidden pl-5 pr-2 py-1 space-y-1 mt-1 border-l-2 border-[var(--color-surface-600)] ml-5">
+                    
+                    <x-sidebar-item href="{{ route('dashboard') }}" icon="home" :active="request()->routeIs('dashboard')">Beranda</x-sidebar-item>
+                    <x-sidebar-item href="{{ route('operations.index') }}" icon="briefcase" :active="request()->routeIs('operations.*')">Operasi</x-sidebar-item>
+                    <x-sidebar-item href="{{ route('zones.index') }}" icon="layers" :active="request()->routeIs('zones.*')">Zona</x-sidebar-item>
+                    <x-sidebar-item href="{{ route('locations.index') }}" icon="map-pin" :active="request()->routeIs('locations.*')">Lokasi</x-sidebar-item>
+                    <x-sidebar-item href="{{ route('officers.index') }}" icon="users" :active="request()->routeIs('officers.*')">Anggota</x-sidebar-item>
+                    <x-sidebar-item href="{{ route('assignments.index') }}" icon="clipboard" :active="request()->routeIs('assignments.*')">Penugasan</x-sidebar-item>
+                    <x-sidebar-item href="{{ route('reports.index') }}" icon="bar-chart" :active="request()->routeIs('reports.*')">Rekapitulasi</x-sidebar-item>
+                </div>
+            </div>
 
-            <x-sidebar-item href="{{ route('operations.index') }}" icon="briefcase" :active="request()->routeIs('operations.*')">
-                Operasi
-            </x-sidebar-item>
-
-            <x-sidebar-item href="{{ route('zones.index') }}" icon="layers" :active="request()->routeIs('zones.*')">
-                Zona
-            </x-sidebar-item>
-
-            <x-sidebar-item href="{{ route('locations.index') }}" icon="map-pin" :active="request()->routeIs('locations.*')">
-                Lokasi
-            </x-sidebar-item>
-
-            <x-sidebar-item href="{{ route('officers.index') }}" icon="users" :active="request()->routeIs('officers.*')">
-                Anggota
-            </x-sidebar-item>
-
-            <x-sidebar-item href="{{ route('assignments.index') }}" icon="clipboard" :active="request()->routeIs('assignments.*')">
-                Penugasan
-            </x-sidebar-item>
-
-            <x-sidebar-item href="{{ route('reports.index') }}" icon="bar-chart" :active="request()->routeIs('reports.*')">
-                Rekapitulasi
-            </x-sidebar-item>
+            {{-- Dropdown Layanan 110 --}}
+            <div class="mb-2">
+                <button @click="openMenu = openMenu === 'layanan_110' ? '' : 'layanan_110'"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ $isLayanan110Active ? 'bg-[var(--color-surface-600)] text-white' : 'text-gray-400 hover:text-white hover:bg-[var(--color-surface-600)]' }}">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 {{ $isLayanan110Active ? 'text-[#3b82f6]' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span>Layanan 110</span>
+                    </div>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu === 'layanan_110' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div x-show="openMenu === 'layanan_110'" 
+                     x-transition:enter="transition-all ease-in-out duration-200"
+                     x-transition:enter-start="opacity-0 max-h-0"
+                     x-transition:enter-end="opacity-100 max-h-screen"
+                     x-transition:leave="transition-all ease-in-out duration-200"
+                     x-transition:leave-start="opacity-100 max-h-screen"
+                     x-transition:leave-end="opacity-0 max-h-0"
+                     class="overflow-hidden pl-5 pr-2 py-1 space-y-1 mt-1 border-l-2 border-[var(--color-surface-600)] ml-5">
+                    
+                    <x-sidebar-item href="{{ route('operator-110.index') }}" icon="clipboard-list" :active="request()->routeIs('operator-110.index') || request()->routeIs('operator-110.show')">Daftar Laporan</x-sidebar-item>
+                    <x-sidebar-item href="{{ route('operator-110.monitor') }}" icon="globe" :active="request()->routeIs('operator-110.monitor')">Peta Pantauan</x-sidebar-item>
+                    <x-sidebar-item href="{{ route('units.index') }}" icon="truck" :active="request()->routeIs('units.*')">Manajemen Armada</x-sidebar-item>
+                </div>
+            </div>
 
             <p class="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider mt-6 mb-2">Sistem</p>
 
@@ -85,7 +119,7 @@
                 Audit Log
             </x-sidebar-item>
 
-            @if(auth()->user()->isGodAdmin())
+            @if(auth()->check() && auth()->user()->isGodAdmin())
                 <p class="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider mt-6 mb-2">God Admin</p>
 
                 <x-sidebar-item href="#" icon="flame" :active="request()->routeIs('heatmap')">

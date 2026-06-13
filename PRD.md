@@ -1,13 +1,13 @@
 # Product Requirements Document (PRD) - Police Hazard
 
 ## 1. Executive Summary
-Proyek **Police Hazard** adalah sistem command-and-control berbasis web yang dirancang khusus untuk instansi kepolisian (Indonesian law-enforcement agencies). Sistem ini mendigitalkan dan mengotomatiskan proses pencatatan kehadiran (check-in) personel kepolisian di lapangan (baik pos statis maupun patroli mobile). Sistem memverifikasi kehadiran menggunakan validasi GPS (PostGIS geofencing), dokumentasi foto, dan dilengkapi dengan mekanisme pendeteksi kecurangan (spoofing detection). Semua riwayat data dijamin immutability-nya (tidak dapat diubah/dihapus) untuk keperluan audit.
+Proyek **Police Hazard** adalah sistem command-and-control berbasis web yang dirancang khusus untuk instansi kepolisian (Indonesian law-enforcement agencies). Sistem ini dikembangkan menjadi sebuah **Mini Command Center** yang mengintegrasikan dua fungsi operasional utama secara berdampingan: monitoring kehadiran personel di lapangan secara real-time (modul Police Hazard) dan penanganan kedaruratan masyarakat (modul Fitur 110). Sistem ini mendigitalkan dan mengotomatiskan proses pencatatan kehadiran (check-in) personel kepolisian di lapangan (baik pos statis maupun patroli mobile) menggunakan validasi GPS (PostGIS geofencing), dokumentasi foto, dan spoofing detection, sekaligus menyajikan platform koordinasi penanganan laporan kedaruratan yang cepat dan akurat. Semua riwayat data penugasan, kehadiran, audit, dan laporan kedaruratan dijamin immutability-nya (tidak dapat diubah/dihapus) untuk keperluan audit.
 
 ---
 
 ## 2. Product Overview
 ### Tujuan Sistem
-Menyediakan platform manajemen penugasan dan monitoring personel kepolisian secara real-time yang terdesentralisasi berdasarkan hierarki organisasi (Polda, Polres, Polsek).
+Menyediakan platform Mini Command Center untuk manajemen penugasan, monitoring kehadiran personel kepolisian secara real-time yang terdesentralisasi, serta koordinasi dan pelaporan layanan kedaruratan masyarakat (Fitur 110) secara global.
 
 ### Masalah yang Diselesaikan
 *   **Pencatatan Manual:** Menghilangkan pencatatan kehadiran berbasis kertas yang rawan manipulasi.
@@ -38,13 +38,16 @@ Menyediakan platform manajemen penugasan dan monitoring personel kepolisian seca
 
 ## 5. User Roles (Berdasarkan Analisis Kode)
 
-Berdasarkan `app/Models/User.php` dan implementasi *middleware*, terdapat 3 role utama yang didefinisikan secara _hardcoded_ pada kolom `role`:
+Berdasarkan `app/Models/User.php` dan rancangan sistem, terdapat beberapa peran (roles) utama:
 
-| Role | Description | Hak Akses |
+| Role / Aktor | Description | Hak Akses & Mekanisme Isolasi Data |
 | :--- | :--- | :--- |
-| `god_admin` | Super Administrator | Memiliki akses penuh ke seluruh sistem tanpa batasan _tenant_ (Saker). Dapat melihat log audit global. Dilindungi oleh middleware `god.admin`. |
-| `saker_admin` | Administrator Wilayah | Hanya dapat mengelola data operasional (Operations, Zones, Locations, Assignments, Officers) yang berada dalam naungan Satuan Kerja (`saker_id`) miliknya. |
-| `officer` | Petugas Lapangan | Hanya memiliki akses untuk melihat jadwal penugasan dan melakukan _check-in_. (Akses via aplikasi mobile / API yang saat ini masih dalam pengembangan). |
+| `god_admin` | Super Administrator | Memiliki akses penuh ke seluruh sistem tanpa batasan *tenant* (Saker). Dapat melihat log audit global. Dilindungi oleh middleware `god.admin`. |
+| `saker_admin` | Administrator Wilayah | Hanya dapat mengelola data operasional (Operations, Zones, Locations, Assignments, Officers) dalam naungan Satuan Kerja (`saker_id`) miliknya. |
+| `officer` | Petugas Lapangan | Memiliki akses terbatas untuk melihat jadwal penugasan dan melakukan *check-in* via aplikasi mobile. |
+| **Operator Command Center (CC)** | Petugas Operator (CC) | Menginput data awal laporan kedaruratan 110, mencatat nomor tiketing, nama/NRP operator, menunjuk Unit Lapangan penanggung jawab, serta mengirim template pesan/link token via WhatsApp. |
+| **Pamapta Lapangan** | Petugas Respon Cepat | Mengisi formulir pelaporan 110 di lapangan. Mengakses form via link token kriptografis tanpa proses login biasa (*Bypass Authentication / Bypass Guest Token*). |
+| **Atasan / Pimpinan** | Supervisor Wilayah / Pusat | Memantau dashboard global untuk memantau data kehadiran (modul Police Hazard) dan seluruh status penanganan laporan 110. Khusus laporan 110, data bersifat global sehingga pimpinan dapat melihat semua laporan dari wilayah mana pun (*Bypass Row-Level Tenancy / SakerScope*). |
 
 ---
 
@@ -79,7 +82,9 @@ flowchart TD
 ```
 
 ### Data Isolation (Tenancy) Flow
-Data diisolasi menggunakan `SakerScope` (Global Scope) pada Eloquent. Saat `saker_admin` login, middleware `EnsureSakerContext` memastikan setiap *query* otomatis ditambahkan `WHERE saker_id = ?`. Akses lintas-Saker akan menghasilkan `404 Not Found`.
+Data pada modul Police Hazard diisolasi menggunakan `SakerScope` (Global Scope) pada Eloquent. Saat `saker_admin` login, middleware `EnsureSakerContext` memastikan setiap *query* otomatis ditambahkan `WHERE saker_id = ?`. Akses lintas-Saker akan menghasilkan `404 Not Found`.
+
+Namun, untuk **Fitur 110 (Layanan Kedaruratan Masyarakat)**, data laporan pada model `reports_110` dikecualikan secara khusus dari penerapan `SakerScope` (*Bypass Row-Level Tenancy*). Hal ini bertujuan agar atasan/pimpinan dari satuan kerja wilayah mana pun dapat memantau penanganan insiden kedaruratan di seluruh wilayah hukum secara real-time demi efektivitas koordinasi komando.
 
 ---
 
@@ -102,6 +107,7 @@ erDiagram
     ASSIGNMENT ||--o{ ATTENDANCE : has
     ATTENDANCE ||--o{ ATTENDANCE_AMENDMENT : corrected_by
     USER ||--o{ MANUAL_BYPASS_APPROVAL : requested_by
+    UNITS ||--o{ REPORTS_110 : handles
 
     SAKER {
         uuid id PK
@@ -154,6 +160,41 @@ erDiagram
         string event_type
         jsonb payload_after
     }
+    UNITS {
+        uuid id PK
+        string nama_unit
+        string no_wa
+    }
+    REPORTS_110 {
+        uuid id PK
+        string no_tiketing
+        uuid unit_id FK
+        string nama_pamapta
+        string nrp_pamapta
+        string token
+        string status
+        string jenis_gangguan
+        timestamp waktu_kejadian
+        timestamp waktu_dilaporkan
+        timestamp waktu_mendatangi_tkp
+        string tempat_kejadian
+        geometry koordinat_tiba
+        string alamat_aktual_tiba
+        geometry koordinat_selesai
+        string alamat_aktual_selesai
+        string modus_operandi
+        string korban
+        string uraian_kejadian
+        string pelaku
+        string sanksi_sanksi
+        string motif
+        string alat_yang_digunakan
+        string kerugian
+        string bukti_yang_dapat_disita
+        string tindakan_kepolisian
+        string keterangan_lain
+        string bukti_foto_path
+    }
 ```
 
 ### Database Overview (Tabel Kunci)
@@ -188,6 +229,23 @@ Tabel **Append-Only** (Immutable). Tidak memiliki `updated_at`.
 #### `audit_logs` (Log Audit Global)
 Tabel **Append-Only** untuk melacak setiap perubahan data pada sistem.
 *   `event_type` (String), `actor_id` (UUID), `payload_before` (JSON), `payload_after` (JSON).
+
+#### `units` (Unit Lapangan Respon Cepat)
+Menyimpan data unit petugas lapangan penanggung jawab penanganan kedaruratan.
+*   `id` (UUIDv7), `nama_unit` (String), `no_wa` (String - nomor WhatsApp untuk pengiriman token bypass).
+
+#### `reports_110` (Laporan Kedaruratan 110)
+Tabel untuk merekam insiden kedaruratan 110 dan status penangannnya. Bersifat semi-immutable untuk integritas data.
+*   `id` (UUIDv7), `no_tiketing` (String, Unique - nomor tiket dari Polrestabes Semarang), `unit_id` (UUID - Foreign Key ke `units`).
+*   `nama_pamapta` (String - nama petugas pamapta yang menyelesaikan laporan), `nrp_pamapta` (String - NRP petugas pamapta yang menyelesaikan laporan).
+*   `token` (String, Unique - token bypass akses acak kriptografis).
+*   `status` (Enum: `Butuh penanganan`, `Sedang penanganan`, `Sudah penanganan`).
+*   `jenis_gangguan` (String), `waktu_kejadian` (Timestamp), `waktu_dilaporkan` (Timestamp), `waktu_mendatangi_tkp` (Timestamp, Nullable).
+*   `tempat_kejadian` (Text - alamat/TKP awal yang diinput operator).
+*   `koordinat_tiba` (Geometry POINT 4326, Nullable), `alamat_aktual_tiba` (Text, Nullable).
+*   `koordinat_selesai` (Geometry POINT 4326, Nullable), `alamat_aktual_selesai` (Text, Nullable).
+*   11 Kolom Tekstual Laporan Segera: `modus_operandi` (Text), `korban` (Text), `uraian_kejadian` (Text), `pelaku` (Text), `sanksi_sanksi` (Text), `motif` (Text), `alat_yang_digunakan` (Text), `kerugian` (Text), `bukti_yang_dapat_disita` (Text), `tindakan_kepolisian` (Text), `keterangan_lain` (Text).
+*   `bukti_foto_path` (String, Nullable) - path foto bukti dokumentasi penanganan ter-watermark.
 
 ---
 
@@ -229,6 +287,34 @@ Sistem dibagi menjadi beberapa modul utama yang diatur melalui *resource control
 ### Modul Audit Log
 *   **Tujuan:** Menampilkan sejarah aktivitas sistem (siapa melakukan apa, dan kapan).
 *   **Fitur:** Tampilan *read-only* (Grid) untuk log yang dicatat oleh `AuditService`.
+
+### Modul Manajemen Unit Lapangan
+*   **Tujuan:** Mengelola data Unit Lapangan Respon Cepat yang bertugas merespons panggilan darurat 110.
+*   **Fitur:** CRUD Unit Lapangan (nama unit, nomor WhatsApp aktif).
+
+### Modul Pencatatan Laporan (Operator CC)
+*   **Tujuan:** Memfasilitasi Operator Command Center (CC) untuk meregistrasi laporan kedaruratan masuk.
+*   **Fitur:**
+    *   *Create Ticket:* Penginputan nomor tiketing manual (unik dari Polrestabes Semarang), nama & NRP operator, pemilihan Unit Lapangan penanggung jawab, Jenis Gangguan, Waktu Kejadian, Waktu Dilaporkan, dan Nama TKP awal.
+    *   *Link Generation:* Otomatis membuat token acak kriptografis unik untuk laporan.
+    *   *Share WhatsApp:* Tombol untuk mengirimkan pesan WhatsApp terformat ke nomor WhatsApp Unit Lapangan terpilih melalui integrasi link `wa.me`, berisi detail laporan dan tautan akses form lapangan dengan parameter token bypass.
+
+### Modul Form Lapangan (Pamapta Lapangan)
+*   **Tujuan:** Menyediakan antarmuka penulisan Laporan Segera oleh petugas Pamapta Lapangan di TKP tanpa perlu login (*Bypass Guest Token*).
+*   **Fitur:**
+    *   *GPS Tiba Verification (Fase Tiba):* Saat link dibuka pertama kali, pop-up modal "Tiba di Lokasi" mengunci seluruh form. Petugas wajib menekan tombol kedatangan, yang secara otomatis melacak GPS perangkat (HTML5 Geolocation API), mengisi otomatis `waktu_mendatangi_tkp`, koordinat tiba, dan melakukan reverse-geocoding untuk alamat tiba, lalu membuka kunci form.
+    *   *Draft Saving (Fase Penanganan):* Pengisian 11 poin Laporan Segera (modus operandi, korban, pelaku, motif, kerugian, tindakan kepolisian, dll.) yang didampingi peta Leaflet.js interaktif. Terdapat tombol pembaruan GPS kustom di peta untuk melacak koordinat terkini petugas. Petugas bebas menyimpan draf laporan berulang kali tanpa mengunci form.
+    *   *Lock & Complete (Fase Selesai):* Ketika status diubah menjadi "Completed", petugas wajib mengambil foto kamera langsung/unggah berkas. Sistem merekam koordinat selesai secara instan dan mengunci form menjadi read-only. Foto dokumentasi secara otomatis dibubuhi watermark koordinat, alamat selesai, waktu, dan logo via `WatermarkService`.
+    *   *Edit Verification Code:* Form terkunci hanya dapat dibuka kembali untuk diedit oleh Pamapta dengan memasukkan kode verifikasi `no_tiketing` (Atasan & Operator kebal dari aturan penguncian ini).
+
+### Siklus Status Tiket (Ticket Lifecycle)
+Status tiket laporan 110 dikelola melalui siklus hidup (lifecycle) berikut:
+
+| Status | Deskripsi | Kendali Form Pamapta |
+| :--- | :--- | :--- |
+| `Butuh penanganan` | Tiket baru dibuat oleh Operator CC dan belum ditindaklanjuti. | Form terkunci total oleh pop-up konfirmasi kedatangan "Tiba di Lokasi". |
+| `Sedang penanganan` | Pamapta telah tiba di TKP, koordinat GPS tiba tercatat, dan sedang memproses laporan. | Kunci form terbuka. Petugas dapat mengisi 11 poin Laporan Segera dan menyimpan draf berkali-kali. |
+| `Sudah penanganan` | Laporan telah selesai ditangani, foto dokumentasi diunggah, dan koordinat selesai terkunci. | Form terkunci permanen (read-only). Foto dibubuhi watermark. Pengeditan memerlukan kode verifikasi `no_tiketing`. |
 
 ---
 
@@ -303,6 +389,13 @@ flowchart TD
 *   **FR-006 (Spoofing):** Sistem HARUS melakukan skoring potensi *spoofing* berdasarkan indikator akurasi GPS dan deviasi waktu (timestamp drift).
 *   **FR-007 (Audit):** Setiap aksi modifikasi (CRUD) HARUS dicatat ke dalam tabel `audit_logs` secara otomatis melalui `AuditService`.
 *   **FR-008 (Immutability):** Tabel `attendances`, `audit_logs`, dan `attendance_amendments` HARUS bersifat *append-only* (tidak boleh diperbarui / dihapus).
+*   **FR-009 (110 - Tiketing & Link):** Sistem HARUS menyediakan antarmuka bagi Operator CC untuk membuat tiket laporan kedaruratan 110 dengan `no_tiketing` unik, menentukan unit lapangan, dan memicu deep link WA (`wa.me`) yang menyertakan token bypass unik.
+*   **FR-010 (110 - Bypass Auth):** Sistem HARUS mengizinkan petugas Pamapta Lapangan mengakses formulir laporan 110 via URL token kriptografis tanpa melalui login konvensional (*Bypass Guest Token*).
+*   **FR-011 (110 - Kedatangan Lock):** Formulir Pamapta HARUS menampilkan pop-up kedatangan "Tiba di Lokasi" yang mengunci seluruh form. Kunci hanya terbuka setelah koordinat GPS kedatangan divalidasi dan direkam (`waktu_mendatangi_tkp`, `koordinat_tiba`, `alamat_aktual_tiba`).
+*   **FR-012 (110 - Pelacakan GPS):** Halaman form penanganan 110 HARUS menampilkan peta Leaflet.js yang menunjukkan `koordinat_tiba` beserta tombol kustom untuk memperbarui posisi koordinat GPS jika petugas berpindah di sekitar TKP.
+*   **FR-013 (110 - Selesai & Watermark):** Saat status diubah menjadi "Completed", sistem HARUS mewajibkan petugas mengunggah foto dokumentasi, mengunci koordinat selesai (`koordinat_selesai`, `alamat_aktual_selesai`), dan menempelkan watermark koordinat, alamat, logo, serta stempel waktu ke foto secara permanen via `WatermarkService`.
+*   **FR-014 (110 - Penguncian Form):** Tiket berstatus "Sudah penanganan" HARUS dikunci secara read-only dari segala bentuk penyuntingan, kecuali jika Pamapta memasukkan kode verifikasi `no_tiketing` (Operator CC dan Atasan dikecualikan dari aturan penguncian ini).
+*   **FR-015 (110 - Non-Tenant Monitoring):** Sistem HARUS mengecualikan model `reports_110` dari global scope `SakerScope` agar seluruh data laporan 110 dapat dipantau oleh atasan lintas wilayah secara terpusat.
 
 ---
 
@@ -313,6 +406,8 @@ flowchart TD
 *   **NFR-003 (Performance):** Pengambilan radius geofence harus mengandalkan Spatial Index (`GIST`) pada sisi database.
 *   **NFR-004 (UI/UX):** Antarmuka web harus responsif menggunakan Tailwind CSS v4.0.
 *   **NFR-005 (Timezone):** Data internal disimpan dalam format `TIMESTAMPTZ` (UTC). Representasi di level aplikasi (berdasarkan `config/policehazard.php`) adalah WIB (`Asia/Jakarta`).
+*   **NFR-006 (110 - Geolocation Accuracy):** Pembacaan koordinat tiba/selesai wajib menggunakan HTML5 Geolocation API dengan akurasi GPS terbaik yang didukung oleh perangkat keras (enableHighAccuracy).
+*   **NFR-007 (110 - Token Entropy):** Token bypass laporan harus berupa string acak kriptografis dengan entropi tinggi (minimal 32 karakter hexadecimal/base64) untuk mencegah brute-force url.
 
 ---
 

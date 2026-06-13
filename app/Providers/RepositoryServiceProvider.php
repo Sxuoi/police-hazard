@@ -61,5 +61,15 @@ class RepositoryServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\ShiftRepositoryInterface::class,
             \App\Repositories\ShiftRepository::class
         );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\UnitRepositoryInterface::class,
+            \App\Repositories\UnitRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\Report110RepositoryInterface::class,
+            \App\Repositories\Report110Repository::class
+        );
     }
 }

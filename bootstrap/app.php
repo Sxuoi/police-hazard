@@ -11,6 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
         $middleware->alias([
             'saker.context' => \App\Http\Middleware\EnsureSakerContext::class,
             'god.admin'     => \App\Http\Middleware\SetGodAdminContext::class,
