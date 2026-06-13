@@ -54,7 +54,7 @@ class SpoofingDetectionService
         // TODO (Phase 3): Repeated exact coordinates (compare to last 3 check-ins)
 
         return (object) [
-            'score'   => $score,
+            'score' => $score,
             'signals' => $signals,
         ];
     }

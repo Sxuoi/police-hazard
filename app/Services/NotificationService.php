@@ -29,12 +29,12 @@ class NotificationService
         ?array $payload = null,
     ): void {
         $this->notificationRepo->createForUser($recipientId, [
-            'saker_id'   => $sakerId,
-            'type'       => $type,
-            'title'      => $title,
-            'body'       => $body,
+            'saker_id' => $sakerId,
+            'type' => $type,
+            'title' => $title,
+            'body' => $body,
             'action_url' => $actionUrl,
-            'payload'    => $payload,
+            'payload' => $payload,
             'created_at' => now(),
         ]);
     }

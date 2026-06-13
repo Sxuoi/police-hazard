@@ -88,6 +88,10 @@
         <p class="text-center text-xs text-gray-600 mt-8">
             &copy; {{ date('Y') }} Police Hazard v2.1 — Kepolisian Negara Republik Indonesia
         </p>
+        <p class="text-center text-xs text-gray-500 mt-2">
+            Anggota?
+            <a href="/officer/login" class="text-[var(--color-accent)] hover:underline">Masuk lewat halaman Anggota</a>
+        </p>
     </div>
 
 </body>

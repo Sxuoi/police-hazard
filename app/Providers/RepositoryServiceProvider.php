@@ -2,6 +2,28 @@
 
 namespace App\Providers;
 
+use App\Repositories\AssignmentRepository;
+use App\Repositories\AttendanceRepository;
+use App\Repositories\AuditLogRepository;
+use App\Repositories\Contracts\AssignmentRepositoryInterface;
+use App\Repositories\Contracts\AttendanceRepositoryInterface;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use App\Repositories\Contracts\LocationRepositoryInterface;
+use App\Repositories\Contracts\ManualBypassApprovalRepositoryInterface;
+use App\Repositories\Contracts\NotificationRepositoryInterface;
+use App\Repositories\Contracts\OperationRepositoryInterface;
+use App\Repositories\Contracts\SakerRepositoryInterface;
+use App\Repositories\Contracts\ShiftRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Contracts\ZoneRepositoryInterface;
+use App\Repositories\LocationRepository;
+use App\Repositories\ManualBypassApprovalRepository;
+use App\Repositories\NotificationRepository;
+use App\Repositories\OperationRepository;
+use App\Repositories\SakerRepository;
+use App\Repositories\ShiftRepository;
+use App\Repositories\UserRepository;
+use App\Repositories\ZoneRepository;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -13,53 +35,58 @@ class RepositoryServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(
-            \App\Repositories\Contracts\SakerRepositoryInterface::class,
-            \App\Repositories\SakerRepository::class
+            SakerRepositoryInterface::class,
+            SakerRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\UserRepositoryInterface::class,
-            \App\Repositories\UserRepository::class
+            UserRepositoryInterface::class,
+            UserRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\OperationRepositoryInterface::class,
-            \App\Repositories\OperationRepository::class
+            OperationRepositoryInterface::class,
+            OperationRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\ZoneRepositoryInterface::class,
-            \App\Repositories\ZoneRepository::class
+            ZoneRepositoryInterface::class,
+            ZoneRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\LocationRepositoryInterface::class,
-            \App\Repositories\LocationRepository::class
+            LocationRepositoryInterface::class,
+            LocationRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\AssignmentRepositoryInterface::class,
-            \App\Repositories\AssignmentRepository::class
+            AssignmentRepositoryInterface::class,
+            AssignmentRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\AttendanceRepositoryInterface::class,
-            \App\Repositories\AttendanceRepository::class
+            AttendanceRepositoryInterface::class,
+            AttendanceRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\AuditLogRepositoryInterface::class,
-            \App\Repositories\AuditLogRepository::class
+            AuditLogRepositoryInterface::class,
+            AuditLogRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\NotificationRepositoryInterface::class,
-            \App\Repositories\NotificationRepository::class
+            NotificationRepositoryInterface::class,
+            NotificationRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\ShiftRepositoryInterface::class,
-            \App\Repositories\ShiftRepository::class
+            ShiftRepositoryInterface::class,
+            ShiftRepository::class
+        );
+
+        $this->app->bind(
+            ManualBypassApprovalRepositoryInterface::class,
+            ManualBypassApprovalRepository::class
         );
 
         $this->app->bind(

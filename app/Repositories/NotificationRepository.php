@@ -21,7 +21,7 @@ class NotificationRepository implements NotificationRepositoryInterface
             ->whereNull('read_at')
             ->where(function ($q) {
                 $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>', now());
+                    ->orWhere('expires_at', '>', now());
             })
             ->orderByDesc('created_at')
             ->get();
@@ -41,7 +41,7 @@ class NotificationRepository implements NotificationRepositoryInterface
             ->whereNull('read_at')
             ->where(function ($q) {
                 $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>', now());
+                    ->orWhere('expires_at', '>', now());
             })
             ->count();
     }

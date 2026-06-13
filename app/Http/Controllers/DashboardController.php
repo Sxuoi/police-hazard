@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Location;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -12,13 +16,13 @@ class DashboardController extends Controller
         $date = $request->query('date', now()->format('Y-m-d'));
 
         // Basic metrics calculation
-        $locations = \App\Models\Location::where('is_active', true)
+        $locations = Location::where('is_active', true)
             ->withCount(['assignments as total_assignments' => function ($q) use ($date) {
                 $q->where('assignment_date', $date)->where('status', 'active');
             }])
             ->withCount(['assignments as present_assignments' => function ($q) use ($date) {
                 $q->where('assignment_date', $date)->where('status', 'active')
-                  ->whereHas('attendances');
+                    ->whereHas('attendances');
             }])
             ->get();
 
@@ -47,47 +51,60 @@ class DashboardController extends Controller
         return view('dashboard.index', compact('metrics', 'date'));
     }
 
-    public function mapData(Request $request): \Illuminate\Http\JsonResponse
+    public function mapData(Request $request): JsonResponse
     {
         $date = $request->query('date', now()->format('Y-m-d'));
 
-        $locations = \App\Models\Location::select(
-                'id', 'name', 'address', 'minimum_officer',
-                \Illuminate\Support\Facades\DB::raw('ST_Y(coordinates::geometry) as lat'),
-                \Illuminate\Support\Facades\DB::raw('ST_X(coordinates::geometry) as lng')
-            )
-            ->where('is_active', true)
-            ->withCount(['assignments as total_assignments' => function ($q) use ($date) {
-                $q->where('assignment_date', $date)->where('status', 'active');
-            }])
-            ->withCount(['assignments as present_assignments' => function ($q) use ($date) {
-                $q->where('assignment_date', $date)->where('status', 'active')
-                  ->whereHas('attendances');
-            }])
-            ->get()
-            ->map(function ($loc) {
-                $status = 'no_assignment';
-                if ($loc->total_assignments > 0) {
-                    if ($loc->present_assignments >= $loc->minimum_officer) {
-                        $status = 'full';
-                    } elseif ($loc->present_assignments > 0) {
-                        $status = 'partial';
-                    } else {
-                        $status = 'missing';
-                    }
-                }
+        $cacheKey = "dashboard:map:{$date}";
+        $ttl = (int) config('policehazard.cache.map_points_ttl_seconds', 30);
 
-                return [
-                    'id' => $loc->id,
-                    'name' => $loc->name,
-                    'lat' => $loc->lat,
-                    'lng' => $loc->lng,
-                    'status' => $status,
-                    'total' => $loc->total_assignments,
-                    'present' => $loc->present_assignments,
-                    'min' => $loc->minimum_officer,
-                ];
-            });
+        $loader = function () use ($date) {
+            return Location::select(
+                'id', 'name', 'address', 'minimum_officer',
+                DB::raw('ST_Y(coordinates::geometry) as lat'),
+                DB::raw('ST_X(coordinates::geometry) as lng')
+            )
+                ->where('is_active', true)
+                ->withCount(['assignments as total_assignments' => function ($q) use ($date) {
+                    $q->where('assignment_date', $date)->where('status', 'active');
+                }])
+                ->withCount(['assignments as present_assignments' => function ($q) use ($date) {
+                    $q->where('assignment_date', $date)->where('status', 'active')
+                        ->whereHas('attendances');
+                }])
+                ->get()
+                ->map(function ($loc) {
+                    $status = 'no_assignment';
+                    if ($loc->total_assignments > 0) {
+                        if ($loc->present_assignments >= $loc->minimum_officer) {
+                            $status = 'full';
+                        } elseif ($loc->present_assignments > 0) {
+                            $status = 'partial';
+                        } else {
+                            $status = 'missing';
+                        }
+                    }
+
+                    return [
+                        'id' => $loc->id,
+                        'name' => $loc->name,
+                        'lat' => $loc->lat,
+                        'lng' => $loc->lng,
+                        'status' => $status,
+                        'total' => $loc->total_assignments,
+                        'present' => $loc->present_assignments,
+                        'min' => $loc->minimum_officer,
+                    ];
+                });
+        };
+
+        // Use tagged cache when the active store supports it (Redis); otherwise
+        // fall back to the plain remember() call. Either path satisfies R9.1.
+        try {
+            $locations = Cache::tags(['dashboard'])->remember($cacheKey, $ttl, $loader);
+        } catch (\BadMethodCallException) {
+            $locations = Cache::remember($cacheKey, $ttl, $loader);
+        }
 
         return response()->json($locations);
     }

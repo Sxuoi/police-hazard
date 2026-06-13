@@ -1,58 +1,67 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Police Hazard — Command & Control Attendance Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Police Hazard (PH)** is a mission-critical, web-based command-and-control platform designed for law enforcement agencies. It manages, verifies, and audits officer attendance at static patrol points and mobile routes, replacing unverifiable manual attendance with GPS-verified, photo-documented digital check-ins.
 
-## About Laravel
+## Features & Complexity
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This project is built with a high degree of complexity and strict compliance requirements. It ensures zero cross-tenant data leaks and provides a tamper-evident audit trail.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+*   **Geospatial Validation:** Uses PostGIS geofencing (`ST_DWithin`) to validate an officer's check-in coordinates against the assigned location's radius.
+*   **Tamper-Evident Audit Trails:** Implements immutable logging at the database level. Attendance records and audit logs are append-only.
+*   **Advanced Multi-Tenancy:** Three-layer tenant isolation mechanism using PostgreSQL Row-Level Security (RLS), Eloquent Global Query Scopes, and Application Middleware to manage units across organizational hierarchies (POLDA, POLRESTABES, POLSEK).
+*   **Spoofing Detection:** Checks for mock location flags, GPS accuracy thresholds, and timestamp drifts.
+*   **Role-Based Access Control:** Distinct roles including God Admin (cross-Saker oversight), Saker Admin (unit-level management), and Officer (mobile web check-in).
+*   **Server-Side Image Processing:** Automatic asynchronous photo watermarking via Intervention Image for check-ins.
+*   **Real-time Dashboard:** Live interactive map tracking officer attendance and coverage statuses via Leaflet.js.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Technology Stack
 
-## Learning Laravel
+*   **Backend Framework:** PHP 8.3 / Laravel 11.x
+*   **Database:** PostgreSQL 16 + PostGIS 3.4
+*   **Queue & Cache:** Redis + Laravel Horizon
+*   **Frontend (Admin):** Blade Templates + Alpine.js + Tailwind CSS
+*   **Frontend (Mobile Officer):** Responsive Blade + Alpine.js leveraging browser Geolocation and MediaDevices (Camera) APIs
+*   **Mapping:** Leaflet.js + OpenStreetMap (with Marker Clustering)
+*   **Authentication:** Laravel Session (Admin) / Laravel Sanctum (Officer API)
+*   **File Storage:** S3-compatible Object Storage (MinIO/AWS S3)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Architecture Patterns
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+*   **Service + Action + Repository Pattern:** Strict separation of concerns where business logic is confined to Action classes, orchestrated by Services, and database queries are abstracted behind Repositories.
+*   **Database Immutability:** Uses PostgreSQL rules to block `UPDATE` and `DELETE` operations on critical tables (`attendances`, `audit_logs`).
+*   **UUID v7 Primary Keys:** Utilizes time-ordered UUIDs to prevent B-tree index fragmentation in high-volume tables.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Requirements
 
-## Agentic Development
+*   PHP >= 8.3
+*   PostgreSQL >= 16 with PostGIS extension enabled
+*   Redis
+*   Composer
+*   Node.js & NPM
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Installation
 
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
-```
-
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1.  Clone the repository and install dependencies:
+    ```bash
+    composer install
+    npm install
+    ```
+2.  Copy the environment file and generate an application key:
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
+3.  Configure your `.env` file with PostgreSQL and Redis connection details. Ensure PostGIS is enabled on your database.
+4.  Run database migrations and seeders:
+    ```bash
+    php artisan migrate:fresh --seed
+    ```
+5.  Build frontend assets using Vite:
+    ```bash
+    npm run dev # or npm run build
+    ```
+6.  Start the development server and queue worker:
+    ```bash
+    php artisan serve
+    php artisan queue:listen
+    ```

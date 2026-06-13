@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[ScopedBy([SakerScope::class])]
 class Location extends Model
 {
-    use HasUuidV7, HasAuditTrail;
+    use HasAuditTrail, HasUuidV7;
 
     protected $fillable = [
         'zone_id',
@@ -39,9 +39,9 @@ class Location extends Model
     {
         return [
             'operating_hours' => 'array',
-            'coords_locked'   => 'boolean',
-            'is_active'       => 'boolean',
-            'radius_meters'   => 'integer',
+            'coords_locked' => 'boolean',
+            'is_active' => 'boolean',
+            'radius_meters' => 'integer',
             'minimum_officer' => 'integer',
         ];
     }

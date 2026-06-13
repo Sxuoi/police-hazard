@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\AssignOfficerToLocationAction;
+use App\Models\Saker;
 use App\Repositories\Contracts\AssignmentRepositoryInterface;
 use App\Repositories\Contracts\LocationRepositoryInterface;
 use App\Repositories\Contracts\OperationRepositoryInterface;
@@ -43,7 +44,7 @@ class AssignmentController extends Controller
     public function create(): View
     {
         $operations = $this->operations->allActive();
-        $sakers = \App\Models\Saker::where('is_active', true)->get();
+        $sakers = Saker::where('is_active', true)->get();
 
         return view('assignments.create', compact('operations', 'sakers'));
     }
@@ -51,17 +52,25 @@ class AssignmentController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'officer_ids'       => ['required', 'array', 'min:1'],
-            'officer_ids.*'     => ['required', 'uuid', 'exists:users,id'],
-            'location_id'       => ['required', 'uuid', 'exists:locations,id'],
-            'shift_id'          => ['required', 'uuid', 'exists:shifts,id'],
-            'operation_id'      => ['required', 'uuid', 'exists:operations,id'],
-            'dates'             => ['required', 'array', 'min:1'],
-            'dates.*'           => ['required', 'date'],
+            'officer_ids' => ['required', 'array', 'min:1'],
+            'officer_ids.*' => ['required', 'uuid', 'exists:users,id'],
+            'location_id' => ['required', 'uuid', 'exists:locations,id'],
+            'operation_id' => ['required', 'uuid', 'exists:operations,id'],
+            'dates' => ['required', 'array', 'min:1'],
+            'dates.*' => ['required', 'date'],
             'assigned_saker_id' => ['required', 'uuid', 'exists:sakers,id'],
         ]);
 
         $location = $this->locations->findOrFail($validated['location_id']);
+        $operation = $this->operations->findOrFail($validated['operation_id']);
+
+        // The wizard no longer asks for a shift — the operation's start/end
+        // time is the canonical window. Resolve (or create) a single shift
+        // on the chosen location that mirrors that window so the existing
+        // assignments → shifts FK chain (and the check-in pipeline that
+        // reads shift.shift_start / shift.shift_end) keeps working.
+        $shift = $this->resolveShiftForOperation($operation, $location->id);
+        $validated['shift_id'] = $shift->id;
 
         foreach ($validated['officer_ids'] as $officerId) {
             $this->assignOfficer->execute(
@@ -77,6 +86,40 @@ class AssignmentController extends Controller
 
         return redirect()->route('assignments.index')
             ->with('success', "{$count} penugasan berhasil dibuat.");
+    }
+
+    /**
+     * Find or create a shift on the given location whose window matches the
+     * operation's start_time / end_time. Defaults end_time to 23:59 when the
+     * operation has no end_time set.
+     */
+    private function resolveShiftForOperation(\App\Models\Operation $operation, string $locationId): \App\Models\Shift
+    {
+        $start = substr((string) $operation->start_time, 0, 8);
+        $end = $operation->end_time
+            ? substr((string) $operation->end_time, 0, 8)
+            : '23:59:00';
+
+        // Existing match? Use it. Match on time-of-day strings to avoid
+        // any TZ subtleties (the schema stores TIME, not TIMESTAMP).
+        $existing = \App\Models\Shift::where('location_id', $locationId)
+            ->where('shift_start', $start)
+            ->where('shift_end', $end)
+            ->where('is_active', true)
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        return $this->shifts->create([
+            'location_id' => $locationId,
+            'name' => $operation->name.' — '.substr($start, 0, 5).'–'.substr($end, 0, 5),
+            'shift_start' => $start,
+            'shift_end' => $end,
+            'active_days' => [1, 2, 3, 4, 5, 6, 7],
+            'is_active' => true,
+        ]);
     }
 
     public function show(string $id): View
@@ -95,7 +138,7 @@ class AssignmentController extends Controller
         ]);
 
         $assignment->update([
-            'status'      => 'cancelled',
+            'status' => 'cancelled',
             'cancel_reason' => $request->reason,
         ]);
 

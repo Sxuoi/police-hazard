@@ -36,6 +36,7 @@ class SakerRepository implements SakerRepositoryInterface
     public function update(Saker $saker, array $data): Saker
     {
         $saker->update($data);
+
         return $saker->fresh();
     }
 }

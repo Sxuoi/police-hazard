@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assignment;
 use App\Repositories\Contracts\AssignmentRepositoryInterface;
 use App\Repositories\Contracts\OperationRepositoryInterface;
 use Illuminate\Http\Request;
@@ -19,9 +20,9 @@ class ReportController extends Controller
     {
         // Provide filters to the view
         $operations = $this->operations->allActive();
-        
+
         $filters = $request->only(['operation_id', 'start_date', 'end_date', 'status']);
-        
+
         $assignments = $this->assignments->paginate(
             perPage: 50,
             filters: $filters
@@ -33,10 +34,10 @@ class ReportController extends Controller
     public function export(Request $request): StreamedResponse
     {
         $filters = $request->only(['operation_id', 'start_date', 'end_date', 'status']);
-        
+
         // Fetch all matching assignments without pagination
-        $query = \App\Models\Assignment::with(['officer', 'location', 'shift', 'operation', 'saker']);
-        
+        $query = Assignment::with(['officer', 'location', 'shift', 'operation', 'saker']);
+
         if (isset($filters['operation_id'])) {
             $query->where('operation_id', $filters['operation_id']);
         }
@@ -49,12 +50,12 @@ class ReportController extends Controller
         if (isset($filters['end_date'])) {
             $query->whereDate('assignment_date', '<=', $filters['end_date']);
         }
-        
-        // Saker scoping is handled globally by SakerScope for non-God admins, 
+
+        // Saker scoping is handled globally by SakerScope for non-God admins,
         // but let's ensure it's explicitly ordered
         $assignments = $query->orderBy('assignment_date', 'desc')->get();
 
-        $fileName = 'rekap_penugasan_' . date('Ymd_His') . '.csv';
+        $fileName = 'rekap_penugasan_'.date('Ymd_His').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -66,9 +67,9 @@ class ReportController extends Controller
 
         return response()->stream(function () use ($assignments) {
             $file = fopen('php://output', 'w');
-            
+
             // Add BOM for UTF-8 Excel support
-            fputs($file, "\xEF\xBB\xBF");
+            fwrite($file, "\xEF\xBB\xBF");
 
             // CSV Header
             fputcsv($file, [

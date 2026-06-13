@@ -26,8 +26,14 @@
             </div>
 
             <div class="mb-5">
-                <label for="address" class="block text-sm font-medium text-gray-300 mb-2">Alamat</label>
+                <label for="address" class="block text-sm font-medium text-gray-300 mb-2">
+                    Alamat
+                    <span x-show="geocoding" class="ml-1 text-xs text-[var(--color-accent)]">
+                        (mencari alamat…)
+                    </span>
+                </label>
                 <input type="text" id="address" name="address" value="{{ old('address', $location->address) }}" maxlength="500"
+                       x-model="address" @input="addressTouched = true"
                        class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
             </div>
 
@@ -112,6 +118,11 @@ function locationForm() {
         lng: '{{ old("longitude", $location->lng) }}',
         radius: {{ old('radius_meters', $location->radius_meters) }},
         isLocked: {{ $location->coords_locked ? 'true' : 'false' }},
+        address: @json(old('address', $location->address ?? '')),
+        addressTouched: @json(! empty(old('address', $location->address))),
+        geocoding: false,
+        geocodeAbort: null,
+        geocodeTimer: null,
         map: null,
         marker: null,
         circle: null,
@@ -141,6 +152,7 @@ function locationForm() {
                         this.lat = e.latlng.lat.toFixed(7);
                         this.lng = e.latlng.lng.toFixed(7);
                         this.placeMarker(e.latlng.lat, e.latlng.lng);
+                        this.reverseGeocode(e.latlng.lat, e.latlng.lng);
                     });
                 }
             });
@@ -162,6 +174,39 @@ function locationForm() {
                 radius: parseInt(this.radius),
                 color: '#6366f1', fillColor: '#6366f1', fillOpacity: 0.12, weight: 2,
             }).addTo(this.map);
+        },
+
+        // Reverse geocode via OpenStreetMap Nominatim. Skips when the user has
+        // already typed an address. Debounced + cancellable so rapid clicks
+        // never hammer the public service.
+        reverseGeocode(lat, lng) {
+            if (this.addressTouched && this.address.trim().length > 0) return;
+            if (this.geocodeAbort) this.geocodeAbort.abort();
+            if (this.geocodeTimer) clearTimeout(this.geocodeTimer);
+
+            this.geocodeTimer = setTimeout(() => {
+                this.geocoding = true;
+                this.geocodeAbort = new AbortController();
+
+                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=id`;
+                fetch(url, {
+                    signal: this.geocodeAbort.signal,
+                    headers: { 'Accept': 'application/json' },
+                })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(data => {
+                        if (data && data.display_name) {
+                            this.address = data.display_name;
+                            const input = document.getElementById('address');
+                            if (input) input.value = data.display_name;
+                        }
+                    })
+                    .catch(() => { /* aborted or network error — silent */ })
+                    .finally(() => {
+                        this.geocoding = false;
+                        this.geocodeAbort = null;
+                    });
+            }, 350);
         }
     };
 }

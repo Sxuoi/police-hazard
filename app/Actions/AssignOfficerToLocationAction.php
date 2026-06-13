@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Assignment;
+use App\Models\Operation;
 use App\Models\User;
 use App\Services\AuditService;
 use Illuminate\Support\Facades\DB;
@@ -32,12 +33,12 @@ class AssignOfficerToLocationAction
 
         DB::transaction(function () use ($data, $actor, &$created) {
             // Advisory lock to prevent concurrent duplicate PH assignments
-            $lockId = crc32($data['officer_id'] . $data['shift_id']);
+            $lockId = crc32($data['officer_id'].$data['shift_id']);
             DB::statement("SELECT pg_advisory_xact_lock({$lockId})");
 
             foreach ($data['dates'] as $date) {
                 // PH overlap guard — only for PH operations
-                $operation = \App\Models\Operation::find($data['operation_id']);
+                $operation = Operation::find($data['operation_id']);
                 if ($operation && $operation->operation_type === 'PH') {
                     $existing = Assignment::withoutGlobalScopes()
                         ->where('officer_id', $data['officer_id'])
@@ -50,30 +51,30 @@ class AssignOfficerToLocationAction
                     if ($existing) {
                         throw ValidationException::withMessages([
                             'officer_id' => [
-                                "Anggota sudah memiliki penugasan PH pada tanggal {$date} untuk shift yang sama."
+                                "Anggota sudah memiliki penugasan PH pada tanggal {$date} untuk shift yang sama.",
                             ],
                         ]);
                     }
                 }
 
                 $assignment = Assignment::create([
-                    'officer_id'        => $data['officer_id'],
-                    'location_id'       => $data['location_id'],
-                    'shift_id'          => $data['shift_id'],
-                    'operation_id'      => $data['operation_id'],
-                    'saker_id'          => $data['saker_id'],
+                    'officer_id' => $data['officer_id'],
+                    'location_id' => $data['location_id'],
+                    'shift_id' => $data['shift_id'],
+                    'operation_id' => $data['operation_id'],
+                    'saker_id' => $data['saker_id'],
                     'assigned_saker_id' => $data['assigned_saker_id'],
-                    'assignment_date'   => $date,
-                    'status'            => 'active',
-                    'assigned_by'       => $actor->id,
+                    'assignment_date' => $date,
+                    'status' => 'active',
+                    'assigned_by' => $actor->id,
                 ]);
 
                 $created[] = $assignment;
 
                 $this->auditService->log('OFFICER_ASSIGNED', $assignment, [
-                    'officer_id'  => $data['officer_id'],
+                    'officer_id' => $data['officer_id'],
                     'location_id' => $data['location_id'],
-                    'date'        => $date,
+                    'date' => $date,
                 ]);
             }
         });

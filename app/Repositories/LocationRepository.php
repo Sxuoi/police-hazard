@@ -51,15 +51,15 @@ class LocationRepository implements LocationRepositoryInterface
         $query = Location::with(['zone:id,name', 'zone.operation:id,name,operation_type'])
             ->where('is_active', true);
 
-        if (!empty($filters['zone_id'])) {
+        if (! empty($filters['zone_id'])) {
             $query->where('zone_id', $filters['zone_id']);
         }
 
-        if (!empty($filters['operation_id'])) {
+        if (! empty($filters['operation_id'])) {
             $query->whereHas('zone', fn ($q) => $q->where('operation_id', $filters['operation_id']));
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where('name', 'ilike', "%{$filters['search']}%");
         }
 

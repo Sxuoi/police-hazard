@@ -10,7 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("
+        DB::statement('
             CREATE TABLE audit_logs (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 actor_id UUID REFERENCES users(id),
@@ -25,7 +25,7 @@ return new class extends Migration
                 metadata JSONB,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
-        ");
+        ');
 
         DB::statement('CREATE RULE no_update_audit_logs AS ON UPDATE TO audit_logs DO INSTEAD NOTHING');
         DB::statement('CREATE RULE no_delete_audit_logs AS ON DELETE TO audit_logs DO INSTEAD NOTHING');
