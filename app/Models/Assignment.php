@@ -29,7 +29,8 @@ class Assignment extends Model
         'operation_id',
         'saker_id',
         'assigned_saker_id',
-        'assignment_date',
+        'start_date',
+        'end_date',
         'status',
         'notes',
         'assigned_by',
@@ -38,8 +39,19 @@ class Assignment extends Model
     protected function casts(): array
     {
         return [
-            'assignment_date' => 'date',
+            'start_date' => 'date',
+            'end_date' => 'date',
         ];
+    }
+
+    /**
+     * Check if the assignment is active on a given date.
+     */
+    public function isActiveOn(mixed $date): bool
+    {
+        $parsedDate = \Illuminate\Support\Carbon::parse($date);
+        return $this->start_date->startOfDay()->lte($parsedDate)
+            && (is_null($this->end_date) || $this->end_date->endOfDay()->gte($parsedDate));
     }
 
     // ── Relationships ────────────────────────────────────────────────

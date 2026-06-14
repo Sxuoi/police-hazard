@@ -92,7 +92,7 @@ class CrossTenantIsolationTest extends PostgresPropertyTestCase
         DB::table('assignments')->insert([
             'id' => $asgnId, 'officer_id' => $officerId, 'location_id' => $locId,
             'shift_id' => $shiftId, 'operation_id' => $opId, 'saker_id' => $sakerId,
-            'assigned_saker_id' => $sakerId, 'assignment_date' => Carbon::today()->toDateString(),
+            'assigned_saker_id' => $sakerId, 'start_date' => Carbon::today()->toDateString(),
             'status' => 'active', 'assigned_by' => $officerId,
             'created_at' => now(), 'updated_at' => now(),
         ]);

@@ -135,7 +135,8 @@ class ProcessCheckinActionTest extends TestCase
 
         $assignment = Mockery::mock(Assignment::class)->makePartial();
         $assignment->shouldReceive('getAttribute')->with('id')->andReturn('asgn-uuid-1');
-        $assignment->shouldReceive('getAttribute')->with('assignment_date')->andReturn(Carbon::today('Asia/Jakarta'));
+        $assignment->shouldReceive('getAttribute')->with('start_date')->andReturn(Carbon::today('Asia/Jakarta'));
+        $assignment->shouldReceive('getAttribute')->with('end_date')->andReturn(null);
         $assignment->shouldReceive('loadMissing')->andReturnSelf();
         $assignment->shouldReceive('getAttribute')->with('location')->andReturn($location);
         $assignment->shouldReceive('getAttribute')->with('shift')->andReturn($shift);
@@ -169,7 +170,8 @@ class ProcessCheckinActionTest extends TestCase
         $assignment = Mockery::mock(Assignment::class)->makePartial();
         $assignment->shouldReceive('getAttribute')->with('id')->andReturn('asgn-uuid-1');
         // Use yesterday so the 01:00-02:00 window is definitely past
-        $assignment->shouldReceive('getAttribute')->with('assignment_date')->andReturn(Carbon::yesterday('Asia/Jakarta'));
+        $assignment->shouldReceive('getAttribute')->with('start_date')->andReturn(Carbon::yesterday('Asia/Jakarta'));
+        $assignment->shouldReceive('getAttribute')->with('end_date')->andReturn(null);
         $assignment->shouldReceive('loadMissing')->andReturnSelf();
         $assignment->shouldReceive('getAttribute')->with('location')->andReturn($location);
         $assignment->shouldReceive('getAttribute')->with('shift')->andReturn($shift);

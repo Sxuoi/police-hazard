@@ -52,7 +52,18 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-400 text-sm">Tanggal</span>
-                    <span class="text-white text-sm font-medium">{{ $bypass->assignment?->assignment_date ?? '-' }}</span>
+                    <span class="text-white text-sm font-medium">
+                        @if($bypass->assignment)
+                            {{ $bypass->assignment->start_date->format('Y-m-d') }}
+                            @if($bypass->assignment->end_date)
+                                s/d {{ $bypass->assignment->end_date->format('Y-m-d') }}
+                            @else
+                                (Aktif)
+                            @endif
+                        @else
+                            -
+                        @endif
+                    </span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-400 text-sm">Kedaluwarsa</span>

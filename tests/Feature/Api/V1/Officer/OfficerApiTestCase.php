@@ -332,7 +332,7 @@ abstract class OfficerApiTestCase extends TestCase
             'operation_id' => $operationId,
             'saker_id' => $sakerId,
             'assigned_saker_id' => $sakerId,
-            'assignment_date' => $date ?? Carbon::today()->toDateString(),
+            'start_date' => $date ?? Carbon::today()->toDateString(),
             'status' => 'active',
             'assigned_by' => $officerId,
             'created_at' => now()->toIso8601String(),

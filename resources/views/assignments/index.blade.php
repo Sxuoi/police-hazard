@@ -71,7 +71,14 @@
                                 <div class="text-xs text-[var(--color-accent)] mt-0.5">{{ $assignment->operation->name ?? '-' }}</div>
                             </td>
                             <td class="px-5 py-4">
-                                <div class="text-gray-300">{{ \Carbon\Carbon::parse($assignment->assignment_date)->format('d M Y') }}</div>
+                                <div class="text-gray-300">
+                                    {{ $assignment->start_date->format('d M Y') }}
+                                    @if($assignment->end_date)
+                                        s/d {{ $assignment->end_date->format('d M Y') }}
+                                    @else
+                                        (Aktif)
+                                    @endif
+                                </div>
                                 <div class="text-xs text-gray-400 mt-0.5">{{ $assignment->shift->name ?? '-' }} ({{ $assignment->shift->shift_start ?? '' }} - {{ $assignment->shift->shift_end ?? '' }})</div>
                             </td>
                             <td class="px-5 py-4">

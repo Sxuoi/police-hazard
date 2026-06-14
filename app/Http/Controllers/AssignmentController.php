@@ -56,8 +56,8 @@ class AssignmentController extends Controller
             'officer_ids.*' => ['required', 'uuid', 'exists:users,id'],
             'location_id' => ['required', 'uuid', 'exists:locations,id'],
             'operation_id' => ['required', 'uuid', 'exists:operations,id'],
-            'dates' => ['required', 'array', 'min:1'],
-            'dates.*' => ['required', 'date'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'assigned_saker_id' => ['required', 'uuid', 'exists:sakers,id'],
         ]);
 
@@ -82,7 +82,7 @@ class AssignmentController extends Controller
             );
         }
 
-        $count = count($validated['dates']) * count($validated['officer_ids']);
+        $count = count($validated['officer_ids']);
 
         return redirect()->route('assignments.index')
             ->with('success', "{$count} penugasan berhasil dibuat.");

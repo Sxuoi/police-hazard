@@ -75,12 +75,13 @@ class AttendanceRepository implements AttendanceRepositoryInterface
         $lng = $bypass->officer_longitude ?? 0;
         $attendanceId = Uuid::uuid7()->toString();
 
-        // Build shift window timestamps from assignment date + shift times
-        $assignmentDate = $bypass->assignment->assignment_date?->format('Y-m-d') ?? now()->format('Y-m-d');
+        // Build shift window timestamps from check-in date + shift times
+        $checkedInCarbon = ($checkedInAt instanceof \Carbon\Carbon) ? $checkedInAt : Carbon::parse($checkedInAt);
+        $dateStr = $checkedInCarbon->format('Y-m-d');
         $shiftStart = $bypass->assignment->shift?->shift_start;
         $shiftEnd = $bypass->assignment->shift?->shift_end;
-        $shiftWindowStart = $shiftStart ? Carbon::parse("{$assignmentDate} {$shiftStart}") : now();
-        $shiftWindowEnd = $shiftEnd ? Carbon::parse("{$assignmentDate} {$shiftEnd}") : now();
+        $shiftWindowStart = $shiftStart ? Carbon::parse("{$dateStr} {$shiftStart}") : now();
+        $shiftWindowEnd = $shiftEnd ? Carbon::parse("{$dateStr} {$shiftEnd}") : now();
 
         // Compute server-internal checksum
         $checksumParts = [

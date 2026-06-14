@@ -45,15 +45,15 @@ class ReportController extends Controller
             $query->where('status', $filters['status']);
         }
         if (isset($filters['start_date'])) {
-            $query->whereDate('assignment_date', '>=', $filters['start_date']);
+            $query->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $filters['start_date']));
         }
         if (isset($filters['end_date'])) {
-            $query->whereDate('assignment_date', '<=', $filters['end_date']);
+            $query->where('start_date', '<=', $filters['end_date']);
         }
 
         // Saker scoping is handled globally by SakerScope for non-God admins,
         // but let's ensure it's explicitly ordered
-        $assignments = $query->orderBy('assignment_date', 'desc')->get();
+        $assignments = $query->orderBy('start_date', 'desc')->get();
 
         $fileName = 'rekap_penugasan_'.date('Ymd_His').'.csv';
 
@@ -86,9 +86,10 @@ class ReportController extends Controller
 
             // CSV Data
             foreach ($assignments as $assignment) {
+                $dateString = $assignment->start_date->format('Y-m-d') . ($assignment->end_date ? ' s/d ' . $assignment->end_date->format('Y-m-d') : ' - Selesai');
                 fputcsv($file, [
                     $assignment->id,
-                    $assignment->assignment_date->format('Y-m-d'),
+                    $dateString,
                     $assignment->operation->name ?? '-',
                     $assignment->location->name ?? '-',
                     $assignment->shift->name ?? '-',

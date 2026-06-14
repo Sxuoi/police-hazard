@@ -56,23 +56,22 @@ class AssignmentsSeeder extends Seeder
             $assignedBy = $sakerAdmin ? $sakerAdmin->id : $godAdmin->id;
 
             foreach ($assigned as $officer) {
-                foreach ([$today, $yesterday] as $date) {
-                    Assignment::firstOrCreate(
-                        [
-                            'officer_id' => $officer->id,
-                            'location_id' => $loc->id,
-                            'shift_id' => $shiftPagi->id,
-                            'assignment_date' => $date,
-                        ],
-                        [
-                            'operation_id' => $op->id,
-                            'saker_id' => $sakerId,
-                            'assigned_saker_id' => $sakerId,
-                            'status' => 'active',
-                            'assigned_by' => $assignedBy,
-                        ]
-                    );
-                }
+                Assignment::firstOrCreate(
+                    [
+                        'officer_id' => $officer->id,
+                        'location_id' => $loc->id,
+                        'shift_id' => $shiftPagi->id,
+                        'start_date' => $yesterday,
+                    ],
+                    [
+                        'operation_id' => $op->id,
+                        'saker_id' => $sakerId,
+                        'assigned_saker_id' => $sakerId,
+                        'end_date' => null,
+                        'status' => 'active',
+                        'assigned_by' => $assignedBy,
+                    ]
+                );
             }
 
             $assignIdx++;

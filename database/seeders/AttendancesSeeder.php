@@ -22,7 +22,8 @@ class AttendancesSeeder extends Seeder
         $yesterday = now()->subDay()->format('Y-m-d');
 
         $yesterdayAssignments = Assignment::withoutGlobalScopes()
-            ->where('assignment_date', $yesterday)
+            ->where('start_date', '<=', $yesterday)
+            ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $yesterday))
             ->with(['location', 'shift'])
             ->get();
 

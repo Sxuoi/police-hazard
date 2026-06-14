@@ -182,7 +182,9 @@ class AssignmentController extends Controller
             'shift_name' => $shift?->name,
             'shift_start' => $shift?->shift_start,
             'shift_end' => $shift?->shift_end,
-            'assignment_date' => optional($assignment->assignment_date)->format('Y-m-d'),
+            'start_date' => optional($assignment->start_date)->format('Y-m-d'),
+            'end_date' => optional($assignment->end_date)->format('Y-m-d'),
+            'assignment_date' => optional($assignment->start_date)->format('Y-m-d'),
             'status' => $assignment->status,
             'already_checked_in' => $alreadyCheckedIn,
         ];

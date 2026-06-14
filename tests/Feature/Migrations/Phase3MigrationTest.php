@@ -355,7 +355,7 @@ class Phase3MigrationTest extends TestCase
             'operation_id' => $this->operationId,
             'saker_id' => $this->sakerId,
             'assigned_saker_id' => $this->sakerId,
-            'assignment_date' => now()->toDateString(),
+            'start_date' => now()->toDateString(),
             'status' => 'active',
             'assigned_by' => $this->userId,
             'created_at' => now()->toIso8601String(),

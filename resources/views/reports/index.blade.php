@@ -72,7 +72,14 @@
                     @forelse($assignments as $assignment)
                         <tr class="border-b border-[var(--color-surface-600)]/50 hover:bg-[var(--color-surface-700)]/50 transition-colors">
                             <td class="p-4">
-                                <div class="text-white">{{ $assignment->assignment_date->format('d M Y') }}</div>
+                                <div class="text-white">
+                                    {{ $assignment->start_date->format('d M Y') }}
+                                    @if($assignment->end_date)
+                                        s/d {{ $assignment->end_date->format('d M Y') }}
+                                    @else
+                                        (Aktif)
+                                    @endif
+                                </div>
                             </td>
                             <td class="p-4">
                                 <div class="font-medium text-white">{{ $assignment->officer->name ?? '-' }}</div>

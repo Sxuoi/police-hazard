@@ -95,7 +95,7 @@ class ProcessCheckinAction
 
         [$shiftStart, $shiftEnd] = $this->locationTimezoneResolver->shiftWindow(
             $shift,
-            $assignment->assignment_date,
+            Carbon::today($timezone),
             $timezone,
         );
 

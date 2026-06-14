@@ -221,7 +221,7 @@ class AttendanceRepositoryTest extends TestCase
             'operation_id' => $this->operationId,
             'saker_id' => $this->sakerId,
             'assigned_saker_id' => $this->sakerId,
-            'assignment_date' => now()->toDateString(),
+            'start_date' => now()->toDateString(),
             'status' => 'active',
             'assigned_by' => $this->officerId,
             'created_at' => now()->toIso8601String(),

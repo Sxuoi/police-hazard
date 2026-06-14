@@ -163,7 +163,7 @@ class BypassApprovalCrossTenantTest extends TestCase
             'operation_id' => $operationId,
             'saker_id' => $this->sakerAId,
             'assigned_saker_id' => $this->sakerAId,
-            'assignment_date' => Carbon::today()->toDateString(),
+            'start_date' => Carbon::today()->toDateString(),
             'status' => 'active',
             'assigned_by' => $adminAId,
             'created_at' => now(),

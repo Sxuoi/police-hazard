@@ -134,7 +134,7 @@ class BypassApprovalExpiredTest extends TestCase
             'operation_id' => $operationId,
             'saker_id' => $this->sakerId,
             'assigned_saker_id' => $this->sakerId,
-            'assignment_date' => Carbon::today()->toDateString(),
+            'start_date' => Carbon::today()->toDateString(),
             'status' => 'active',
             'assigned_by' => $this->admin->id,
             'created_at' => now(),

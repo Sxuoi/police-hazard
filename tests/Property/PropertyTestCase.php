@@ -157,7 +157,7 @@ abstract class PropertyTestCase extends TestCase
             'shift_id' => $shift->id,
             'operation_id' => $operation->id,
             'saker_id' => $saker->id,
-            'assignment_date' => now()->toDateString(),
+            'start_date' => now()->toDateString(),
             'status' => 'active',
         ], $overrides));
     }

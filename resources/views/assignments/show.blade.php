@@ -64,8 +64,15 @@
 
                 <dl class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
                     <div>
-                        <dt class="text-gray-500">Tanggal Penugasan</dt>
-                        <dd class="text-white mt-1">{{ \Carbon\Carbon::parse($assignment->assignment_date)->format('d F Y') }}</dd>
+                        <dt class="text-gray-500">Periode Penugasan</dt>
+                        <dd class="text-white mt-1">
+                            {{ $assignment->start_date->format('d F Y') }}
+                            @if($assignment->end_date)
+                                s/d {{ $assignment->end_date->format('d F Y') }}
+                            @else
+                                (Aktif)
+                            @endif
+                        </dd>
                     </div>
                     <div>
                         <dt class="text-gray-500">Shift</dt>

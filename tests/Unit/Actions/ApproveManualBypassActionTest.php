@@ -64,19 +64,19 @@ class ApproveManualBypassActionTest extends TestCase
     public function test_expired_bypass_throws(): void
     {
         $bypass = Mockery::mock(ManualBypassApproval::class)->makePartial();
-        $bypass->id = 'bypass-uuid-1';
-        $bypass->saker_id = 'saker-uuid-1';
+        $bypass->id = '019ec1a9-6e8c-719c-b047-6106130a7aff';
+        $bypass->saker_id = '019ec1a9-6e8c-719c-b047-610611b5ca8f';
         $bypass->bypass_reason = 'OUTSIDE_GEOFENCE';
         $bypass->expires_at = Carbon::now()->subMinutes(5);
         $bypass->shouldReceive('loadMissing')->andReturnSelf();
 
         $this->bypassRepo->shouldReceive('findPendingForUpdate')
-            ->with('bypass-uuid-1')
+            ->with('019ec1a9-6e8c-719c-b047-6106130a7aff')
             ->andReturn($bypass);
 
         $reviewer = new User;
-        $reviewer->id = 'reviewer-uuid-1';
-        $reviewer->saker_id = 'saker-uuid-1';
+        $reviewer->id = '019ec1a9-6e8c-719c-b047-610611466f53';
+        $reviewer->saker_id = '019ec1a9-6e8c-719c-b047-610611b5ca8f';
         $reviewer->role = 'saker_admin';
 
         // DB::transaction should execute the callback
@@ -86,26 +86,26 @@ class ApproveManualBypassActionTest extends TestCase
 
         $this->expectException(BypassExpiredException::class);
 
-        ($this->action)('bypass-uuid-1', 'Reviewer note for the bypass decision.', $reviewer);
+        ($this->action)('019ec1a9-6e8c-719c-b047-6106130a7aff', 'Reviewer note for the bypass decision.', $reviewer);
     }
 
     public function test_cross_tenant_throws(): void
     {
         $bypass = Mockery::mock(ManualBypassApproval::class)->makePartial();
-        $bypass->id = 'bypass-uuid-2';
-        $bypass->saker_id = 'saker-uuid-1';
+        $bypass->id = '019ec1a9-6e8c-719c-b047-6106130a7b00';
+        $bypass->saker_id = '019ec1a9-6e8c-719c-b047-610611b5ca8f';
         $bypass->bypass_reason = 'OUTSIDE_GEOFENCE';
         $bypass->expires_at = Carbon::now()->addMinutes(10);
         $bypass->shouldReceive('loadMissing')->andReturnSelf();
 
         $this->bypassRepo->shouldReceive('findPendingForUpdate')
-            ->with('bypass-uuid-2')
+            ->with('019ec1a9-6e8c-719c-b047-6106130a7b00')
             ->andReturn($bypass);
 
         // Reviewer from a different saker and NOT a god admin
         $reviewer = new User;
-        $reviewer->id = 'reviewer-uuid-2';
-        $reviewer->saker_id = 'saker-uuid-999';
+        $reviewer->id = '019ec1a9-6e8c-719c-b047-610611466f54';
+        $reviewer->saker_id = '019ec1a9-6e8c-719c-b047-610611b5cb00';
         $reviewer->role = 'saker_admin';
 
         DB::shouldReceive('transaction')->andReturnUsing(function ($callback) {
@@ -114,6 +114,6 @@ class ApproveManualBypassActionTest extends TestCase
 
         $this->expectException(AccessDeniedHttpException::class);
 
-        ($this->action)('bypass-uuid-2', 'Reviewer note for the bypass decision.', $reviewer);
+        ($this->action)('019ec1a9-6e8c-719c-b047-6106130a7b00', 'Reviewer note for the bypass decision.', $reviewer);
     }
 }
