@@ -44,7 +44,7 @@ final class ApproveManualBypassAction
             // Find pending bypass with lock for safe state transition
             $bypass = $this->bypassRepo->findPendingForUpdate($bypassId);
 
-            $bypass->loadMissing(['assignment.location', 'assignment.shift']);
+            $bypass->loadMissing(['assignment.location', 'assignment.operation']);
 
             // Defense-in-depth: mock_location is never bypassable (R5.15)
             if ($bypass->bypass_reason === 'MOCK_LOCATION_DETECTED') {

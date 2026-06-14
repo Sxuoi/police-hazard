@@ -17,7 +17,6 @@ class DatabaseSeeder extends Seeder
             OperationsSeeder::class,
             ZonesSeeder::class,
             LocationsSeeder::class,
-            ShiftsSeeder::class,
             AssignmentsSeeder::class,
             AttendancesSeeder::class,
         ]);

@@ -88,7 +88,7 @@ final class CreateBypassRequestAction
             throw new AssignmentNotFoundException;
         }
 
-        $assignment->loadMissing(['location', 'shift', 'operation']);
+        $assignment->loadMissing(['location', 'operation']);
 
         // ── PH duplicate guard (same as ProcessCheckinAction step 9) ─
         if ($assignment->operation->operation_type === 'PH') {

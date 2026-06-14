@@ -63,7 +63,7 @@
                     <tr class="bg-[var(--color-surface-700)] text-gray-300 text-sm border-b border-[var(--color-surface-600)]">
                         <th class="p-4 font-medium">Tanggal</th>
                         <th class="p-4 font-medium">Petugas</th>
-                        <th class="p-4 font-medium">Lokasi & Shift</th>
+                        <th class="p-4 font-medium">Lokasi & Waktu</th>
                         <th class="p-4 font-medium">Status</th>
                         <th class="p-4 font-medium">Waktu Hadir</th>
                     </tr>
@@ -87,7 +87,7 @@
                             </td>
                             <td class="p-4">
                                 <div class="text-white">{{ $assignment->location->name ?? '-' }}</div>
-                                <div class="text-xs text-[var(--color-accent)]">{{ $assignment->shift->name ?? '-' }}</div>
+                                <div class="text-xs text-[var(--color-accent)]">Waktu: {{ substr($assignment->operation->start_time ?? '', 0, 5) }} - {{ $assignment->operation->end_time ? substr($assignment->operation->end_time, 0, 5) : '23:59' }}</div>
                             </td>
                             <td class="p-4">
                                 @if($assignment->status === 'attended')

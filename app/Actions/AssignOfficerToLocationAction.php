@@ -25,7 +25,7 @@ class AssignOfficerToLocationAction
     ) {}
 
     /**
-     * @param  array{officer_id: string, location_id: string, shift_id: string, operation_id: string, saker_id: string, assigned_saker_id: string, start_date: string, end_date: ?string, assigned_by: string}  $data
+     * @param  array{officer_id: string, location_id: string, operation_id: string, saker_id: string, assigned_saker_id: string, start_date: string, end_date: ?string, assigned_by: string}  $data
      */
     public function execute(array $data, User $actor): array
     {
@@ -33,7 +33,7 @@ class AssignOfficerToLocationAction
 
         DB::transaction(function () use ($data, $actor, &$created) {
             // Advisory lock to prevent concurrent duplicate PH assignments
-            $lockId = crc32($data['officer_id'].$data['shift_id']);
+            $lockId = crc32($data['officer_id'].$data['location_id']);
             DB::statement("SELECT pg_advisory_xact_lock({$lockId})");
 
             // PH overlap guard — only for PH operations
@@ -41,7 +41,6 @@ class AssignOfficerToLocationAction
             if ($operation && $operation->operation_type === 'PH') {
                 $existing = Assignment::withoutGlobalScopes()
                     ->where('officer_id', $data['officer_id'])
-                    ->where('shift_id', $data['shift_id'])
                     ->whereIn('status', ['active', 'pending'])
                     ->whereHas('operation', fn ($q) => $q->where('operation_type', 'PH'))
                     ->where(function ($query) use ($data) {
@@ -59,7 +58,7 @@ class AssignOfficerToLocationAction
                     $rangeStr = $data['start_date'] . ($data['end_date'] ? ' s.d. ' . $data['end_date'] : ' (selamanya)');
                     throw ValidationException::withMessages([
                         'officer_id' => [
-                            "Anggota sudah memiliki penugasan PH untuk shift yang sama pada periode {$rangeStr}.",
+                            "Anggota sudah memiliki penugasan PH pada periode {$rangeStr}.",
                         ],
                     ]);
                 }
@@ -68,7 +67,6 @@ class AssignOfficerToLocationAction
             $assignment = Assignment::create([
                 'officer_id' => $data['officer_id'],
                 'location_id' => $data['location_id'],
-                'shift_id' => $data['shift_id'],
                 'operation_id' => $data['operation_id'],
                 'saker_id' => $data['saker_id'],
                 'assigned_saker_id' => $data['assigned_saker_id'],

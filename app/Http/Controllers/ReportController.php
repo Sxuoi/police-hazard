@@ -36,7 +36,7 @@ class ReportController extends Controller
         $filters = $request->only(['operation_id', 'start_date', 'end_date', 'status']);
 
         // Fetch all matching assignments without pagination
-        $query = Assignment::with(['officer', 'location', 'shift', 'operation', 'saker']);
+        $query = Assignment::with(['officer', 'location', 'operation', 'saker']);
 
         if (isset($filters['operation_id'])) {
             $query->where('operation_id', $filters['operation_id']);
@@ -77,7 +77,7 @@ class ReportController extends Controller
                 'Tanggal',
                 'Operasi',
                 'Lokasi',
-                'Shift',
+                'Waktu',
                 'NRP',
                 'Nama Petugas',
                 'Status',
@@ -87,12 +87,15 @@ class ReportController extends Controller
             // CSV Data
             foreach ($assignments as $assignment) {
                 $dateString = $assignment->start_date->format('Y-m-d') . ($assignment->end_date ? ' s/d ' . $assignment->end_date->format('Y-m-d') : ' - Selesai');
+                $waktuString = $assignment->operation
+                    ? substr($assignment->operation->start_time, 0, 5) . ' - ' . ($assignment->operation->end_time ? substr($assignment->operation->end_time, 0, 5) : '23:59')
+                    : '-';
                 fputcsv($file, [
                     $assignment->id,
                     $dateString,
                     $assignment->operation->name ?? '-',
                     $assignment->location->name ?? '-',
-                    $assignment->shift->name ?? '-',
+                    $waktuString,
                     $assignment->officer->nrp ?? '-',
                     $assignment->officer->name ?? '-',
                     strtoupper($assignment->status),

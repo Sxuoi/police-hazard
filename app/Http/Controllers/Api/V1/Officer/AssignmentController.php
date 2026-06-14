@@ -99,7 +99,7 @@ class AssignmentController extends Controller
             return $this->assignmentNotFound();
         }
 
-        $assignment->loadMissing(['location.padal', 'location.zone', 'shift', 'operation']);
+        $assignment->loadMissing(['location.padal', 'location.zone', 'operation']);
 
         $coords = $this->loadLocationCoordinates([$assignment->location_id])[$assignment->location_id] ?? null;
         $base = $this->toAssignmentArray(
@@ -164,7 +164,6 @@ class AssignmentController extends Controller
     private function toAssignmentArray($assignment, bool $alreadyCheckedIn, ?array $coords): array
     {
         $location = $assignment->location;
-        $shift = $assignment->shift;
         $operation = $assignment->operation;
 
         return [
@@ -178,10 +177,10 @@ class AssignmentController extends Controller
             'location_coordinates' => $coords,
             'location_radius_meters' => $location?->radius_meters,
             'location_timezone' => $location?->timezone,
-            'shift_id' => $shift?->id,
-            'shift_name' => $shift?->name,
-            'shift_start' => $shift?->shift_start,
-            'shift_end' => $shift?->shift_end,
+            'shift_id' => $operation?->id,
+            'shift_name' => $operation?->name,
+            'shift_start' => $operation?->start_time,
+            'shift_end' => $operation?->end_time ?? '23:59:00',
             'start_date' => optional($assignment->start_date)->format('Y-m-d'),
             'end_date' => optional($assignment->end_date)->format('Y-m-d'),
             'assignment_date' => optional($assignment->start_date)->format('Y-m-d'),

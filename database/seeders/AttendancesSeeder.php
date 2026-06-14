@@ -24,20 +24,22 @@ class AttendancesSeeder extends Seeder
         $yesterdayAssignments = Assignment::withoutGlobalScopes()
             ->where('start_date', '<=', $yesterday)
             ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $yesterday))
-            ->with(['location', 'shift'])
+            ->with(['location', 'operation'])
             ->get();
 
         foreach ($yesterdayAssignments->take(30) as $assignment) {
             $loc = $assignment->location;
-            $shift = $assignment->shift;
+            $op = $assignment->operation;
 
-            if (! $loc || ! $shift) {
+            if (! $loc || ! $op) {
                 continue;
             }
 
+            $opEnd = $op->end_time ?? '23:59:00';
+
             // Random check-in time within shift window
             $checkinTime = now()->subDay()
-                ->setTimeFromTimeString($shift->shift_start)
+                ->setTimeFromTimeString($op->start_time)
                 ->addMinutes(fake()->numberBetween(0, 60));
 
             $distance = fake()->randomFloat(2, 0, 80);
@@ -70,8 +72,8 @@ class AttendancesSeeder extends Seeder
                 $distance,
                 $isWithin,
                 $checkinTime,
-                now()->subDay()->setTimeFromTimeString($shift->shift_start),
-                now()->subDay()->setTimeFromTimeString($shift->shift_end),
+                now()->subDay()->setTimeFromTimeString($op->start_time),
+                now()->subDay()->setTimeFromTimeString($opEnd),
                 $isWithin ? 'verified' : 'flagged',
                 $isWithin ? 0 : 1,
                 $isWithin ? null : json_encode([['signal' => 'OUTSIDE_GEOFENCE']]),

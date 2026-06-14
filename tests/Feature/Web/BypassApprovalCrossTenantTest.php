@@ -41,7 +41,6 @@ class BypassApprovalCrossTenantTest extends TestCase
         $operationId = Uuid::uuid7()->toString();
         $zoneId = Uuid::uuid7()->toString();
         $locationId = Uuid::uuid7()->toString();
-        $shiftId = Uuid::uuid7()->toString();
 
         // Saker A — owns the bypass
         DB::table('sakers')->insert([
@@ -141,25 +140,10 @@ class BypassApprovalCrossTenantTest extends TestCase
             )
         ");
 
-        DB::statement("
-            INSERT INTO shifts (id, location_id, name, shift_start, shift_end, active_days, is_active, created_at, updated_at)
-            VALUES (
-                '{$shiftId}',
-                '{$locationId}',
-                'Shift A',
-                '00:00:00',
-                '23:59:00',
-                ARRAY[1,2,3,4,5,6,7]::SMALLINT[],
-                true,
-                NOW(), NOW()
-            )
-        ");
-
         DB::table('assignments')->insert([
             'id' => $this->assignmentId,
             'officer_id' => $this->officerId,
             'location_id' => $locationId,
-            'shift_id' => $shiftId,
             'operation_id' => $operationId,
             'saker_id' => $this->sakerAId,
             'assigned_saker_id' => $this->sakerAId,

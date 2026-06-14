@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Assignment — PRD §6.2, §7.7.
- * Binds Officer ↔ Location ↔ Shift ↔ Operation.
+ * Binds Officer ↔ Location ↔ Operation.
  * saker_id = officer's home Saker.
  * assigned_saker_id = borrowing Saker (may differ for cross-tenant borrowing).
  * Status lifecycle: pending → active → completed | cancelled.
@@ -25,7 +25,6 @@ class Assignment extends Model
     protected $fillable = [
         'officer_id',
         'location_id',
-        'shift_id',
         'operation_id',
         'saker_id',
         'assigned_saker_id',
@@ -64,11 +63,6 @@ class Assignment extends Model
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
-    }
-
-    public function shift(): BelongsTo
-    {
-        return $this->belongsTo(Shift::class);
     }
 
     public function operation(): BelongsTo

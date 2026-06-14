@@ -2,7 +2,7 @@
 
 namespace Tests\Property;
 
-use App\Models\Shift;
+use App\Models\Operation;
 use App\Services\LocationTimezoneResolver;
 use Carbon\Carbon;
 use Eris\Generator;
@@ -12,7 +12,7 @@ use Tests\TestCase;
 /**
  * P6 — Midnight-Spanning Shift Attribution.
  *
- * For every shift with shift_end < shift_start: the computed shift window's
+ * For every operation with end_time < start_time: the computed shift window's
  * end datetime is on the next calendar day, and the start stays on the
  * assignment_date.
  *
@@ -26,20 +26,20 @@ class MidnightShiftAttributionTest extends TestCase
 
     public function test_midnight_spanning_shift_end_is_on_next_day(): void
     {
-        // Generate pairs where shift_end < shift_start (midnight-spanning)
+        // Generate pairs where end_time < start_time (midnight-spanning)
         $this->forAll(
             Generator\choose(18, 23),  // start hour (evening)
             Generator\choose(0, 5),    // end hour (morning)
             Generator\elements('Asia/Jakarta', 'Asia/Makassar', 'Asia/Jayapura'),
         )->then(function (int $startHour, int $endHour, string $timezone): void {
-            $shift = new Shift;
-            $shift->shift_start = sprintf('%02d:00', $startHour);
-            $shift->shift_end = sprintf('%02d:00', $endHour);
+            $operation = new Operation;
+            $operation->start_time = sprintf('%02d:00', $startHour);
+            $operation->end_time = sprintf('%02d:00', $endHour);
 
             $date = Carbon::parse('2025-06-15', $timezone);
             $resolver = new LocationTimezoneResolver;
 
-            [$start, $end] = $resolver->shiftWindow($shift, $date, $timezone);
+            [$start, $end] = $resolver->shiftWindow($operation, $date, $timezone);
 
             // Convert back to the target timezone for date-day comparison
             $startLocal = $start->copy()->setTimezone($timezone);
@@ -52,20 +52,20 @@ class MidnightShiftAttributionTest extends TestCase
 
     public function test_non_midnight_spanning_shift_stays_on_same_day(): void
     {
-        // Generate pairs where shift_end > shift_start (normal shift)
+        // Generate pairs where end_time > start_time (normal shift)
         $this->forAll(
             Generator\choose(6, 12),
             Generator\choose(13, 22),
             Generator\elements('Asia/Jakarta', 'Asia/Makassar', 'Asia/Jayapura'),
         )->then(function (int $startHour, int $endHour, string $timezone): void {
-            $shift = new Shift;
-            $shift->shift_start = sprintf('%02d:00', $startHour);
-            $shift->shift_end = sprintf('%02d:00', $endHour);
+            $operation = new Operation;
+            $operation->start_time = sprintf('%02d:00', $startHour);
+            $operation->end_time = sprintf('%02d:00', $endHour);
 
             $date = Carbon::parse('2025-06-15', $timezone);
             $resolver = new LocationTimezoneResolver;
 
-            [$start, $end] = $resolver->shiftWindow($shift, $date, $timezone);
+            [$start, $end] = $resolver->shiftWindow($operation, $date, $timezone);
 
             $startLocal = $start->copy()->setTimezone($timezone);
             $endLocal = $end->copy()->setTimezone($timezone);

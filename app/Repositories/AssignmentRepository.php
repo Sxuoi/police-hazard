@@ -27,7 +27,7 @@ class AssignmentRepository implements AssignmentRepositoryInterface
 
     public function findByOfficerAndDate(string $officerId, string $date): Collection
     {
-        return Assignment::with(['location', 'shift', 'operation'])
+        return Assignment::with(['location', 'operation'])
             ->where('officer_id', $officerId)
             ->where('start_date', '<=', $date)
             ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $date))
@@ -45,7 +45,6 @@ class AssignmentRepository implements AssignmentRepositoryInterface
         $query = Assignment::with([
             'officer:id,name,nrp,saker_id',
             'location:id,name',
-            'shift:id,name,shift_start,shift_end',
             'operation:id,name,operation_type',
         ]);
 
@@ -90,7 +89,7 @@ class AssignmentRepository implements AssignmentRepositoryInterface
         $today = $date ?? Carbon::today(config('policehazard.default_timezone', 'Asia/Jakarta'));
         $todayStr = $today->toDateString();
 
-        return Assignment::with(['location', 'shift', 'operation'])
+        return Assignment::with(['location', 'operation'])
             ->where('officer_id', $officerId)
             ->where('saker_id', $sakerId)
             ->where('start_date', '<=', $todayStr)
@@ -104,14 +103,14 @@ class AssignmentRepository implements AssignmentRepositoryInterface
         $fromStr = $from->toDateString();
         $toStr = $to->toDateString();
 
-        return Assignment::with(['location', 'shift', 'operation'])
-            ->where('officer_id', $officerId)
-            ->where('saker_id', $sakerId)
-            ->where('start_date', '<=', $toStr)
-            ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $fromStr))
-            ->where('status', '!=', 'cancelled')
-            ->join('shifts', 'assignments.shift_id', '=', 'shifts.id')
-            ->orderBy('shifts.shift_start', 'asc')
+        return Assignment::with(['location', 'operation'])
+            ->where('assignments.officer_id', $officerId)
+            ->where('assignments.saker_id', $sakerId)
+            ->where('assignments.start_date', '<=', $toStr)
+            ->where(fn ($q) => $q->whereNull('assignments.end_date')->orWhere('assignments.end_date', '>=', $fromStr))
+            ->where('assignments.status', '!=', 'cancelled')
+            ->join('operations', 'assignments.operation_id', '=', 'operations.id')
+            ->orderBy('operations.start_time', 'asc')
             ->select('assignments.*')
             ->get();
     }

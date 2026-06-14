@@ -13,7 +13,6 @@ use App\Exceptions\Checkin\SpoofingRejectedException;
 use App\Models\Assignment;
 use App\Models\Location;
 use App\Models\Operation;
-use App\Models\Shift;
 use App\Models\User;
 use App\Repositories\Contracts\AssignmentRepositoryInterface;
 use App\Repositories\Contracts\AttendanceRepositoryInterface;
@@ -118,17 +117,15 @@ class ProcessCheckinActionTest extends TestCase
         $location->id = 'loc-uuid-1';
         $location->timezone = 'Asia/Jakarta';
 
-        // Set shift to cover the current hour in WIB (UTC+7)
+        // Set operation to cover the current hour in WIB (UTC+7)
         $nowWib = Carbon::now('Asia/Jakarta');
-        $shiftStart = $nowWib->copy()->subHours(2)->format('H:i');
-        $shiftEnd = $nowWib->copy()->addHours(2)->format('H:i');
-
-        $shift = new Shift;
-        $shift->shift_start = $shiftStart;
-        $shift->shift_end = $shiftEnd;
+        $startTime = $nowWib->copy()->subHours(2)->format('H:i');
+        $endTime = $nowWib->copy()->addHours(2)->format('H:i');
 
         $operation = new Operation;
         $operation->operation_type = $operationType;
+        $operation->start_time = $startTime;
+        $operation->end_time = $endTime;
 
         $officer = new User;
         $officer->id = 'officer-uuid-1';
@@ -139,7 +136,6 @@ class ProcessCheckinActionTest extends TestCase
         $assignment->shouldReceive('getAttribute')->with('end_date')->andReturn(null);
         $assignment->shouldReceive('loadMissing')->andReturnSelf();
         $assignment->shouldReceive('getAttribute')->with('location')->andReturn($location);
-        $assignment->shouldReceive('getAttribute')->with('shift')->andReturn($shift);
         $assignment->shouldReceive('getAttribute')->with('operation')->andReturn($operation);
         $assignment->shouldReceive('getAttribute')->with('officer')->andReturn($officer);
 
@@ -147,7 +143,7 @@ class ProcessCheckinActionTest extends TestCase
     }
 
     /**
-     * Create an assignment mock with shift times that are OUTSIDE the current time.
+     * Create an assignment mock with operation times that are OUTSIDE the current time.
      */
     private function makeAssignmentOutsideShift(string $operationType = 'PH'): object
     {
@@ -155,14 +151,11 @@ class ProcessCheckinActionTest extends TestCase
         $location->id = 'loc-uuid-1';
         $location->timezone = 'Asia/Jakarta';
 
-        // Set shift to a window that is definitely in the past
-        $shift = new Shift;
-        $shift->shift_start = '01:00';
-        $shift->shift_end = '02:00';
-
-        // Use yesterday's date so the shift window is definitely past
+        // Use yesterday's date and a narrow past time window
         $operation = new Operation;
         $operation->operation_type = $operationType;
+        $operation->start_time = '01:00';
+        $operation->end_time = '02:00';
 
         $officer = new User;
         $officer->id = 'officer-uuid-1';
@@ -174,7 +167,6 @@ class ProcessCheckinActionTest extends TestCase
         $assignment->shouldReceive('getAttribute')->with('end_date')->andReturn(null);
         $assignment->shouldReceive('loadMissing')->andReturnSelf();
         $assignment->shouldReceive('getAttribute')->with('location')->andReturn($location);
-        $assignment->shouldReceive('getAttribute')->with('shift')->andReturn($shift);
         $assignment->shouldReceive('getAttribute')->with('operation')->andReturn($operation);
         $assignment->shouldReceive('getAttribute')->with('officer')->andReturn($officer);
 

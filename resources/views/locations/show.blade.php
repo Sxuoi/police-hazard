@@ -98,29 +98,6 @@
                     </a>
                 </div>
             </div>
-
-            {{-- Shifts panel --}}
-            <div class="bg-[var(--color-surface-800)] rounded-2xl border border-[var(--color-surface-600)] p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-base font-semibold text-white">Shift</h2>
-                    <span class="text-xs text-gray-500">{{ $location->shifts->count() }} shift</span>
-                </div>
-                @forelse($location->shifts as $shift)
-                    <div class="flex items-center justify-between py-2.5 border-b border-[var(--color-surface-600)] last:border-0">
-                        <div>
-                            <div class="text-sm text-white font-medium">{{ $shift->name }}</div>
-                            <div class="text-xs text-gray-400">
-                                {{ substr($shift->shift_start, 0, 5) }} – {{ substr($shift->shift_end, 0, 5) }}
-                            </div>
-                        </div>
-                        @if(!$shift->is_active)
-                            <x-badge color="gray">Nonaktif</x-badge>
-                        @endif
-                    </div>
-                @empty
-                    <p class="text-sm text-gray-500">Belum ada shift untuk lokasi ini.</p>
-                @endforelse
-            </div>
         </div>
 
         {{-- Right: map --}}

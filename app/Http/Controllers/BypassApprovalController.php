@@ -56,7 +56,7 @@ class BypassApprovalController extends Controller
     public function show(string $id): View
     {
         $bypass = ManualBypassApproval::withoutGlobalScopes()
-            ->with(['officer:id,name,nrp,saker_id', 'assignment.location', 'assignment.shift', 'reviewer:id,name'])
+            ->with(['officer:id,name,nrp,saker_id', 'assignment.location', 'assignment.operation', 'reviewer:id,name'])
             ->findOrFail($id);
 
         return view('bypass-approvals.show', compact('bypass'));

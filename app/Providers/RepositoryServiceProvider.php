@@ -13,7 +13,6 @@ use App\Repositories\Contracts\ManualBypassApprovalRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
 use App\Repositories\Contracts\OperationRepositoryInterface;
 use App\Repositories\Contracts\SakerRepositoryInterface;
-use App\Repositories\Contracts\ShiftRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Contracts\ZoneRepositoryInterface;
 use App\Repositories\LocationRepository;
@@ -21,7 +20,6 @@ use App\Repositories\ManualBypassApprovalRepository;
 use App\Repositories\NotificationRepository;
 use App\Repositories\OperationRepository;
 use App\Repositories\SakerRepository;
-use App\Repositories\ShiftRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\ZoneRepository;
 use Illuminate\Support\ServiceProvider;
@@ -77,11 +75,6 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(
             NotificationRepositoryInterface::class,
             NotificationRepository::class
-        );
-
-        $this->app->bind(
-            ShiftRepositoryInterface::class,
-            ShiftRepository::class
         );
 
         $this->app->bind(

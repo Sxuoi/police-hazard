@@ -40,8 +40,6 @@ abstract class OfficerApiTestCase extends TestCase
 
     protected string $locationId;
 
-    protected string $shiftId;
-
     protected string $assignmentId;
 
     // ── Tenant B (for cross-tenant tests) ────────────────────────────
@@ -56,8 +54,6 @@ abstract class OfficerApiTestCase extends TestCase
     protected string $zoneIdB;
 
     protected string $locationIdB;
-
-    protected string $shiftIdB;
 
     protected string $assignmentIdB;
 
@@ -159,7 +155,6 @@ abstract class OfficerApiTestCase extends TestCase
         $this->operationId = Uuid::uuid7()->toString();
         $this->zoneId = Uuid::uuid7()->toString();
         $this->locationId = Uuid::uuid7()->toString();
-        $this->shiftId = Uuid::uuid7()->toString();
         $this->assignmentId = Uuid::uuid7()->toString();
         $this->officerNrp = 'A'.strtoupper(substr($this->officerId, 0, 10));
 
@@ -168,12 +163,10 @@ abstract class OfficerApiTestCase extends TestCase
         $this->seedOperation($this->operationId, $this->sakerId, $this->officerId);
         $this->seedZone($this->zoneId, $this->operationId, $this->sakerId, $this->officerId);
         $this->seedLocation($this->locationId, $this->zoneId, $this->sakerId, $this->officerId);
-        $this->seedShift($this->shiftId, $this->locationId, '00:00:00', '23:59:00');
         $this->seedAssignment(
             $this->assignmentId,
             $this->officerId,
             $this->locationId,
-            $this->shiftId,
             $this->operationId,
             $this->sakerId,
         );
@@ -186,7 +179,6 @@ abstract class OfficerApiTestCase extends TestCase
         $this->operationIdB = Uuid::uuid7()->toString();
         $this->zoneIdB = Uuid::uuid7()->toString();
         $this->locationIdB = Uuid::uuid7()->toString();
-        $this->shiftIdB = Uuid::uuid7()->toString();
         $this->assignmentIdB = Uuid::uuid7()->toString();
         $this->officerNrpB = 'B'.strtoupper(substr($this->officerIdB, 0, 10));
 
@@ -195,12 +187,10 @@ abstract class OfficerApiTestCase extends TestCase
         $this->seedOperation($this->operationIdB, $this->sakerIdB, $this->officerIdB);
         $this->seedZone($this->zoneIdB, $this->operationIdB, $this->sakerIdB, $this->officerIdB);
         $this->seedLocation($this->locationIdB, $this->zoneIdB, $this->sakerIdB, $this->officerIdB);
-        $this->seedShift($this->shiftIdB, $this->locationIdB, '00:00:00', '23:59:00');
         $this->seedAssignment(
             $this->assignmentIdB,
             $this->officerIdB,
             $this->locationIdB,
-            $this->shiftIdB,
             $this->operationIdB,
             $this->sakerIdB,
         );
@@ -298,28 +288,10 @@ abstract class OfficerApiTestCase extends TestCase
         ");
     }
 
-    protected function seedShift(string $id, string $locationId, string $start, string $end): void
-    {
-        DB::statement("
-            INSERT INTO shifts (id, location_id, name, shift_start, shift_end, active_days, is_active, created_at, updated_at)
-            VALUES (
-                '{$id}',
-                '{$locationId}',
-                'Test Shift',
-                '{$start}',
-                '{$end}',
-                ARRAY[1,2,3,4,5,6,7]::SMALLINT[],
-                true,
-                NOW(), NOW()
-            )
-        ");
-    }
-
     protected function seedAssignment(
         string $id,
         string $officerId,
         string $locationId,
-        string $shiftId,
         string $operationId,
         string $sakerId,
         ?string $date = null,
@@ -328,7 +300,6 @@ abstract class OfficerApiTestCase extends TestCase
             'id' => $id,
             'officer_id' => $officerId,
             'location_id' => $locationId,
-            'shift_id' => $shiftId,
             'operation_id' => $operationId,
             'saker_id' => $sakerId,
             'assigned_saker_id' => $sakerId,

@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Services;
 
-use App\Models\Shift;
+use App\Models\Operation;
 use App\Services\LocationTimezoneResolver;
 use Carbon\Carbon;
 use PHPUnit\Framework\Attributes\Test;
@@ -21,13 +21,13 @@ class LocationTimezoneResolverTest extends TestCase
     #[Test]
     public function test_shift_window_wib_timezone(): void
     {
-        $shift = new Shift;
-        $shift->shift_start = '06:00';
-        $shift->shift_end = '14:00';
+        $operation = new Operation;
+        $operation->start_time = '06:00';
+        $operation->end_time = '14:00';
 
         $date = Carbon::parse('2025-01-15', 'Asia/Jakarta');
 
-        [$start, $end] = $this->resolver->shiftWindow($shift, $date, 'Asia/Jakarta');
+        [$start, $end] = $this->resolver->shiftWindow($operation, $date, 'Asia/Jakarta');
 
         // WIB is UTC+7, so 06:00 WIB = 23:00 UTC (previous day)
         $this->assertEquals('2025-01-14 23:00:00', $start->format('Y-m-d H:i:s'));
@@ -40,13 +40,13 @@ class LocationTimezoneResolverTest extends TestCase
     #[Test]
     public function test_shift_window_wita_timezone(): void
     {
-        $shift = new Shift;
-        $shift->shift_start = '06:00';
-        $shift->shift_end = '14:00';
+        $operation = new Operation;
+        $operation->start_time = '06:00';
+        $operation->end_time = '14:00';
 
         $date = Carbon::parse('2025-01-15', 'Asia/Makassar');
 
-        [$start, $end] = $this->resolver->shiftWindow($shift, $date, 'Asia/Makassar');
+        [$start, $end] = $this->resolver->shiftWindow($operation, $date, 'Asia/Makassar');
 
         // WITA is UTC+8, so 06:00 WITA = 22:00 UTC (previous day)
         $this->assertEquals('2025-01-14 22:00:00', $start->format('Y-m-d H:i:s'));
@@ -59,13 +59,13 @@ class LocationTimezoneResolverTest extends TestCase
     #[Test]
     public function test_shift_window_wit_timezone(): void
     {
-        $shift = new Shift;
-        $shift->shift_start = '06:00';
-        $shift->shift_end = '14:00';
+        $operation = new Operation;
+        $operation->start_time = '06:00';
+        $operation->end_time = '14:00';
 
         $date = Carbon::parse('2025-01-15', 'Asia/Jayapura');
 
-        [$start, $end] = $this->resolver->shiftWindow($shift, $date, 'Asia/Jayapura');
+        [$start, $end] = $this->resolver->shiftWindow($operation, $date, 'Asia/Jayapura');
 
         // WIT is UTC+9, so 06:00 WIT = 21:00 UTC (previous day)
         $this->assertEquals('2025-01-14 21:00:00', $start->format('Y-m-d H:i:s'));
@@ -78,13 +78,13 @@ class LocationTimezoneResolverTest extends TestCase
     #[Test]
     public function test_midnight_spanning_shift(): void
     {
-        $shift = new Shift;
-        $shift->shift_start = '22:00';
-        $shift->shift_end = '06:00';
+        $operation = new Operation;
+        $operation->start_time = '22:00';
+        $operation->end_time = '06:00';
 
         $date = Carbon::parse('2025-01-15', 'Asia/Jakarta');
 
-        [$start, $end] = $this->resolver->shiftWindow($shift, $date, 'Asia/Jakarta');
+        [$start, $end] = $this->resolver->shiftWindow($operation, $date, 'Asia/Jakarta');
 
         // 22:00 WIB on Jan 15 = 15:00 UTC on Jan 15
         $this->assertEquals('2025-01-15 15:00:00', $start->format('Y-m-d H:i:s'));

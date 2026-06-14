@@ -75,13 +75,13 @@ class AttendanceRepository implements AttendanceRepositoryInterface
         $lng = $bypass->officer_longitude ?? 0;
         $attendanceId = Uuid::uuid7()->toString();
 
-        // Build shift window timestamps from check-in date + shift times
+        // Build shift window timestamps from check-in date + operation times
         $checkedInCarbon = ($checkedInAt instanceof \Carbon\Carbon) ? $checkedInAt : Carbon::parse($checkedInAt);
         $dateStr = $checkedInCarbon->format('Y-m-d');
-        $shiftStart = $bypass->assignment->shift?->shift_start;
-        $shiftEnd = $bypass->assignment->shift?->shift_end;
-        $shiftWindowStart = $shiftStart ? Carbon::parse("{$dateStr} {$shiftStart}") : now();
-        $shiftWindowEnd = $shiftEnd ? Carbon::parse("{$dateStr} {$shiftEnd}") : now();
+        $opStart = $bypass->assignment->operation?->start_time;
+        $opEnd = $bypass->assignment->operation?->end_time;
+        $shiftWindowStart = $opStart ? Carbon::parse("{$dateStr} {$opStart}") : now();
+        $shiftWindowEnd = $opEnd ? Carbon::parse("{$dateStr} {$opEnd}") : now();
 
         // Compute server-internal checksum
         $checksumParts = [
@@ -154,7 +154,7 @@ class AttendanceRepository implements AttendanceRepositoryInterface
 
     public function listForOfficerHistory(string $officerId, Carbon $from, Carbon $to, int $page): LengthAwarePaginator
     {
-        return Attendance::with(['location', 'assignment.shift', 'assignment.operation'])
+        return Attendance::with(['location', 'assignment.operation'])
             ->where('officer_id', $officerId)
             ->whereBetween('checked_in_at', [$from->startOfDay(), $to->endOfDay()])
             ->orderByDesc('checked_in_at')
@@ -163,7 +163,7 @@ class AttendanceRepository implements AttendanceRepositoryInterface
 
     public function findForOfficer(string $id, string $officerId): ?Attendance
     {
-        return Attendance::with(['location', 'assignment.shift', 'assignment.operation'])
+        return Attendance::with(['location', 'assignment.operation'])
             ->where('id', $id)
             ->where('officer_id', $officerId)
             ->first();

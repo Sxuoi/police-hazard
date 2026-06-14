@@ -47,8 +47,14 @@
                     <span class="text-white text-sm font-medium">{{ $bypass->assignment?->location?->name ?? '-' }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-400 text-sm">Shift</span>
-                    <span class="text-white text-sm font-medium">{{ $bypass->assignment?->shift?->name ?? '-' }}</span>
+                    <span class="text-gray-400 text-sm">Waktu Patroli</span>
+                    <span class="text-white text-sm font-medium">
+                        @if($bypass->assignment?->operation)
+                            {{ substr($bypass->assignment->operation->start_time, 0, 5) }} – {{ $bypass->assignment->operation->end_time ? substr($bypass->assignment->operation->end_time, 0, 5) : '23:59' }}
+                        @else
+                            -
+                        @endif
+                    </span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-400 text-sm">Tanggal</span>

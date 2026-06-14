@@ -28,8 +28,6 @@ class AttendanceRepositoryTest extends TestCase
 
     private string $locationId;
 
-    private string $shiftId;
-
     private string $assignmentId;
 
     protected function setUp(): void
@@ -133,7 +131,6 @@ class AttendanceRepositoryTest extends TestCase
         $this->operationId = Uuid::uuid7()->toString();
         $this->zoneId = Uuid::uuid7()->toString();
         $this->locationId = Uuid::uuid7()->toString();
-        $this->shiftId = Uuid::uuid7()->toString();
         $this->assignmentId = Uuid::uuid7()->toString();
 
         DB::table('sakers')->insert([
@@ -199,25 +196,10 @@ class AttendanceRepositoryTest extends TestCase
             )
         ");
 
-        DB::statement("
-            INSERT INTO shifts (id, location_id, name, shift_start, shift_end, active_days, is_active, created_at, updated_at)
-            VALUES (
-                '{$this->shiftId}',
-                '{$this->locationId}',
-                'Morning Shift',
-                '08:00:00',
-                '16:00:00',
-                ARRAY[1,2,3,4,5,6,7]::SMALLINT[],
-                true,
-                NOW(), NOW()
-            )
-        ");
-
         DB::table('assignments')->insert([
             'id' => $this->assignmentId,
             'officer_id' => $this->officerId,
             'location_id' => $this->locationId,
-            'shift_id' => $this->shiftId,
             'operation_id' => $this->operationId,
             'saker_id' => $this->sakerId,
             'assigned_saker_id' => $this->sakerId,

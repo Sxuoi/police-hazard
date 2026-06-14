@@ -84,17 +84,16 @@ class ProcessCheckinAction
             throw new AssignmentNotFoundException;
         }
 
-        $assignment->loadMissing(['location', 'shift', 'operation', 'officer']);
+        $assignment->loadMissing(['location', 'operation', 'officer']);
 
         $location = $assignment->location;
-        $shift = $assignment->shift;
         $operation = $assignment->operation;
 
         // ── Step 3: Shift Window Check ───────────────────────────────
         $timezone = $location->timezone ?? config('policehazard.default_timezone', 'Asia/Jakarta');
 
         [$shiftStart, $shiftEnd] = $this->locationTimezoneResolver->shiftWindow(
-            $shift,
+            $operation,
             Carbon::today($timezone),
             $timezone,
         );

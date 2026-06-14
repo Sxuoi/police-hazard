@@ -10,7 +10,6 @@
         'officer.saker:id,code,name',
         'location:id,name,address,zone_id,radius_meters,saker_id',
         'location.zone:id,name',
-        'shift:id,name,shift_start,shift_end,active_days',
         'operation:id,name,operation_type,status,start_time,end_time',
         'saker:id,code,name',
         'assignedSaker:id,code,name',
@@ -75,11 +74,10 @@
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500">Shift</dt>
+                        <dt class="text-gray-500">Waktu Patroli</dt>
                         <dd class="text-white mt-1">
-                            @if($assignment->shift)
-                                {{ $assignment->shift->name }}
-                                <span class="text-xs text-gray-400 ml-1">({{ \Illuminate\Support\Str::substr($assignment->shift->shift_start, 0, 5) }} – {{ \Illuminate\Support\Str::substr($assignment->shift->shift_end, 0, 5) }})</span>
+                            @if($assignment->operation)
+                                {{ substr($assignment->operation->start_time, 0, 5) }} – {{ $assignment->operation->end_time ? substr($assignment->operation->end_time, 0, 5) : '23:59' }}
                             @else
                                 —
                             @endif
