@@ -24,8 +24,7 @@
                 </div>
 
                 <dl class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                    <div><dt class="text-gray-500">Waktu Mulai</dt><dd class="text-white mt-1">{{ substr($operation->start_time, 0, 5) }}</dd></div>
-                    <div><dt class="text-gray-500">Waktu Selesai</dt><dd class="text-white mt-1">{{ $operation->end_time ? substr($operation->end_time, 0, 5) : 'Tanpa batas' }}</dd></div>
+                    <div><dt class="text-gray-500">Waktu Operasi</dt><dd class="text-white mt-1">{{ substr($operation->start_time, 0, 5) }} - {{ $operation->end_time ? substr($operation->end_time, 0, 5) : 'Tanpa batas' }}</dd></div>
                     <div><dt class="text-gray-500">Zona</dt><dd class="text-white mt-1">{{ $operation->zones_count ?? 0 }}</dd></div>
                     <div><dt class="text-gray-500">Total Penugasan</dt><dd class="text-white mt-1">{{ $operation->assignments_count ?? 0 }}</dd></div>
                 </dl>

@@ -62,6 +62,7 @@ class OfficerController extends Controller
     public function show(string $id): View
     {
         $officer = $this->users->findOrFail($id);
+        $officer->load('saker');
 
         return view('officers.show', compact('officer'));
     }

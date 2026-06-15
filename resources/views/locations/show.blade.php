@@ -80,6 +80,26 @@
                             <dd class="text-white mt-1">{{ $location->timezone }}</dd>
                         </div>
                     @endif
+                    <div class="col-span-2">
+                        <dt class="text-gray-500 text-xs uppercase tracking-wide">Perwira Pengendali (PADAL)</dt>
+                        <dd class="text-white mt-1">
+                            @if($location->padal)
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center text-[var(--color-accent)] text-sm font-bold">
+                                        {{ strtoupper(substr($location->padal->name, 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <div class="font-medium">{{ $location->padal->name }}</div>
+                                        @if($location->padal->phone)
+                                            <div class="text-xs text-gray-400">{{ $location->padal->phone }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @else
+                                <span class="text-gray-500 italic">Belum ditentukan</span>
+                            @endif
+                        </dd>
+                    </div>
                 </dl>
 
                 @if($location->description)

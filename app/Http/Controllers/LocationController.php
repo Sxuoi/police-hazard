@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Repositories\Contracts\LocationRepositoryInterface;
 use App\Repositories\Contracts\OperationRepositoryInterface;
 use App\Repositories\Contracts\ZoneRepositoryInterface;
@@ -34,8 +35,10 @@ class LocationController extends Controller
     public function create(): View
     {
         $operations = $this->operations->allActive();
+        $officers = User::where('role', 'officer')->where('is_active', true)
+            ->orderBy('name')->get(['id', 'name', 'nrp', 'phone', 'saker_id']);
 
-        return view('locations.create', compact('operations'));
+        return view('locations.create', compact('operations', 'officers'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -48,6 +51,7 @@ class LocationController extends Controller
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'radius_meters' => ['required', 'integer', 'between:10,500'],
             'minimum_officer' => ['required', 'integer', 'min:1'],
+            'padal_id' => ['nullable', 'uuid', 'exists:users,id'],
             'description' => ['nullable', 'string'],
         ]);
 
@@ -55,8 +59,8 @@ class LocationController extends Controller
         $id = Uuid::uuid7()->toString();
 
         DB::statement('
-            INSERT INTO locations (id, zone_id, saker_id, name, address, coordinates, radius_meters, minimum_officer, coords_locked, is_active, created_by, updated_by, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), ?, ?, false, true, ?, ?, NOW(), NOW())
+            INSERT INTO locations (id, zone_id, saker_id, name, address, coordinates, radius_meters, minimum_officer, padal_id, coords_locked, is_active, created_by, updated_by, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), ?, ?, ?, false, true, ?, ?, NOW(), NOW())
         ', [
             $id,
             $zone->id,
@@ -67,6 +71,7 @@ class LocationController extends Controller
             $validated['latitude'],
             $validated['radius_meters'],
             $validated['minimum_officer'],
+            $validated['padal_id'] ?? null,
             $request->user()->id,
             $request->user()->id,
         ]);
@@ -85,7 +90,7 @@ class LocationController extends Controller
     public function show(string $id): View
     {
         $location = $this->locations->findOrFail($id);
-        $location->load(['zone.operation']);
+        $location->load(['zone.operation', 'padal']);
 
         return view('locations.show', compact('location'));
     }
@@ -93,6 +98,7 @@ class LocationController extends Controller
     public function edit(string $id): View
     {
         $location = $this->locations->findOrFail($id);
+        $location->load('zone');
 
         // Fetch raw coordinates using PostGIS
         $coords = DB::selectOne('SELECT ST_Y(coordinates::geometry) as lat, ST_X(coordinates::geometry) as lng FROM locations WHERE id = ?', [$id]);
@@ -100,8 +106,11 @@ class LocationController extends Controller
         $location->lng = $coords->lng ?? '';
 
         $operations = $this->operations->allActive();
+        $officers = User::where('role', 'officer')->where('is_active', true)
+            ->where('saker_id', $location->saker_id)
+            ->orderBy('name')->get(['id', 'name', 'nrp', 'phone', 'saker_id']);
 
-        return view('locations.edit', compact('location', 'operations'));
+        return view('locations.edit', compact('location', 'operations', 'officers'));
     }
 
     public function update(Request $request, string $id): RedirectResponse
@@ -113,6 +122,7 @@ class LocationController extends Controller
             'address' => ['nullable', 'string', 'max:500'],
             'radius_meters' => ['required', 'integer', 'between:10,500'],
             'minimum_officer' => ['required', 'integer', 'min:1'],
+            'padal_id' => ['nullable', 'uuid', 'exists:users,id'],
             'description' => ['nullable', 'string'],
         ];
 
@@ -129,6 +139,7 @@ class LocationController extends Controller
             'address' => $validated['address'] ?? $location->address,
             'radius_meters' => $validated['radius_meters'],
             'minimum_officer' => $validated['minimum_officer'],
+            'padal_id' => $validated['padal_id'] ?? null,
             'description' => $validated['description'] ?? $location->description,
             'updated_by' => $request->user()->id,
         ];
