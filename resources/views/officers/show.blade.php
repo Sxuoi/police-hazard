@@ -88,7 +88,7 @@
                             <div class="font-medium text-white">{{ $assignment->location->name ?? '—' }}</div>
                             <div class="text-xs text-gray-400">
                                 {{ $assignment->operation->name ?? '—' }}
-                                · {{ $assignment->start_date->format('d M Y') }} — {{ $assignment->end_date->format('d M Y') }}
+                                · {{ $assignment->start_date->format('d M Y') }} — {{ $assignment->end_date ? $assignment->end_date->format('d M Y') : 'Sekarang' }}
                             </div>
                         </div>
                         <a href="{{ route('assignments.show', $assignment) }}" class="text-sm text-[var(--color-accent)] hover:underline">Detail →</a>
