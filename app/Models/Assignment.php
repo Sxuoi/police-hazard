@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Assignment — PRD §6.2, §7.7.
- * Binds Officer ↔ Location ↔ Shift ↔ Operation.
+ * Binds Officer ↔ Location ↔ Operation.
  * saker_id = officer's home Saker.
  * assigned_saker_id = borrowing Saker (may differ for cross-tenant borrowing).
  * Status lifecycle: pending → active → completed | cancelled.
@@ -25,11 +25,11 @@ class Assignment extends Model
     protected $fillable = [
         'officer_id',
         'location_id',
-        'shift_id',
         'operation_id',
         'saker_id',
         'assigned_saker_id',
-        'assignment_date',
+        'start_date',
+        'end_date',
         'status',
         'notes',
         'assigned_by',
@@ -38,8 +38,19 @@ class Assignment extends Model
     protected function casts(): array
     {
         return [
-            'assignment_date' => 'date',
+            'start_date' => 'date',
+            'end_date' => 'date',
         ];
+    }
+
+    /**
+     * Check if the assignment is active on a given date.
+     */
+    public function isActiveOn(mixed $date): bool
+    {
+        $parsedDate = \Illuminate\Support\Carbon::parse($date);
+        return $this->start_date->startOfDay()->lte($parsedDate)
+            && (is_null($this->end_date) || $this->end_date->endOfDay()->gte($parsedDate));
     }
 
     // ── Relationships ────────────────────────────────────────────────
@@ -52,11 +63,6 @@ class Assignment extends Model
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
-    }
-
-    public function shift(): BelongsTo
-    {
-        return $this->belongsTo(Shift::class);
     }
 
     public function operation(): BelongsTo

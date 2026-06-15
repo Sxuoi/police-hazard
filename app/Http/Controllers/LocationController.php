@@ -73,42 +73,6 @@ class LocationController extends Controller
 
         $location = $this->locations->find($id);
 
-        // Auto-create a shift for the new location whose window mirrors the
-        // parent operation's start_time / end_time. This keeps shifts in
-        // sync with the operation so admins don't have to pick a shift on
-        // the assignment wizard, and the check-in pipeline (which reads
-        // shift.shift_start / shift.shift_end) gets the right window.
-        $operation = $zone->operation;
-        $shiftStart = $operation && $operation->start_time
-            ? substr((string) $operation->start_time, 0, 8)
-            : '00:00:00';
-        $shiftEnd = $operation && $operation->end_time
-            ? substr((string) $operation->end_time, 0, 8)
-            : '23:59:59';
-
-        // Operations may legitimately have start == end (treat as 24h).
-        // The shifts CHECK constraint forbids zero-length, so collapse to
-        // a 24-hour fallback in that case.
-        if ($shiftStart === $shiftEnd) {
-            $shiftStart = '00:00:00';
-            $shiftEnd = '23:59:59';
-        }
-
-        $shiftName = $operation
-            ? $operation->name.' — '.substr($shiftStart, 0, 5).'–'.substr($shiftEnd, 0, 5)
-            : 'Shift Utama';
-
-        DB::statement('
-            INSERT INTO shifts (id, location_id, name, shift_start, shift_end, active_days, is_active, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, \'{1,2,3,4,5,6,7}\', true, NOW(), NOW())
-        ', [
-            Uuid::uuid7()->toString(),
-            $location->id,
-            $shiftName,
-            $shiftStart,
-            $shiftEnd,
-        ]);
-
         $this->auditService->log('LOCATION_CREATED', $location, [
             'name' => $location->name,
             'coordinates' => [$validated['latitude'], $validated['longitude']],
@@ -121,7 +85,7 @@ class LocationController extends Controller
     public function show(string $id): View
     {
         $location = $this->locations->findOrFail($id);
-        $location->load(['zone.operation', 'shifts']);
+        $location->load(['zone.operation']);
 
         return view('locations.show', compact('location'));
     }

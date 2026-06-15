@@ -90,7 +90,8 @@ class UserRepository implements UserRepositoryInterface
         $query = User::where('role', 'officer')
             ->with(['saker:id,code,type'])
             ->withExists([
-                'assignments as has_today_assignment' => fn ($q) => $q->where('assignment_date', $date),
+                'assignments as has_today_assignment' => fn ($q) => $q->where('start_date', '<=', $date)
+                    ->where(fn ($sq) => $sq->whereNull('end_date')->orWhere('end_date', '>=', $date)),
             ])
             ->when(isset($filters['search']), fn ($q) => $q->where(function ($sq) use ($filters) {
                 $sq->where('name', 'ilike', "%{$filters['search']}%")

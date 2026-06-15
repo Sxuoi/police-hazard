@@ -36,7 +36,7 @@ class ReportController extends Controller
         $filters = $request->only(['operation_id', 'start_date', 'end_date', 'status']);
 
         // Fetch all matching assignments without pagination
-        $query = Assignment::with(['officer', 'location', 'shift', 'operation', 'saker']);
+        $query = Assignment::with(['officer', 'location', 'operation', 'saker']);
 
         if (isset($filters['operation_id'])) {
             $query->where('operation_id', $filters['operation_id']);
@@ -45,15 +45,15 @@ class ReportController extends Controller
             $query->where('status', $filters['status']);
         }
         if (isset($filters['start_date'])) {
-            $query->whereDate('assignment_date', '>=', $filters['start_date']);
+            $query->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $filters['start_date']));
         }
         if (isset($filters['end_date'])) {
-            $query->whereDate('assignment_date', '<=', $filters['end_date']);
+            $query->where('start_date', '<=', $filters['end_date']);
         }
 
         // Saker scoping is handled globally by SakerScope for non-God admins,
         // but let's ensure it's explicitly ordered
-        $assignments = $query->orderBy('assignment_date', 'desc')->get();
+        $assignments = $query->orderBy('start_date', 'desc')->get();
 
         $fileName = 'rekap_penugasan_'.date('Ymd_His').'.csv';
 
@@ -77,7 +77,7 @@ class ReportController extends Controller
                 'Tanggal',
                 'Operasi',
                 'Lokasi',
-                'Shift',
+                'Waktu',
                 'NRP',
                 'Nama Petugas',
                 'Status',
@@ -86,12 +86,16 @@ class ReportController extends Controller
 
             // CSV Data
             foreach ($assignments as $assignment) {
+                $dateString = $assignment->start_date->format('Y-m-d') . ($assignment->end_date ? ' s/d ' . $assignment->end_date->format('Y-m-d') : ' - Selesai');
+                $waktuString = $assignment->operation
+                    ? substr($assignment->operation->start_time, 0, 5) . ' - ' . ($assignment->operation->end_time ? substr($assignment->operation->end_time, 0, 5) : '23:59')
+                    : '-';
                 fputcsv($file, [
                     $assignment->id,
-                    $assignment->assignment_date->format('Y-m-d'),
+                    $dateString,
                     $assignment->operation->name ?? '-',
                     $assignment->location->name ?? '-',
-                    $assignment->shift->name ?? '-',
+                    $waktuString,
                     $assignment->officer->nrp ?? '-',
                     $assignment->officer->name ?? '-',
                     strtoupper($assignment->status),

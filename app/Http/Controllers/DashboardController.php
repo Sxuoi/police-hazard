@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Location;
+use App\Models\Operation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -14,15 +15,65 @@ class DashboardController extends Controller
     public function index(Request $request): View
     {
         $date = $request->query('date', now()->format('Y-m-d'));
+        $operationId = $request->query('operation_id');
+        $zoneId = $request->query('zone_id');
+        $officer = $request->query('officer');
 
-        // Basic metrics calculation
-        $locations = Location::where('is_active', true)
-            ->withCount(['assignments as total_assignments' => function ($q) use ($date) {
-                $q->where('assignment_date', $date)->where('status', 'active');
-            }])
-            ->withCount(['assignments as present_assignments' => function ($q) use ($date) {
-                $q->where('assignment_date', $date)->where('status', 'active')
-                    ->whereHas('attendances');
+        $query = Location::where('is_active', true);
+
+        // Filter by zone
+        if ($zoneId) {
+            $query->where('zone_id', $zoneId);
+        }
+
+        // Filter by operation (locations whose zone belongs to that operation)
+        if ($operationId && ! $zoneId) {
+            $query->whereHas('zone', fn ($q) => $q->where('operation_id', $operationId));
+        }
+
+        // Filter by officer – only return locations that have an active assignment
+        // for the searched officer, rather than returning all locations.
+        if ($officer) {
+            $query->whereHas('assignments', function ($q) use ($date, $officer) {
+                $q->where('start_date', '<=', $date)
+                    ->where(fn ($sq) => $sq->whereNull('end_date')->orWhere('end_date', '>=', $date))
+                    ->where('status', 'active')
+                    ->whereHas('officer', function ($oq) use ($officer) {
+                        $oq->withoutGlobalScopes()
+                            ->where('name', 'ilike', "%{$officer}%")
+                            ->orWhere('nrp', 'ilike', "%{$officer}%");
+                    });
+            });
+        }
+
+        // Build assignment constraint closure
+        $assignmentFilter = function ($q) use ($date, $officer) {
+            $q->where('start_date', '<=', $date)
+                ->where(fn ($sq) => $sq->whereNull('end_date')->orWhere('end_date', '>=', $date))
+                ->where('status', 'active');
+            if ($officer) {
+                $q->whereHas('officer', function ($oq) use ($officer) {
+                    $oq->withoutGlobalScopes()
+                        ->where('name', 'ilike', "%{$officer}%")
+                        ->orWhere('nrp', 'ilike', "%{$officer}%");
+                });
+            }
+        };
+
+        $locations = $query
+            ->withCount(['assignments as total_assignments' => $assignmentFilter])
+            ->withCount(['assignments as present_assignments' => function ($q) use ($date, $officer) {
+                $q->where('start_date', '<=', $date)
+                    ->where(fn ($sq) => $sq->whereNull('end_date')->orWhere('end_date', '>=', $date))
+                    ->where('status', 'active')
+                    ->whereHas('attendances', fn ($aq) => $aq->whereDate('checked_in_at', $date));
+                if ($officer) {
+                    $q->whereHas('officer', function ($oq) use ($officer) {
+                        $oq->withoutGlobalScopes()
+                            ->where('name', 'ilike', "%{$officer}%")
+                            ->orWhere('nrp', 'ilike', "%{$officer}%");
+                    });
+                }
             }])
             ->get();
 
@@ -42,35 +93,87 @@ class DashboardController extends Controller
                 } else {
                     $metrics['missing_attendance']++;
                 }
-            } else {
-                // If no assignments, we might just not count it in missing or partial.
-                // It just sits there. Or we could count it as missing. Let's not count.
             }
         }
 
-        return view('dashboard.index', compact('metrics', 'date'));
+        // Fetch operations for the dropdown
+        $operations = Operation::select('id', 'name')->orderBy('name')->get();
+
+        return view('dashboard.index', compact('metrics', 'date', 'operations'));
     }
 
     public function mapData(Request $request): JsonResponse
     {
         $date = $request->query('date', now()->format('Y-m-d'));
+        $operationId = $request->query('operation_id');
+        $zoneId = $request->query('zone_id');
+        $officer = $request->query('officer');
 
-        $cacheKey = "dashboard:map:{$date}";
+        // Build a unique cache key incorporating all filters
+        $cacheKey = 'dashboard:map:' . md5(json_encode(compact('date', 'operationId', 'zoneId', 'officer')));
         $ttl = (int) config('policehazard.cache.map_points_ttl_seconds', 30);
 
-        $loader = function () use ($date) {
-            return Location::select(
-                'id', 'name', 'address', 'minimum_officer',
+        $loader = function () use ($date, $operationId, $zoneId, $officer) {
+            $query = Location::select(
+                'id', 'name', 'address', 'minimum_officer', 'zone_id',
                 DB::raw('ST_Y(coordinates::geometry) as lat'),
                 DB::raw('ST_X(coordinates::geometry) as lng')
             )
-                ->where('is_active', true)
-                ->withCount(['assignments as total_assignments' => function ($q) use ($date) {
-                    $q->where('assignment_date', $date)->where('status', 'active');
-                }])
-                ->withCount(['assignments as present_assignments' => function ($q) use ($date) {
-                    $q->where('assignment_date', $date)->where('status', 'active')
-                        ->whereHas('attendances');
+                ->where('is_active', true);
+
+            // Filter by zone
+            if ($zoneId) {
+                $query->where('zone_id', $zoneId);
+            }
+
+            // Filter by operation (locations whose zone belongs to that operation)
+            if ($operationId && ! $zoneId) {
+                $query->whereHas('zone', fn ($q) => $q->where('operation_id', $operationId));
+            }
+
+            // Filter by officer – only return locations that have an active assignment
+            // for the searched officer, rather than returning all locations.
+            if ($officer) {
+                $query->whereHas('assignments', function ($q) use ($date, $officer) {
+                    $q->where('start_date', '<=', $date)
+                        ->where(fn ($sq) => $sq->whereNull('end_date')->orWhere('end_date', '>=', $date))
+                        ->where('status', 'active')
+                        ->whereHas('officer', function ($oq) use ($officer) {
+                            $oq->withoutGlobalScopes()
+                                ->where('name', 'ilike', "%{$officer}%")
+                                ->orWhere('nrp', 'ilike', "%{$officer}%");
+                        });
+                });
+            }
+
+            // Build assignment constraint
+            $assignmentFilter = function ($q) use ($date, $officer) {
+                $q->where('start_date', '<=', $date)
+                    ->where(fn ($sq) => $sq->whereNull('end_date')->orWhere('end_date', '>=', $date))
+                    ->where('status', 'active');
+                if ($officer) {
+                    $q->whereHas('officer', function ($oq) use ($officer) {
+                        $oq->withoutGlobalScopes()
+                            ->where('name', 'ilike', "%{$officer}%")
+                            ->orWhere('nrp', 'ilike', "%{$officer}%");
+                    });
+                }
+            };
+
+            return $query
+                ->withCount(['assignments as total_assignments' => $assignmentFilter])
+                ->withCount(['assignments as present_assignments' => function ($q) use ($date, $officer) {
+                    $q->where('start_date', '<=', $date)
+                        ->where(fn ($sq) => $sq->whereNull('end_date')->orWhere('end_date', '>=', $date))
+                        ->where('status', 'active')
+                        ->whereHas('attendances', fn ($aq) => $aq->whereDate('checked_in_at', $date));
+                    if ($officer) {
+                        $q->whereHas('officer', function ($oq) use ($officer) {
+                            $oq->withoutGlobalScopes()
+                                ->where('name', 'ilike', "%{$officer}%")
+                                ->orWhere('nrp', 'ilike', "%{$officer}%");
+                        });
+                    }
                 }])
                 ->get()
                 ->map(function ($loc) {

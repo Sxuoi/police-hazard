@@ -77,8 +77,6 @@ Route::middleware(['auth', 'god.admin'])->group(function () {
         ->name('ajax.zones-by-operation');
     Route::get('ajax/locations-by-zone', [AssignmentController::class, 'locationsByZone'])
         ->name('ajax.locations-by-zone');
-    Route::get('ajax/shifts-by-location', [AssignmentController::class, 'shiftsByLocation'])
-        ->name('ajax.shifts-by-location');
     Route::get('ajax/officer-search', [AssignmentController::class, 'officerSearch'])
         ->name('ajax.officer-search');
 

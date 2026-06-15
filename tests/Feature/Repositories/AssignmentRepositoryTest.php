@@ -25,13 +25,13 @@ class AssignmentRepositoryTest extends TestCase
 
     private string $operationId;
 
+    private string $operationId2;
+
     private string $zoneId;
 
     private string $locationId;
 
-    private string $shiftId;
-
-    private string $shiftId2;
+    private string $locationId2;
 
     protected function setUp(): void
     {
@@ -55,11 +55,10 @@ class AssignmentRepositoryTest extends TestCase
             'id' => $assignmentId,
             'officer_id' => $this->officerId,
             'location_id' => $this->locationId,
-            'shift_id' => $this->shiftId,
             'operation_id' => $this->operationId,
             'saker_id' => $this->sakerId,
             'assigned_saker_id' => $this->sakerId,
-            'assignment_date' => Carbon::today()->toDateString(),
+            'start_date' => Carbon::today()->toDateString(),
             'status' => 'active',
             'assigned_by' => $this->officerId,
             'created_at' => now()->toIso8601String(),
@@ -80,11 +79,10 @@ class AssignmentRepositoryTest extends TestCase
             'id' => $assignmentId,
             'officer_id' => $this->officerId,
             'location_id' => $this->locationId,
-            'shift_id' => $this->shiftId,
             'operation_id' => $this->operationId,
             'saker_id' => $this->sakerId,
             'assigned_saker_id' => $this->sakerId,
-            'assignment_date' => Carbon::today()->toDateString(),
+            'start_date' => Carbon::today()->toDateString(),
             'status' => 'cancelled',
             'assigned_by' => $this->officerId,
             'created_at' => now()->toIso8601String(),
@@ -96,39 +94,37 @@ class AssignmentRepositoryTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function test_list_for_officer_excludes_cancelled_and_sorts_by_shift(): void
+    public function test_list_for_officer_excludes_cancelled_and_sorts_by_operation_time(): void
     {
         $from = Carbon::today();
         $to = Carbon::today();
 
-        // Assignment with later shift (16:00–00:00)
+        // Assignment with later operation (16:00–23:59)
         $assignmentLate = Uuid::uuid7()->toString();
         DB::table('assignments')->insert([
             'id' => $assignmentLate,
             'officer_id' => $this->officerId,
             'location_id' => $this->locationId,
-            'shift_id' => $this->shiftId2, // 16:00 start
-            'operation_id' => $this->operationId,
+            'operation_id' => $this->operationId2, // 16:00 start
             'saker_id' => $this->sakerId,
             'assigned_saker_id' => $this->sakerId,
-            'assignment_date' => Carbon::today()->toDateString(),
+            'start_date' => Carbon::today()->toDateString(),
             'status' => 'active',
             'assigned_by' => $this->officerId,
             'created_at' => now()->toIso8601String(),
             'updated_at' => now()->toIso8601String(),
         ]);
 
-        // Assignment with earlier shift (08:00–16:00)
+        // Assignment with earlier operation (08:00–16:00)
         $assignmentEarly = Uuid::uuid7()->toString();
         DB::table('assignments')->insert([
             'id' => $assignmentEarly,
             'officer_id' => $this->officerId,
-            'location_id' => $this->locationId,
-            'shift_id' => $this->shiftId, // 08:00 start
-            'operation_id' => $this->operationId,
+            'location_id' => $this->locationId2, // Use second location to avoid unique violation
+            'operation_id' => $this->operationId, // 08:00 start
             'saker_id' => $this->sakerId,
             'assigned_saker_id' => $this->sakerId,
-            'assignment_date' => Carbon::today()->toDateString(),
+            'start_date' => Carbon::today()->toDateString(),
             'status' => 'active',
             'assigned_by' => $this->officerId,
             'created_at' => now()->toIso8601String(),
@@ -141,11 +137,10 @@ class AssignmentRepositoryTest extends TestCase
             'id' => $assignmentCancelled,
             'officer_id' => $this->officerId,
             'location_id' => $this->locationId,
-            'shift_id' => $this->shiftId,
             'operation_id' => $this->operationId,
             'saker_id' => $this->sakerId,
             'assigned_saker_id' => $this->sakerId,
-            'assignment_date' => Carbon::today()->toDateString(),
+            'start_date' => Carbon::today()->toDateString(),
             'status' => 'cancelled',
             'assigned_by' => $this->officerId,
             'created_at' => now()->toIso8601String(),
@@ -157,9 +152,9 @@ class AssignmentRepositoryTest extends TestCase
         // Should have 2 results (cancelled excluded)
         $this->assertCount(2, $results);
 
-        // First result should be the earlier shift (08:00)
+        // First result should be the earlier operation (08:00)
         $this->assertSame($assignmentEarly, $results->first()->id);
-        // Second result should be the later shift (16:00)
+        // Second result should be the later operation (16:00)
         $this->assertSame($assignmentLate, $results->last()->id);
     }
 
@@ -170,10 +165,10 @@ class AssignmentRepositoryTest extends TestCase
         $this->sakerId = Uuid::uuid7()->toString();
         $this->officerId = Uuid::uuid7()->toString();
         $this->operationId = Uuid::uuid7()->toString();
+        $this->operationId2 = Uuid::uuid7()->toString();
         $this->zoneId = Uuid::uuid7()->toString();
         $this->locationId = Uuid::uuid7()->toString();
-        $this->shiftId = Uuid::uuid7()->toString();
-        $this->shiftId2 = Uuid::uuid7()->toString();
+        $this->locationId2 = Uuid::uuid7()->toString();
 
         DB::table('sakers')->insert([
             'id' => $this->sakerId,
@@ -200,11 +195,24 @@ class AssignmentRepositoryTest extends TestCase
         DB::table('operations')->insert([
             'id' => $this->operationId,
             'saker_id' => $this->sakerId,
-            'name' => 'Test Operation',
+            'name' => 'Test Operation 1',
             'operation_type' => 'PH',
             'status' => 'active',
             'start_time' => '08:00:00',
             'end_time' => '16:00:00',
+            'created_by' => $this->officerId,
+            'created_at' => now()->toIso8601String(),
+            'updated_at' => now()->toIso8601String(),
+        ]);
+
+        DB::table('operations')->insert([
+            'id' => $this->operationId2,
+            'saker_id' => $this->sakerId,
+            'name' => 'Test Operation 2',
+            'operation_type' => 'PH',
+            'status' => 'active',
+            'start_time' => '16:00:00',
+            'end_time' => '23:59:00',
             'created_by' => $this->officerId,
             'created_at' => now()->toIso8601String(),
             'updated_at' => now()->toIso8601String(),
@@ -238,32 +246,19 @@ class AssignmentRepositoryTest extends TestCase
             )
         ");
 
-        // Shift 1: Morning (08:00–16:00)
         DB::statement("
-            INSERT INTO shifts (id, location_id, name, shift_start, shift_end, active_days, is_active, created_at, updated_at)
-            VALUES (
-                '{$this->shiftId}',
-                '{$this->locationId}',
-                'Morning Shift',
-                '08:00:00',
-                '16:00:00',
-                ARRAY[1,2,3,4,5,6,7]::SMALLINT[],
-                true,
-                NOW(), NOW()
-            )
-        ");
-
-        // Shift 2: Afternoon (16:00–23:59)
-        DB::statement("
-            INSERT INTO shifts (id, location_id, name, shift_start, shift_end, active_days, is_active, created_at, updated_at)
-            VALUES (
-                '{$this->shiftId2}',
-                '{$this->locationId}',
-                'Afternoon Shift',
-                '16:00:00',
-                '23:59:00',
-                ARRAY[1,2,3,4,5,6,7]::SMALLINT[],
-                true,
+            INSERT INTO locations (
+                id, zone_id, saker_id, name, coordinates,
+                radius_meters, minimum_officer, coords_locked, is_active,
+                created_by, created_at, updated_at
+            ) VALUES (
+                '{$this->locationId2}',
+                '{$this->zoneId}',
+                '{$this->sakerId}',
+                'Test Location 2',
+                ST_SetSRID(ST_MakePoint(106.8456, -6.2088), 4326),
+                50, 1, false, true,
+                '{$this->officerId}',
                 NOW(), NOW()
             )
         ");

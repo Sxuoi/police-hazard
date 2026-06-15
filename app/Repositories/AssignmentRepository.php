@@ -27,9 +27,10 @@ class AssignmentRepository implements AssignmentRepositoryInterface
 
     public function findByOfficerAndDate(string $officerId, string $date): Collection
     {
-        return Assignment::with(['location', 'shift', 'operation'])
+        return Assignment::with(['location', 'operation'])
             ->where('officer_id', $officerId)
-            ->where('assignment_date', $date)
+            ->where('start_date', '<=', $date)
+            ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $date))
             ->whereIn('status', ['active', 'pending'])
             ->get();
     }
@@ -44,7 +45,6 @@ class AssignmentRepository implements AssignmentRepositoryInterface
         $query = Assignment::with([
             'officer:id,name,nrp,saker_id',
             'location:id,name',
-            'shift:id,name,shift_start,shift_end',
             'operation:id,name,operation_type',
         ]);
 
@@ -61,14 +61,24 @@ class AssignmentRepository implements AssignmentRepositoryInterface
         }
 
         if (! empty($filters['date'])) {
-            $query->where('assignment_date', $filters['date']);
+            $date = $filters['date'];
+            $query->where('start_date', '<=', $date)
+                ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $date));
+        }
+
+        if (! empty($filters['start_date'])) {
+            $query->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $filters['start_date']));
+        }
+
+        if (! empty($filters['end_date'])) {
+            $query->where('start_date', '<=', $filters['end_date']);
         }
 
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        return $query->orderByDesc('assignment_date')->paginate($perPage)->withQueryString();
+        return $query->orderByDesc('start_date')->paginate($perPage)->withQueryString();
     }
 
     public function findForOfficerToday(string $officerId, string $sakerId, ?Carbon $date = null): ?Assignment
@@ -77,24 +87,30 @@ class AssignmentRepository implements AssignmentRepositoryInterface
         // If no date is provided, we use today in the default timezone as a starting point,
         // then filter by assignments whose location timezone matches "today".
         $today = $date ?? Carbon::today(config('policehazard.default_timezone', 'Asia/Jakarta'));
+        $todayStr = $today->toDateString();
 
-        return Assignment::with(['location', 'shift', 'operation'])
+        return Assignment::with(['location', 'operation'])
             ->where('officer_id', $officerId)
             ->where('saker_id', $sakerId)
-            ->where('assignment_date', $today->toDateString())
+            ->where('start_date', '<=', $todayStr)
+            ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $todayStr))
             ->whereIn('status', ['active', 'pending'])
             ->first();
     }
 
     public function listForOfficer(string $officerId, string $sakerId, Carbon $from, Carbon $to): Collection
     {
-        return Assignment::with(['location', 'shift', 'operation'])
-            ->where('officer_id', $officerId)
-            ->where('saker_id', $sakerId)
-            ->whereBetween('assignment_date', [$from->toDateString(), $to->toDateString()])
-            ->where('status', '!=', 'cancelled')
-            ->join('shifts', 'assignments.shift_id', '=', 'shifts.id')
-            ->orderBy('shifts.shift_start', 'asc')
+        $fromStr = $from->toDateString();
+        $toStr = $to->toDateString();
+
+        return Assignment::with(['location', 'operation'])
+            ->where('assignments.officer_id', $officerId)
+            ->where('assignments.saker_id', $sakerId)
+            ->where('assignments.start_date', '<=', $toStr)
+            ->where(fn ($q) => $q->whereNull('assignments.end_date')->orWhere('assignments.end_date', '>=', $fromStr))
+            ->where('assignments.status', '!=', 'cancelled')
+            ->join('operations', 'assignments.operation_id', '=', 'operations.id')
+            ->orderBy('operations.start_time', 'asc')
             ->select('assignments.*')
             ->get();
     }

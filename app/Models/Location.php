@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Location — PRD §6.2, §7.5, §20.1.
  * Geospatial patrol point with PostGIS coordinates.
  * Coordinates become LOCKED after the first attendance record (§5.6).
- * operating_hours is DISPLAY ONLY — shifts are the sole enforcement window.
+ * operating_hours is DISPLAY ONLY.
  */
 #[ScopedBy([SakerScope::class])]
 class Location extends Model
@@ -61,11 +61,6 @@ class Location extends Model
     public function padal(): BelongsTo
     {
         return $this->belongsTo(User::class, 'padal_id');
-    }
-
-    public function shifts(): HasMany
-    {
-        return $this->hasMany(Shift::class);
     }
 
     public function assignments(): HasMany

@@ -31,8 +31,6 @@ class Phase3MigrationTest extends TestCase
 
     private string $locationId;
 
-    private string $shiftId;
-
     private string $assignmentId;
 
     protected function setUp(): void
@@ -260,7 +258,6 @@ class Phase3MigrationTest extends TestCase
         $this->operationId = Uuid::uuid7()->toString();
         $this->zoneId = Uuid::uuid7()->toString();
         $this->locationId = Uuid::uuid7()->toString();
-        $this->shiftId = Uuid::uuid7()->toString();
         $this->assignmentId = Uuid::uuid7()->toString();
 
         // 1. Saker
@@ -331,31 +328,15 @@ class Phase3MigrationTest extends TestCase
             )
         ");
 
-        // 6. Shift (uses raw SQL for PostgreSQL SMALLINT[] array)
-        DB::statement("
-            INSERT INTO shifts (id, location_id, name, shift_start, shift_end, active_days, is_active, created_at, updated_at)
-            VALUES (
-                '{$this->shiftId}',
-                '{$this->locationId}',
-                'Morning Shift',
-                '08:00:00',
-                '16:00:00',
-                ARRAY[1,2,3,4,5]::SMALLINT[],
-                true,
-                NOW(), NOW()
-            )
-        ");
-
         // 7. Assignment
         DB::table('assignments')->insert([
             'id' => $this->assignmentId,
             'officer_id' => $this->userId,
             'location_id' => $this->locationId,
-            'shift_id' => $this->shiftId,
             'operation_id' => $this->operationId,
             'saker_id' => $this->sakerId,
             'assigned_saker_id' => $this->sakerId,
-            'assignment_date' => now()->toDateString(),
+            'start_date' => now()->toDateString(),
             'status' => 'active',
             'assigned_by' => $this->userId,
             'created_at' => now()->toIso8601String(),

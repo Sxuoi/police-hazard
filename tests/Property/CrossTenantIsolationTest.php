@@ -88,11 +88,10 @@ class CrossTenantIsolationTest extends PostgresPropertyTestCase
             'created_at' => now(), 'updated_at' => now(),
         ]);
         DB::statement("INSERT INTO locations (id, zone_id, saker_id, name, coordinates, radius_meters, minimum_officer, coords_locked, is_active, created_by, created_at, updated_at) VALUES ('{$locId}','{$zoneId}','{$sakerId}','Loc', ST_SetSRID(ST_MakePoint(106.8, -6.2), 4326), 50, 1, false, true, '{$officerId}', NOW(), NOW())");
-        DB::statement("INSERT INTO shifts (id, location_id, name, shift_start, shift_end, active_days, is_active, created_at, updated_at) VALUES ('{$shiftId}','{$locId}','Shift','08:00:00','16:00:00', ARRAY[1,2,3,4,5,6,7]::SMALLINT[], true, NOW(), NOW())");
         DB::table('assignments')->insert([
             'id' => $asgnId, 'officer_id' => $officerId, 'location_id' => $locId,
-            'shift_id' => $shiftId, 'operation_id' => $opId, 'saker_id' => $sakerId,
-            'assigned_saker_id' => $sakerId, 'assignment_date' => Carbon::today()->toDateString(),
+            'operation_id' => $opId, 'saker_id' => $sakerId,
+            'assigned_saker_id' => $sakerId, 'start_date' => Carbon::today()->toDateString(),
             'status' => 'active', 'assigned_by' => $officerId,
             'created_at' => now(), 'updated_at' => now(),
         ]);

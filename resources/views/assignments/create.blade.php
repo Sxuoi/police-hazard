@@ -98,21 +98,15 @@
                 </select>
             </div>
             
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Tanggal Penugasan</label>
-                <div class="flex items-center gap-2 mb-2">
-                    <input type="date" x-model="newDate" class="flex-1 px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white">
-                    <button type="button" @click="addDate" class="px-4 py-3 bg-[var(--color-surface-600)] hover:bg-[var(--color-surface-500)] text-white rounded-xl">Tambah</button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Tanggal Mulai (Start Date)</label>
+                    <input type="date" name="start_date" x-model="start_date" required class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white">
                 </div>
-                <div class="flex flex-wrap gap-2 mt-3">
-                    <template x-for="(d, index) in dates" :key="index">
-                        <div class="flex items-center gap-2 bg-[var(--color-surface-600)] px-3 py-1.5 rounded-lg text-sm text-white">
-                            <span x-text="d"></span>
-                            <input type="hidden" name="dates[]" :value="d">
-                            <button type="button" @click="removeDate(index)" class="text-red-400 hover:text-red-300">&times;</button>
-                        </div>
-                    </template>
-                    <div x-show="dates.length === 0" class="text-sm text-gray-500">Belum ada tanggal dipilih.</div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Tanggal Selesai (End Date - Opsional)</label>
+                    <input type="date" name="end_date" x-model="end_date" class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white">
+                    <span class="text-xs text-gray-500 mt-1 block">Kosongkan untuk penugasan berkelanjutan (selamanya)</span>
                 </div>
             </div>
 
@@ -190,8 +184,8 @@
             
             <div class="bg-[var(--color-surface-700)] p-5 rounded-xl border border-[var(--color-surface-500)] space-y-3">
                 <div class="flex justify-between">
-                    <span class="text-gray-400">Total Tanggal:</span>
-                    <span class="text-white font-medium" x-text="dates.length + ' Hari'"></span>
+                    <span class="text-gray-400">Periode Penugasan:</span>
+                    <span class="text-white font-medium" x-text="start_date + (end_date ? ' s/d ' + end_date : ' (Selamanya)')"></span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-400">Total Petugas:</span>
@@ -200,7 +194,7 @@
                 <div class="border-t border-[var(--color-surface-500)] my-2"></div>
                 <div class="flex justify-between text-lg">
                     <span class="text-gray-300">Total Penugasan Dibuat:</span>
-                    <span class="text-[var(--color-accent)] font-bold" x-text="dates.length * selectedOfficers.length"></span>
+                    <span class="text-[var(--color-accent)] font-bold" x-text="selectedOfficers.length"></span>
                 </div>
             </div>
 
@@ -235,8 +229,8 @@ document.addEventListener('alpine:init', () => {
         operationEnd: '',
         zone_id: '',
         location_id: '',
-        dates: [],
-        newDate: '',
+        start_date: new Date().toISOString().split('T')[0],
+        end_date: '',
         searchQuery: '',
         selectedOfficers: [],
         
@@ -246,19 +240,7 @@ document.addEventListener('alpine:init', () => {
         isSearching: false,
         
         get canProceedToStep2() {
-            return this.operation_id && this.zone_id && this.location_id && this.dates.length > 0;
-        },
-        
-        addDate() {
-            if (this.newDate && !this.dates.includes(this.newDate)) {
-                this.dates.push(this.newDate);
-                this.dates.sort();
-            }
-            this.newDate = '';
-        },
-        
-        removeDate(index) {
-            this.dates.splice(index, 1);
+            return this.operation_id && this.zone_id && this.location_id && this.start_date;
         },
 
         onOperationChange(event) {

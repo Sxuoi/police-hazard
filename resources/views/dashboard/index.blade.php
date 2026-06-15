@@ -16,23 +16,144 @@
     .marker-cluster-missing div { background-color: rgba(239, 68, 68, 0.9); color: white; }
     .marker-cluster-no_assignment { background-color: rgba(107, 114, 128, 0.6); }
     .marker-cluster-no_assignment div { background-color: rgba(107, 114, 128, 0.9); color: white; }
+
+    /* Filter select/input styling */
+    .filter-select, .filter-input {
+        appearance: none;
+        padding: 0.5rem 0.75rem;
+        background: var(--color-surface-700);
+        border: 1px solid var(--color-surface-500);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        color: white;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        width: 100%;
+    }
+    .filter-select:focus, .filter-input:focus {
+        outline: none;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb, 99,102,241), 0.25);
+    }
+    .filter-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.25rem;
+        padding-right: 2.25rem;
+    }
+    .filter-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #9ca3af;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
 </style>
 @endpush
 
 @section('content')
 <div x-data="dashboardData()" class="space-y-6">
 
-    {{-- Filters --}}
-    <div class="flex justify-between items-center bg-[var(--color-surface-800)] rounded-2xl border border-[var(--color-surface-600)] p-4">
-        <div class="text-sm text-gray-400">
-            Data real-time untuk tanggal <strong class="text-white" x-text="date"></strong>
-            <span x-show="isPolling" class="ml-2 inline-flex items-center gap-1 text-[var(--color-accent)] animate-pulse">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Live
-            </span>
+    {{-- Filter Bar --}}
+    <div class="bg-[var(--color-surface-800)] rounded-2xl border border-[var(--color-surface-600)] overflow-hidden">
+        {{-- Filter Header --}}
+        <div class="flex justify-between items-center p-4 cursor-pointer" @click="filtersOpen = !filtersOpen">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 text-sm text-gray-400">
+                    <svg class="w-4 h-4 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                    <span>Filter</span>
+                    <template x-if="activeFilterCount > 0">
+                        <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-[var(--color-accent)] text-white text-xs font-bold" x-text="activeFilterCount"></span>
+                    </template>
+                </div>
+                <span class="text-sm text-gray-500">|</span>
+                <div class="text-sm text-gray-400">
+                    Data untuk tanggal <strong class="text-white" x-text="date"></strong>
+                    <span x-show="isPolling" class="ml-2 inline-flex items-center gap-1 text-[var(--color-accent)] animate-pulse">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Live
+                    </span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button x-show="activeFilterCount > 0" @click.stop="resetFilters()" class="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer">
+                    Reset
+                </button>
+                <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" :class="filtersOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
         </div>
-        <div class="flex gap-2">
-            <input type="date" x-model="date" @change="fetchData" class="px-3 py-1.5 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]">
+
+        {{-- Collapsible Filter Panel --}}
+        <div x-show="filtersOpen" x-collapse>
+            <div class="px-4 pb-4 pt-0 border-t border-[var(--color-surface-600)]">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-4">
+                    {{-- Tanggal --}}
+                    <div>
+                        <label class="filter-label" for="filter-date">Tanggal</label>
+                        <input type="date" id="filter-date" x-model="date" class="filter-input">
+                    </div>
+
+                    {{-- Operasi --}}
+                    <div>
+                        <label class="filter-label" for="filter-operation">Operasi</label>
+                        <select id="filter-operation" x-model="operationId" @change="onOperationChange()" class="filter-select">
+                            <option value="">Semua Operasi</option>
+                            @foreach($operations as $op)
+                                <option value="{{ $op->id }}">{{ $op->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Zona (cascading) --}}
+                    <div>
+                        <label class="filter-label" for="filter-zone">Zona</label>
+                        <select id="filter-zone" x-model="zoneId" class="filter-select" :disabled="zonesLoading">
+                            <option value="">Semua Zona</option>
+                            <template x-for="zone in zones" :key="zone.id">
+                                <option :value="zone.id" x-text="zone.name"></option>
+                            </template>
+                        </select>
+                    </div>
+
+                    {{-- Status --}}
+                    <div>
+                        <label class="filter-label" for="filter-status">Status</label>
+                        <select id="filter-status" x-model="statusFilter" class="filter-select">
+                            <option value="">Semua Status</option>
+                            <option value="full">Hadir Penuh</option>
+                            <option value="partial">Hadir Sebagian</option>
+                            <option value="missing">Tidak Hadir</option>
+                            <option value="no_assignment">Tidak Ada Operasi</option>
+                        </select>
+                    </div>
+
+                    {{-- Anggota --}}
+                    <div>
+                        <label class="filter-label" for="filter-officer">Anggota</label>
+                        <div class="relative">
+                            <input type="text" id="filter-officer" x-model="officerSearch" @keydown.enter="fetchData()" placeholder="Cari nama / NRP..." class="filter-input" style="padding-right: 2rem;">
+                            <svg x-show="!officerSearch" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <button x-show="officerSearch" @click="officerSearch = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Action Buttons --}}
+                <div class="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-[var(--color-surface-600)]">
+                    <button @click="resetFilters()" x-show="activeFilterCount > 0" class="px-4 py-2 text-sm text-gray-400 hover:text-white rounded-lg hover:bg-[var(--color-surface-600)] transition-colors cursor-pointer">
+                        Reset
+                    </button>
+                    <button @click="fetchData()" class="inline-flex items-center gap-2 px-5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/80 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        Cari
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -93,6 +214,13 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('dashboardData', () => ({
         date: '{{ $date }}',
+        operationId: '',
+        zoneId: '',
+        statusFilter: '',
+        officerSearch: '',
+        zones: [],
+        zonesLoading: false,
+        filtersOpen: false,
         metrics: {
             total_locations: {{ $metrics['total_locations'] ?? 0 }},
             full_attendance: {{ $metrics['full_attendance'] ?? 0 }},
@@ -101,9 +229,19 @@ document.addEventListener('alpine:init', () => {
         },
         map: null,
         markersGroup: null,
+        allLocations: [],      // full dataset from API
         isPolling: true,
         pollInterval: null,
         
+        get activeFilterCount() {
+            let count = 0;
+            if (this.operationId) count++;
+            if (this.zoneId) count++;
+            if (this.statusFilter) count++;
+            if (this.officerSearch) count++;
+            return count;
+        },
+
         init() {
             this.initMap();
             this.fetchData();
@@ -126,10 +264,6 @@ document.addEventListener('alpine:init', () => {
             this.markersGroup = L.markerClusterGroup({
                 iconCreateFunction: function(cluster) {
                     var childCount = cluster.getChildCount();
-                    // Determine dominant status logic here if needed, or just default to blue
-                    var c = ' marker-cluster-';
-                    // We'll just use primary blue for now for clusters, or we can aggregate status.
-                    // For simplicity, let's just make it a generic cluster.
                     return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-full', iconSize: new L.Point(40, 40) });
                 }
             });
@@ -137,17 +271,64 @@ document.addEventListener('alpine:init', () => {
             this.map.addLayer(this.markersGroup);
         },
 
+        resetFilters() {
+            this.operationId = '';
+            this.zoneId = '';
+            this.statusFilter = '';
+            this.officerSearch = '';
+            this.zones = [];
+            this.date = new Date().toISOString().split('T')[0];
+            this.fetchData();
+        },
+
+        async onOperationChange() {
+            this.zoneId = '';
+            this.zones = [];
+
+            if (this.operationId) {
+                this.zonesLoading = true;
+                try {
+                    const response = await fetch(`/ajax/zones-by-operation?operation_id=${this.operationId}`);
+                    if (response.ok) {
+                        this.zones = await response.json();
+                    }
+                } catch (error) {
+                    console.error('Error fetching zones:', error);
+                } finally {
+                    this.zonesLoading = false;
+                }
+            }
+        },
+
+        buildQueryString() {
+            const params = new URLSearchParams();
+            params.set('date', this.date);
+            if (this.operationId) params.set('operation_id', this.operationId);
+            if (this.zoneId) params.set('zone_id', this.zoneId);
+            if (this.officerSearch) params.set('officer', this.officerSearch);
+            return params.toString();
+        },
+
         async fetchData(resetView = true) {
             try {
-                const response = await fetch(`/dashboard/map-data?date=${this.date}`);
+                const qs = this.buildQueryString();
+                const response = await fetch(`/dashboard/map-data?${qs}`);
                 if (!response.ok) throw new Error('Network response was not ok');
                 
-                const locations = await response.json();
-                this.updateMapMarkers(locations, resetView);
-                this.updateMetrics(locations);
+                this.allLocations = await response.json();
+                this.applyStatusFilter(resetView);
             } catch (error) {
                 console.error('Error fetching map data:', error);
             }
+        },
+
+        applyStatusFilter(resetView = true) {
+            let filtered = this.allLocations;
+            if (this.statusFilter) {
+                filtered = this.allLocations.filter(loc => loc.status === this.statusFilter);
+            }
+            this.updateMapMarkers(filtered, resetView);
+            this.updateMetrics(filtered);
         },
 
         updateMapMarkers(locations, resetView) {
@@ -235,3 +416,4 @@ document.addEventListener('alpine:init', () => {
 });
 </script>
 @endpush
+

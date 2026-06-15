@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Assignment;
 use App\Models\Location;
-use App\Models\Shift;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -24,15 +23,6 @@ class AssignmentsSeeder extends Seeder
             $zone = $loc->zone;
             $op = $zone->operation;
             $sakerId = $loc->saker_id;
-
-            // Get the two shifts for this location (Pagi first)
-            $shiftPagi = Shift::where('location_id', $loc->id)
-                ->where('name', 'Shift Pagi')
-                ->first();
-
-            if (! $shiftPagi) {
-                continue;
-            }
 
             // Get eligible officers for this saker
             $eligibleOfficers = User::withoutGlobalScopes()
@@ -56,23 +46,21 @@ class AssignmentsSeeder extends Seeder
             $assignedBy = $sakerAdmin ? $sakerAdmin->id : $godAdmin->id;
 
             foreach ($assigned as $officer) {
-                foreach ([$today, $yesterday] as $date) {
-                    Assignment::firstOrCreate(
-                        [
-                            'officer_id' => $officer->id,
-                            'location_id' => $loc->id,
-                            'shift_id' => $shiftPagi->id,
-                            'assignment_date' => $date,
-                        ],
-                        [
-                            'operation_id' => $op->id,
-                            'saker_id' => $sakerId,
-                            'assigned_saker_id' => $sakerId,
-                            'status' => 'active',
-                            'assigned_by' => $assignedBy,
-                        ]
-                    );
-                }
+                Assignment::firstOrCreate(
+                    [
+                        'officer_id' => $officer->id,
+                        'location_id' => $loc->id,
+                        'start_date' => $yesterday,
+                    ],
+                    [
+                        'operation_id' => $op->id,
+                        'saker_id' => $sakerId,
+                        'assigned_saker_id' => $sakerId,
+                        'end_date' => null,
+                        'status' => 'active',
+                        'assigned_by' => $assignedBy,
+                    ]
+                );
             }
 
             $assignIdx++;

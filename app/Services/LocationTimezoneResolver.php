@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Shift;
+use App\Models\Operation;
 use Carbon\Carbon;
 
 /**
@@ -14,17 +14,18 @@ use Carbon\Carbon;
 final class LocationTimezoneResolver
 {
     /**
-     * Compute the UTC shift window for a given shift on a specific date.
+     * Compute the UTC shift window for a given operation on a specific date.
      *
      * Shift times are interpreted in the provided timezone, then converted to UTC.
-     * If shift_end < shift_start (midnight-spanning), the end is placed on the next day.
+     * If end_time < start_time (midnight-spanning), the end is placed on the next day.
      *
      * @return array{0: Carbon, 1: Carbon} [start, end] in UTC
      */
-    public function shiftWindow(Shift $shift, Carbon $assignmentDate, string $timezone): array
+    public function shiftWindow(Operation $operation, Carbon $assignmentDate, string $timezone): array
     {
-        [$startHour, $startMinute] = explode(':', $shift->shift_start);
-        [$endHour, $endMinute] = explode(':', $shift->shift_end);
+        [$startHour, $startMinute] = explode(':', $operation->start_time);
+        $endTime = $operation->end_time ?? '23:59:00';
+        [$endHour, $endMinute] = explode(':', $endTime);
 
         $start = $assignmentDate->copy()
             ->setTimezone($timezone)

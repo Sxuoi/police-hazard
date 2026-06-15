@@ -54,7 +54,7 @@
                     <tr class="border-b border-[var(--color-surface-600)]">
                         <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Anggota</th>
                         <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Lokasi & Operasi</th>
-                        <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tanggal & Shift</th>
+                        <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tanggal & Waktu</th>
                         <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
                         <th class="px-5 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Aksi</th>
                     </tr>
@@ -62,7 +62,7 @@
                 <tbody class="divide-y divide-[var(--color-surface-600)]">
                     @forelse($assignments as $assignment)
                         <tr class="hover:bg-[var(--color-surface-700)] transition-colors">
-                            <td class="px-5 py-4">
+                             <td class="px-5 py-4">
                                 <div class="font-medium text-white">{{ $assignment->officer->name ?? '-' }}</div>
                                 <div class="text-xs text-gray-400 mt-0.5">{{ $assignment->officer->nrp ?? '-' }}</div>
                             </td>
@@ -71,8 +71,15 @@
                                 <div class="text-xs text-[var(--color-accent)] mt-0.5">{{ $assignment->operation->name ?? '-' }}</div>
                             </td>
                             <td class="px-5 py-4">
-                                <div class="text-gray-300">{{ \Carbon\Carbon::parse($assignment->assignment_date)->format('d M Y') }}</div>
-                                <div class="text-xs text-gray-400 mt-0.5">{{ $assignment->shift->name ?? '-' }} ({{ $assignment->shift->shift_start ?? '' }} - {{ $assignment->shift->shift_end ?? '' }})</div>
+                                <div class="text-gray-300">
+                                    {{ $assignment->start_date->format('d M Y') }}
+                                    @if($assignment->end_date)
+                                        s/d {{ $assignment->end_date->format('d M Y') }}
+                                    @else
+                                        (Aktif)
+                                    @endif
+                                </div>
+                                <div class="text-xs text-gray-400 mt-0.5">Waktu: {{ substr($assignment->operation->start_time ?? '', 0, 5) }} - {{ $assignment->operation->end_time ? substr($assignment->operation->end_time, 0, 5) : '23:59' }}</div>
                             </td>
                             <td class="px-5 py-4">
                                 @php

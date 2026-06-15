@@ -6,7 +6,6 @@ use App\Models\Assignment;
 use App\Models\Location;
 use App\Models\Operation;
 use App\Models\Saker;
-use App\Models\Shift;
 use App\Models\User;
 use App\Models\Zone;
 use Illuminate\Database\Eloquent\Model;
@@ -138,26 +137,14 @@ abstract class PropertyTestCase extends TestCase
         return Location::withoutGlobalScopes()->findOrFail($id);
     }
 
-    protected function createShift(Location $location, array $overrides = []): Shift
-    {
-        return Shift::create(array_merge([
-            'location_id' => $location->id,
-            'name' => 'Shift Test',
-            'shift_start' => '08:00',
-            'shift_end' => '16:00',
-            'is_active' => true,
-        ], $overrides));
-    }
-
-    protected function createAssignment(User $officer, Location $location, Shift $shift, Operation $operation, Saker $saker, array $overrides = []): Assignment
+    protected function createAssignment(User $officer, Location $location, Operation $operation, Saker $saker, array $overrides = []): Assignment
     {
         return Assignment::withoutGlobalScopes()->create(array_merge([
             'officer_id' => $officer->id,
             'location_id' => $location->id,
-            'shift_id' => $shift->id,
             'operation_id' => $operation->id,
             'saker_id' => $saker->id,
-            'assignment_date' => now()->toDateString(),
+            'start_date' => now()->toDateString(),
             'status' => 'active',
         ], $overrides));
     }
@@ -166,7 +153,7 @@ abstract class PropertyTestCase extends TestCase
      * Create a full entity chain for Postgres-backed property tests.
      * Must only be called after requirePostgres() has passed.
      *
-     * @return array{saker: Saker, officer: User, admin: User, operation: Operation, zone: Zone, location: Location, shift: Shift, assignment: Assignment}
+     * @return array{saker: Saker, officer: User, admin: User, operation: Operation, zone: Zone, location: Location, assignment: Assignment}
      */
     protected function createFullChain(array $overrides = []): array
     {
@@ -176,9 +163,8 @@ abstract class PropertyTestCase extends TestCase
         $operation = $this->createOperation($saker, $admin, $overrides['operation'] ?? []);
         $zone = $this->createZone($saker, $operation, $admin, $overrides['zone'] ?? []);
         $location = $this->createLocation($saker, array_merge(['zone_id' => $zone->id, 'created_by' => $admin->id], $overrides['location'] ?? []));
-        $shift = $this->createShift($location, $overrides['shift'] ?? []);
-        $assignment = $this->createAssignment($officer, $location, $shift, $operation, $saker, $overrides['assignment'] ?? []);
+        $assignment = $this->createAssignment($officer, $location, $operation, $saker, $overrides['assignment'] ?? []);
 
-        return compact('saker', 'officer', 'admin', 'operation', 'zone', 'location', 'shift', 'assignment');
+        return compact('saker', 'officer', 'admin', 'operation', 'zone', 'location', 'assignment');
     }
 }
