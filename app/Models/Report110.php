@@ -46,6 +46,7 @@ class Report110 extends Model
         'keterangan_lain',
         'bukti_foto_path',
         'koordinat_110',
+        'waktu_diselesaikan',
     ];
 
     protected function casts(): array
@@ -54,6 +55,7 @@ class Report110 extends Model
             'waktu_kejadian'       => 'datetime',
             'waktu_dilaporkan'     => 'datetime',
             'waktu_mendatangi_tkp' => 'datetime',
+            'waktu_diselesaikan'   => 'datetime',
             'created_at'           => 'datetime',
             'updated_at'           => 'datetime',
         ];

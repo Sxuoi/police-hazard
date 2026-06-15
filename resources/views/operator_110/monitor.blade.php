@@ -27,17 +27,45 @@
             box-shadow: 0 0 0 rgba(239, 68, 68, 0.4);
             animation: pulse 2s infinite;
         }
-        .custom-yellow-marker {
-            width: 16px;
-            height: 16px;
-            background: #eab308; /* yellow-500 */
-            border-radius: 50%;
-            border: 3px solid #fff;
+        .pin-marker {
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -30px 0 0 -15px;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        .pin-marker::after {
+            content: '';
+            width: 14px;
+            height: 14px;
+            margin: 6px 0 0 6px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
+        }
+        .pin-yellow {
+            background: #eab308; /* yellow-500 */
+            animation: pulse-yellow 2s infinite;
+        }
+        .pin-green {
+            background: #22c55e; /* green-500 */
+        }
+        
+        .pin-container {
+            position: relative;
+            width: 30px;
+            height: 30px;
+        }
+
+        @keyframes pulse-yellow {
+            0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7), 0 4px 6px rgba(0,0,0,0.3); }
+            70% { box-shadow: 0 0 0 15px rgba(234, 179, 8, 0), 0 4px 6px rgba(0,0,0,0.3); }
+            100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0), 0 4px 6px rgba(0,0,0,0.3); }
         }
     </style>
 @endpush
@@ -53,17 +81,17 @@
         <div class="space-y-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-red-500 animate-pulse border border-white"></span>
-                    <span class="text-xs text-gray-300">Butuh Penanganan</span>
-                </div>
-                <span class="text-xs font-bold text-white">{{ $activeReports->where('status', 'Butuh penanganan')->count() }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-yellow-500 border border-white"></span>
+                    <span class="w-3 h-3 rounded-full bg-yellow-500 animate-[pulse-yellow_2s_infinite] border border-white"></span>
                     <span class="text-xs text-gray-300">Sedang Penanganan</span>
                 </div>
                 <span class="text-xs font-bold text-white">{{ $activeReports->where('status', 'Sedang penanganan')->count() }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-green-500 border border-white"></span>
+                    <span class="text-xs text-gray-300">Telah Diselesaikan</span>
+                </div>
+                <span class="text-xs font-bold text-white">{{ $activeReports->where('status', 'Sudah penanganan')->count() }}</span>
             </div>
             
             <div class="pt-3 mt-3 border-t border-[var(--color-surface-600)]">
@@ -95,26 +123,39 @@
         activeReports.forEach(report => {
             if (report.lat && report.lng) {
                 // Determine icon based on status
-                const isUrgent = report.status === 'Butuh penanganan';
-                const className = isUrgent ? 'custom-pulse-marker' : 'custom-yellow-marker';
+                const isCompleted = report.status === 'Sudah penanganan';
+                const pinClass = isCompleted ? 'pin-green' : 'pin-yellow';
                 
                 const customIcon = L.divIcon({
-                    className: className,
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8]
+                    html: `<div class="pin-container"><div class="pin-marker ${pinClass}"></div></div>`,
+                    className: 'bg-transparent border-0',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 30]
                 });
 
                 const marker = L.marker([report.lat, report.lng], { icon: customIcon }).addTo(map);
                 
-                const popupContent = `
-                    <div class="p-1">
+                const displayStatus = isCompleted ? 'Telah di selesaikan' : 'Sedang penanganan';
+                const formatTime = (timeStr) => timeStr ? new Date(timeStr).toLocaleString('id-ID') : '-';
+                
+                let popupContent = `
+                    <div class="p-1 min-w-[200px]">
                         <div class="font-bold text-sm mb-1 text-blue-400">${report.no_tiketing}</div>
-                        <div class="text-xs text-gray-300 mb-2">${report.jenis_gangguan}</div>
-                        <div class="text-xs border-t border-gray-600 pt-2 mb-2">
-                            <div class="mb-1"><span class="text-gray-400">Waktu:</span> ${report.waktu_dilaporkan ? new Date(report.waktu_dilaporkan).toLocaleString('id-ID') : '-'}</div>
-                            <div><span class="text-gray-400">Unit:</span> ${report.unit ? report.unit.nama_unit : '-'}</div>
+                        <div class="text-xs font-bold text-white mb-2">${report.jenis_gangguan || '-'}</div>
+                        <div class="text-xs border-t border-gray-600 pt-2 mb-2 space-y-1">
+                            <div><span class="text-gray-400">Status:</span> <span class="${isCompleted ? 'text-green-400' : 'text-yellow-400'} font-semibold">${displayStatus}</span></div>
+                            <div><span class="text-gray-400">Dilaporkan:</span> ${formatTime(report.waktu_dilaporkan)}</div>
+                            <div><span class="text-gray-400">Kejadian:</span> ${formatTime(report.waktu_kejadian)}</div>
+                            <div><span class="text-gray-400">Mendatangi TKP:</span> ${formatTime(report.waktu_mendatangi_tkp)}</div>`;
+                
+                if (isCompleted && report.waktu_diselesaikan) {
+                    popupContent += `<div><span class="text-gray-400">Diselesaikan:</span> ${formatTime(report.waktu_diselesaikan)}</div>`;
+                }
+
+                popupContent += `
+                            <div class="mt-2 border-t border-gray-600 pt-1"><span class="text-gray-400">Pamapta:</span> ${report.nama_pamapta || '-'} (${report.nrp_pamapta || '-'})</div>
                         </div>
-                        <a href="/operator-110/${report.id}" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded w-full inline-block text-center transition">Lihat Detail</a>
+                        <a href="/operator-110/${report.id}" style="color: #ffffff !important;" class="text-xs bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded w-full inline-block text-center transition mt-1 font-semibold">Lihat Detail</a>
                     </div>
                 `;
 

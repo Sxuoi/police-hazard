@@ -159,6 +159,9 @@ class Report110PamaptaController extends Controller
         // Status diubah hanya jika complete
         if (!$isDraft) {
             $updateData['status'] = 'Sudah penanganan';
+            $updateData['waktu_diselesaikan'] = now();
+        } else {
+            $updateData['status'] = 'Sedang penanganan';
         }
 
         $updateData['bukti_foto_path'] = $path;
