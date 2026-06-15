@@ -80,10 +80,17 @@ class LocationsSeeder extends Seeder
                 $timezone = 'Asia/Makassar';
             }
 
+            // Pick a random officer from the same saker as PADAL
+            $padalId = User::where('saker_id', $saker->id)
+                ->where('role', 'officer')
+                ->where('is_active', true)
+                ->inRandomOrder()
+                ->value('id');
+
             DB::statement('
-                INSERT INTO locations (id, zone_id, saker_id, name, address, coordinates, radius_meters, minimum_officer, timezone, coords_locked, is_active, created_by, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), ?, ?, ?, false, true, ?, NOW(), NOW())
-            ', [$id, $zone->id, $saker->id, $name, $address, $lng, $lat, $radius, $minOfficer, $timezone, $godAdmin->id]);
+                INSERT INTO locations (id, zone_id, saker_id, name, address, coordinates, radius_meters, minimum_officer, padal_id, timezone, coords_locked, is_active, created_by, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), ?, ?, ?, ?, false, true, ?, NOW(), NOW())
+            ', [$id, $zone->id, $saker->id, $name, $address, $lng, $lat, $radius, $minOfficer, $padalId, $timezone, $godAdmin->id]);
         }
 
         $this->command->info('✓ LocationsSeeder: 15 Locations seeded.');

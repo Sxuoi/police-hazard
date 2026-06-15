@@ -69,6 +69,34 @@
                 </div>
             </div>
 
+            <div class="mb-5" x-data="padalSearch()" @click.outside="open = false">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Perwira Pengendali (PADAL)</label>
+                <input type="hidden" name="padal_id" :value="selectedId" />
+                <div class="relative">
+                    <input type="text" x-model="query" @focus="open = true" @input="open = true"
+                           :placeholder="selectedName || '— Cari nama atau NRP —'"
+                           :class="selectedId ? 'text-white' : 'text-gray-500'"
+                           class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
+                    <button type="button" x-show="selectedId" @click.prevent="clear()"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    <div x-show="open && filtered().length > 0" x-transition
+                         class="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl shadow-lg">
+                        <template x-for="o in filtered()" :key="o.id">
+                            <div @click="select(o)" class="px-4 py-2.5 hover:bg-[var(--color-surface-600)] cursor-pointer transition-colors">
+                                <span class="text-white text-sm" x-text="o.name"></span>
+                                <span class="text-gray-400 text-xs ml-2" x-text="o.nrp"></span>
+                            </div>
+                        </template>
+                    </div>
+                    <div x-show="open && query.length > 0 && filtered().length === 0" x-transition
+                         class="absolute z-50 left-0 right-0 mt-1 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl shadow-lg px-4 py-3 text-gray-500 text-sm">
+                        Tidak ditemukan
+                    </div>
+                </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div>
                     <label for="radius_meters" class="block text-sm font-medium text-gray-300 mb-2">Radius Geofence (m) <span class="text-red-400">*</span></label>
@@ -207,6 +235,41 @@ function locationForm() {
                         this.geocodeAbort = null;
                     });
             }, 350);
+        }
+    };
+}
+
+function padalSearch() {
+    const officers = @json($officers->map(fn($o) => ['id' => $o->id, 'name' => $o->name, 'nrp' => $o->nrp]));
+    const oldId = @json(old('padal_id', $location->padal_id ?? ''));
+    const preset = oldId ? officers.find(o => o.id === oldId) : null;
+
+    return {
+        officers,
+        query: '',
+        open: false,
+        selectedId: preset?.id || '',
+        selectedName: preset ? `${preset.name} (${preset.nrp})` : '',
+
+        filtered() {
+            const q = this.query.toLowerCase().trim();
+            if (!q) return this.officers.slice(0, 20);
+            return this.officers.filter(o =>
+                o.name.toLowerCase().includes(q) || o.nrp.toLowerCase().includes(q)
+            );
+        },
+
+        select(o) {
+            this.selectedId = o.id;
+            this.selectedName = `${o.name} (${o.nrp})`;
+            this.query = '';
+            this.open = false;
+        },
+
+        clear() {
+            this.selectedId = '';
+            this.selectedName = '';
+            this.query = '';
         }
     };
 }

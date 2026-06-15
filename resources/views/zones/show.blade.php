@@ -52,6 +52,14 @@
                             @endif
                         </dd>
                     </div>
+                    @if($zone->operation)
+                        <div>
+                            <dt class="text-gray-500">Waktu Operasi</dt>
+                            <dd class="text-white mt-1">
+                                {{ substr($zone->operation->start_time, 0, 5) }} - {{ $zone->operation->end_time ? substr($zone->operation->end_time, 0, 5) : 'Tanpa batas' }}
+                            </dd>
+                        </div>
+                    @endif
                     <div>
                         <dt class="text-gray-500">Saker</dt>
                         <dd class="text-white mt-1">{{ $zone->saker->code ?? '—' }}</dd>
