@@ -32,7 +32,6 @@ return new class extends Migration
             $table->foreign('assignment_id')->references('id')->on('assignments');
             $table->foreign('officer_id')->references('id')->on('users');
             $table->foreign('saker_id')->references('id')->on('sakers');
-            $table->foreign('reviewed_by')->references('id')->on('users');
 
             $table->index('officer_id');
             $table->index('status');

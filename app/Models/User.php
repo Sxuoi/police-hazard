@@ -9,31 +9,30 @@ use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
  * User model — PRD §2.1, §6.2.
- * Roles: god_admin, saker_admin, officer.
+ * Represents Officers/Anggota Lapangan only.
  * NRP is the unique officer identifier for Indonesian police.
  * Tenant-scoped via SakerScope.
  */
 #[ScopedBy([SakerScope::class])]
 class User extends Authenticatable
 {
-    use HasApiTokens, HasAuditTrail, HasUuidV7;
+    use HasApiTokens, HasAuditTrail, HasUuidV7, Notifiable;
 
     protected $fillable = [
         'saker_id',
         'name',
         'nrp',
-        'email',
         'phone',
-        'role',
         'safung',
         'avatar_path',
         'password',
+        'role',
         'is_active',
-        'last_login_at',
     ];
 
     protected $hidden = [
@@ -49,77 +48,33 @@ class User extends Authenticatable
         ];
     }
 
-    // ── Role Helpers ─────────────────────────────────────────────────
-
-    public function isGodAdmin(): bool
-    {
-        return $this->role === 'god_admin';
-    }
-
-    public function isSakerAdmin(): bool
-    {
-        return $this->role === 'saker_admin';
-    }
+    // ── Scope & Role Compatibility ───────────────────────────────────
 
     public function isOfficer(): bool
     {
-        return $this->role === 'officer';
+        return true;
     }
 
-    /**
-     * IDs of every Saker this user can read.
-     *
-     * - God Admin: empty array (caller should use the SakerScope bypass instead).
-     * - Officer: own saker only — strict isolation per PRD invariant. Officers
-     *   never see other Sakers regardless of hierarchy.
-     * - Saker Admin: own saker plus every descendant (POLDA → POLRESTABES → POLSEK).
-     *
-     * @return array<int, string>
-     */
+    public function isGodAdmin(): bool
+    {
+        return false;
+    }
+
     public function accessibleSakerIds(): array
     {
-        if ($this->isGodAdmin()) {
-            return [];
-        }
-
-        if (! $this->saker_id) {
-            return [];
-        }
-
-        if ($this->isOfficer()) {
-            return [$this->saker_id];
-        }
-
-        // Saker Admin — load (cached) saker and walk the hierarchy.
-        $saker = $this->saker;
-        if (! $saker) {
-            return [$this->saker_id];
-        }
-
-        return $saker->descendantIds();
+        return [$this->saker_id];
     }
 
-    /**
-     * True when this user can read resources owned by the given saker_id.
-     */
     public function canAccessSaker(?string $sakerId): bool
     {
-        if ($this->isGodAdmin()) {
-            return true;
-        }
-
-        if (! $sakerId) {
-            return false;
-        }
-
-        return in_array($sakerId, $this->accessibleSakerIds(), true);
+        return $sakerId === $this->saker_id;
     }
 
     // ── Relationships ────────────────────────────────────────────────
 
     public function saker(): BelongsTo
     {
-        return $this->belongsTo(Saker::class);
+        return $this->belongsTo(Saker::class, 'saker_id');
     }
 
     public function assignments(): HasMany

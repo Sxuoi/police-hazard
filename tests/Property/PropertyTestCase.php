@@ -57,6 +57,8 @@ abstract class PropertyTestCase extends TestCase
             'name' => 'Test Saker',
             'code' => 'TST-'.uniqid(),
             'type' => 'POLDA',
+            'email' => 'tst-' . uniqid() . '@test.com',
+            'password' => bcrypt('password'),
             'is_active' => true,
         ], $overrides));
     }

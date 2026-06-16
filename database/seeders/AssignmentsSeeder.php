@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Assignment;
 use App\Models\Location;
+use App\Models\Saker;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -15,7 +16,7 @@ class AssignmentsSeeder extends Seeder
         $yesterday = now()->subDay()->format('Y-m-d');
 
         $locations = Location::with('zone.operation')->get();
-        $godAdmin = User::where('nrp', 'GA001')->sole();
+        $godAdmin = Saker::where('code', 'POLDA-JATENG')->sole();
 
         $assignIdx = 0;
 
@@ -27,7 +28,6 @@ class AssignmentsSeeder extends Seeder
             // Get eligible officers for this saker
             $eligibleOfficers = User::withoutGlobalScopes()
                 ->where('saker_id', $sakerId)
-                ->where('role', 'officer')
                 ->orderBy('nrp')
                 ->get();
 
@@ -38,12 +38,8 @@ class AssignmentsSeeder extends Seeder
             // Assign 1–minimum_officer officers per location per day
             $assigned = $eligibleOfficers->slice($assignIdx % $eligibleOfficers->count(), $loc->minimum_officer);
 
-            // Look up the saker admin for assigned_by
-            $sakerAdmin = User::withoutGlobalScopes()
-                ->where('saker_id', $sakerId)
-                ->where('role', 'saker_admin')
-                ->first();
-            $assignedBy = $sakerAdmin ? $sakerAdmin->id : $godAdmin->id;
+            // assigned_by is now the saker itself
+            $assignedBy = $sakerId;
 
             foreach ($assigned as $officer) {
                 Assignment::firstOrCreate(

@@ -26,8 +26,8 @@ return new class extends Migration
             $table->timestampTz('created_at')->useCurrent();
 
             $table->foreign('attendance_id')->references('id')->on('attendances');
-            $table->foreign('amended_by')->references('id')->on('users');
-            $table->foreign('approved_by')->references('id')->on('users');
+            $table->foreign('amended_by')->references('id')->on('sakers');
+            $table->foreign('approved_by')->references('id')->on('sakers');
 
             $table->index('attendance_id');
         });

@@ -2,43 +2,34 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Actions\AuthenticateUserAction;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class LoginController extends Controller
 {
-    public function __construct(
-        private readonly AuthenticateUserAction $authenticateUser,
-    ) {}
-
     public function showLoginForm(): View
     {
         return view('auth.login');
     }
 
-    public function login(LoginRequest $request): RedirectResponse
+    public function login(Request $request): RedirectResponse
     {
-        $request->ensureIsNotRateLimited();
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
 
-        try {
-            $this->authenticateUser->execute(
-                nrp: $request->validated('nrp'),
-                password: $request->validated('password'),
-                ip: $request->ip(),
-                userAgent: $request->userAgent(),
-            );
-
-            $request->clearRateLimiter();
+        if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             return redirect()->intended(route('dashboard'));
-        } catch (ValidationException $e) {
-            $request->hitRateLimiter();
-            throw $e;
         }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
     }
 }

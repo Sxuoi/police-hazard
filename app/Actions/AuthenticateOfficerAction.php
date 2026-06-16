@@ -49,25 +49,8 @@ class AuthenticateOfficerAction
             };
         }
 
-        // R1.4 — User inactive → ACCOUNT_DISABLED (403)
-        if (! $user->is_active) {
-            $this->auditLoginFailed($nrp, $ip, $userAgent, 'ACCOUNT_DISABLED', $user);
-
-            throw new class extends CheckinException
-            {
-                public function __construct()
-                {
-                    parent::__construct(
-                        reasonCode: 'ACCOUNT_DISABLED',
-                        httpStatus: 403,
-                        bypassEligible: false,
-                    );
-                }
-            };
-        }
-
-        // R1.5 — Role != officer → ACCOUNT_DISABLED (403, don't leak role info)
-        if ($user->role !== 'officer') {
+        // R1.4 — User inactive or role not officer → ACCOUNT_DISABLED (403)
+        if (! $user->is_active || ($user->role && $user->role !== 'officer')) {
             $this->auditLoginFailed($nrp, $ip, $userAgent, 'ACCOUNT_DISABLED', $user);
 
             throw new class extends CheckinException

@@ -132,14 +132,16 @@
                 Audit Log
             </x-sidebar-item>
 
-            @if(auth()->check() && auth()->user()->isGodAdmin())
-                <p class="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider mt-6 mb-2">God Admin</p>
+            @if(auth()->check() && auth()->user()->type !== 'POLSEK')
+                <p class="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider mt-6 mb-2">Manajemen Komando</p>
 
-                <x-sidebar-item href="#" icon="flame" :active="request()->routeIs('heatmap')">
-                    Peta Panas
-                </x-sidebar-item>
+                @if(auth()->user()->isGodAdmin())
+                    <x-sidebar-item href="#" icon="flame" :active="request()->routeIs('heatmap')">
+                        Peta Panas
+                    </x-sidebar-item>
+                @endif
 
-                <x-sidebar-item href="#" icon="building" :active="request()->routeIs('sakers.*')">
+                <x-sidebar-item href="{{ route('sakers.index') }}" icon="building" :active="request()->routeIs('sakers.*')">
                     Kelola Saker
                 </x-sidebar-item>
             @endif

@@ -32,7 +32,6 @@ class UserRepository implements UserRepositoryInterface
     public function getOfficersBySaker(string $sakerId): Collection
     {
         return User::where('saker_id', $sakerId)
-            ->where('role', 'officer')
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -41,7 +40,6 @@ class UserRepository implements UserRepositoryInterface
     public function searchOfficers(string $query, ?string $sakerId = null): Collection
     {
         return User::withoutGlobalScopes()
-            ->where('role', 'officer')
             ->where('is_active', true)
             ->where(function ($q) use ($query) {
                 $q->where('name', 'ilike', "%{$query}%")
@@ -69,9 +67,7 @@ class UserRepository implements UserRepositoryInterface
     {
         $query = User::query();
 
-        if (isset($filters['role'])) {
-            $query->where('role', $filters['role']);
-        }
+        // role is removed, all users are officers
 
         if (isset($filters['is_active'])) {
             $query->where('is_active', $filters['is_active']);
@@ -87,7 +83,7 @@ class UserRepository implements UserRepositoryInterface
      */
     public function paginateOfficers(int $perPage, array $filters, string $date): LengthAwarePaginator
     {
-        $query = User::where('role', 'officer')
+        $query = User::where('is_active', true)
             ->with(['saker:id,code,type'])
             ->withExists([
                 'assignments as has_today_assignment' => fn ($q) => $q->where('start_date', '<=', $date)

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Assignment;
 use App\Models\Attendance;
+use App\Models\Saker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Ramsey\Uuid\Uuid;

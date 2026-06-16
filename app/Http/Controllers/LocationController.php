@@ -35,7 +35,7 @@ class LocationController extends Controller
     public function create(): View
     {
         $operations = $this->operations->allActive();
-        $officers = User::where('role', 'officer')->where('is_active', true)
+        $officers = User::where('is_active', true)
             ->orderBy('name')->get(['id', 'name', 'nrp', 'phone', 'saker_id']);
 
         return view('locations.create', compact('operations', 'officers'));
@@ -106,7 +106,7 @@ class LocationController extends Controller
         $location->lng = $coords->lng ?? '';
 
         $operations = $this->operations->allActive();
-        $officers = User::where('role', 'officer')->where('is_active', true)
+        $officers = User::where('is_active', true)
             ->where('saker_id', $location->saker_id)
             ->orderBy('name')->get(['id', 'name', 'nrp', 'phone', 'saker_id']);
 

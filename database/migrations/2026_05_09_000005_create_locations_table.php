@@ -36,8 +36,6 @@ return new class extends Migration
             $table->foreign('zone_id')->references('id')->on('zones');
             $table->foreign('saker_id')->references('id')->on('sakers');
             $table->foreign('padal_id')->references('id')->on('users');
-            $table->foreign('created_by')->references('id')->on('users');
-            $table->foreign('updated_by')->references('id')->on('users');
 
             $table->index('zone_id', 'idx_locations_zone');
             $table->index('saker_id', 'idx_locations_saker');

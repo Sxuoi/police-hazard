@@ -15,10 +15,6 @@ class OperationsSeeder extends Seeder
         $polrestabes = Saker::where('code', 'PRTBS-SMG')->sole();
         $polsek = Saker::where('code', 'PLSK-SMGTGH')->sole();
 
-        $godAdmin = User::where('nrp', 'GA001')->sole();
-        $sakerAdminPolrestabes = User::where('nrp', 'SA002')->sole();
-        $sakerAdminPolsek = User::where('nrp', 'SA003')->sole();
-
         $operations = [
             [
                 'saker_id' => $polda->id,
@@ -28,7 +24,7 @@ class OperationsSeeder extends Seeder
                 'status' => 'active',
                 'start_time' => '06:00',
                 'end_time' => '18:00',
-                'created_by' => $godAdmin->id,
+                'created_by' => $polda->id,
             ],
             [
                 'saker_id' => $polrestabes->id,
@@ -38,7 +34,7 @@ class OperationsSeeder extends Seeder
                 'status' => 'active',
                 'start_time' => '18:00',
                 'end_time' => '06:00',
-                'created_by' => $sakerAdminPolrestabes->id,
+                'created_by' => $polrestabes->id,
             ],
             [
                 'saker_id' => $polsek->id,
@@ -48,7 +44,7 @@ class OperationsSeeder extends Seeder
                 'status' => 'active',
                 'start_time' => '08:00',
                 'end_time' => null,
-                'created_by' => $sakerAdminPolsek->id,
+                'created_by' => $polsek->id,
             ],
             [
                 'saker_id' => $polda->id,
@@ -58,7 +54,7 @@ class OperationsSeeder extends Seeder
                 'status' => 'draft',
                 'start_time' => '20:00',
                 'end_time' => '02:00',
-                'created_by' => $godAdmin->id,
+                'created_by' => $polda->id,
             ],
         ];
 

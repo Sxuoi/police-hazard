@@ -48,7 +48,6 @@ class OfficerController extends Controller
 
         $officer = $this->users->create(array_merge($validated, [
             'saker_id' => auth()->user()->saker_id,
-            'role' => 'officer',
             'is_active' => true,
             'password' => Hash::make($validated['password']),
         ]));

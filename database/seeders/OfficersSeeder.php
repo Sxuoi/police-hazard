@@ -25,9 +25,7 @@ class OfficersSeeder extends Seeder
                     [
                         'saker_id' => $saker->id,
                         'name' => fake('id_ID')->name(),
-                        'email' => fake('id_ID')->unique()->safeEmail(),
                         'phone' => fake('id_ID')->phoneNumber(),
-                        'role' => 'officer',
                         'safung' => fake()->randomElement(['Bhabinkamtibmas', 'Reskrim', 'Sabhara', 'Intelkam', 'Lantas']),
                         'password' => Hash::make('password'),
                         'is_active' => true,

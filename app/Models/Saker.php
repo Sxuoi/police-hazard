@@ -3,18 +3,20 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasUuidV7;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 /**
  * Saker (Satuan Kerja) — Organizational Unit.
  * PRD §4.1 — Root tenant entity. NOT tenant-scoped (no SakerScope).
  * Self-referential hierarchy: POLDA → POLRESTABES → POLSEK.
+ * Acts as Authenticatable for Admin Guard.
  */
-class Saker extends Model
+class Saker extends Authenticatable
 {
-    use HasUuidV7;
+    use HasUuidV7, Notifiable;
 
     protected $fillable = [
         'name',
@@ -23,12 +25,20 @@ class Saker extends Model
         'parent_id',
         'logo_path',
         'is_active',
+        'email',
+        'password',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'password' => 'hashed',
         ];
     }
 
@@ -44,9 +54,9 @@ class Saker extends Model
         return $this->hasMany(Saker::class, 'parent_id');
     }
 
-    public function users(): HasMany
+    public function officers(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'saker_id');
     }
 
     public function operations(): HasMany
@@ -97,5 +107,30 @@ class Saker extends Model
         }
 
         return $cache[$this->id] = array_values(array_unique($ids));
+    }
+
+    // ── Scope & Role Compatibility ───────────────────────────────────
+
+    public function isOfficer(): bool
+    {
+        return false;
+    }
+
+    public function accessibleSakerIds(): array
+    {
+        return $this->descendantIds();
+    }
+
+    public function isGodAdmin(): bool
+    {
+        return $this->type === 'MABES';
+    }
+
+    /**
+     * Backwards compatibility for code expecting $user->saker_id
+     */
+    public function getSakerIdAttribute(): string
+    {
+        return $this->id;
     }
 }

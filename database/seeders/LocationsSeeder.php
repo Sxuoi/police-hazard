@@ -18,7 +18,7 @@ class LocationsSeeder extends Seeder
         $polrestabes = Saker::where('code', 'PRTBS-SMG')->sole();
         $polsek = Saker::where('code', 'PLSK-SMGTGH')->sole();
 
-        $godAdmin = User::where('nrp', 'GA001')->sole();
+        $godAdmin = Saker::where('code', 'POLDA-JATENG')->sole();
 
         $op1 = Operation::where('name', 'Operasi Keamanan Natal 2026')->sole();
         $op2 = Operation::where('name', 'Patroli Wilayah Semarang')->sole();
@@ -82,7 +82,7 @@ class LocationsSeeder extends Seeder
 
             // Pick a random officer from the same saker as PADAL
             $padalId = User::where('saker_id', $saker->id)
-                ->where('role', 'officer')
+                
                 ->where('is_active', true)
                 ->inRandomOrder()
                 ->value('id');

@@ -40,19 +40,18 @@
             <form method="POST" action="{{ route('login') }}" @submit="loading = true">
                 @csrf
 
-                {{-- NRP Field --}}
+                {{-- Email Field --}}
                 <div class="mb-5">
-                    <label for="nrp" class="block text-sm font-medium text-gray-300 mb-2">NRP</label>
+                    <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
                     <input
-                        type="text"
-                        id="nrp"
-                        name="nrp"
-                        value="{{ old('nrp') }}"
-                        inputmode="numeric"
-                        autocomplete="username"
+                        type="email"
+                        id="email"
+                        name="email"
+                        value="{{ old('email') }}"
+                        autocomplete="email"
                         required
                         autofocus
-                        placeholder="Nomor Registrasi Pokok"
+                        placeholder="contoh@gmail.com"
                         class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent transition-all duration-200"
                     />
                 </div>

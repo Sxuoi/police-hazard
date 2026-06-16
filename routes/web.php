@@ -39,10 +39,10 @@ Route::middleware('guest')->group(function () {
 |--------------------------------------------------------------------------
 | Authenticated Admin Routes
 |--------------------------------------------------------------------------
-| All admin routes require authentication + God Admin context middleware.
+| All admin routes require authentication (web guard) + God Admin context middleware.
 | SakerScope is automatically applied via Eloquent global scope.
 */
-Route::middleware(['auth', 'god.admin'])->group(function () {
+Route::middleware(['auth:web', 'god.admin'])->group(function () {
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
     Route::get('/', fn () => redirect()->route('dashboard'));
@@ -54,6 +54,9 @@ Route::middleware(['auth', 'god.admin'])->group(function () {
         ->except(['destroy']);
     Route::post('operations/{operation}/archive', [OperationController::class, 'archive'])
         ->name('operations.archive');
+
+    // ── Sakers / Hierarchy Management ────────────────────────────────
+    Route::resource('sakers', \App\Http\Controllers\SakerController::class);
 
     // ── Zones ───────────────────────────────────────────────────────
     Route::resource('zones', ZoneController::class);
@@ -117,12 +120,15 @@ Route::middleware(['auth', 'god.admin'])->group(function () {
 | Officer Mobile Web UI (public — token in sessionStorage)
 |--------------------------------------------------------------------------
 */
-Route::prefix('officer')->group(function () {
-    Route::get('/', fn () => view('officer.login'))->name('officer.home');
-    Route::get('/login', fn () => view('officer.login'))->name('officer.login');
-    Route::get('/assignments', fn () => view('officer.assignments.index'))->name('officer.assignments');
-    Route::get('/assignments/{id}', fn () => view('officer.assignments.show'))->name('officer.assignments.show');
-    Route::get('/checkin/{assignmentId}', fn () => view('officer.checkin'))->name('officer.checkin');
-    Route::get('/bypass/{bypassId?}', fn () => view('officer.bypass'))->name('officer.bypass');
-    Route::get('/history', fn () => view('officer.history.index'))->name('officer.history');
+Route::prefix('officer')->name('officer.')->group(function () {
+    Route::get('/', fn () => view('officer.login'))->name('home');
+    Route::get('/login', [App\Http\Controllers\Auth\OfficerLoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [App\Http\Controllers\Auth\OfficerLoginController::class, 'login'])->name('login.post');
+    Route::post('/logout', [App\Http\Controllers\Auth\OfficerLoginController::class, 'logout'])->name('logout');
+
+    Route::get('/assignments', fn () => view('officer.assignments.index'))->name('assignments');
+    Route::get('/assignments/{id}', fn () => view('officer.assignments.show'))->name('assignments.show');
+    Route::get('/checkin/{assignmentId}', fn () => view('officer.checkin'))->name('checkin');
+    Route::get('/bypass/{bypassId?}', fn () => view('officer.bypass'))->name('bypass');
+    Route::get('/history', fn () => view('officer.history.index'))->name('history');
 });

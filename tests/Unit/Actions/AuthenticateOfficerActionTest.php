@@ -39,6 +39,8 @@ class AuthenticateOfficerActionTest extends TestCase
         $saker->name = 'Test Saker';
         $saker->code = 'TST';
         $saker->type = 'POLSEK';
+        $saker->email = 'test-saker@example.com';
+        $saker->password = bcrypt('password');
         $saker->is_active = true;
         $saker->save();
         $this->sakerId = $saker->id;

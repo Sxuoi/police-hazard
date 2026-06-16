@@ -3,6 +3,7 @@
 namespace Tests\Unit\Http\Middleware;
 
 use App\Http\Middleware\EnsureSakerContext;
+use App\Models\Saker;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -37,9 +38,8 @@ class EnsureSakerContextTest extends TestCase
 
     public function test_god_admin_bypasses_tenant_check(): void
     {
-        $user = new User;
-        $user->role = 'god_admin';
-        $user->saker_id = null;
+        $user = new Saker;
+        $user->type = 'MABES';
 
         $request = Request::create('/api/v1/officer/assignments', 'GET');
         $request->setUserResolver(fn () => $user);
