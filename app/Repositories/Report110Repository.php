@@ -37,7 +37,8 @@ class Report110Repository implements Report110RepositoryInterface
 
     public function findByToken(string $token): ?Report110
     {
-        return Report110::selectRaw('reports_110.*, ST_Y(koordinat_110::geometry) as lat, ST_X(koordinat_110::geometry) as lng')
+        return Report110::withoutGlobalScope(\App\Models\Concerns\SakerScope::class)
+            ->selectRaw('reports_110.*, ST_Y(koordinat_110::geometry) as lat, ST_X(koordinat_110::geometry) as lng')
             ->with('unit')
             ->where('token', $token)
             ->first();

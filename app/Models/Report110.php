@@ -3,14 +3,17 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasUuidV7;
+use App\Models\Concerns\SakerScope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Report110 Model — PRD §7.
  * Represents emergency reports created by dispatchers and completed by field responders.
- * Bypasses row-level tenancy (SakerScope is explicitly not loaded) for global monitoring.
+ * Scoped by Saker to restrict visibility to the Saker hierarchy.
  */
+#[ScopedBy([SakerScope::class])]
 class Report110 extends Model
 {
     use HasUuidV7;
@@ -18,6 +21,7 @@ class Report110 extends Model
     protected $table = 'reports_110';
 
     protected $fillable = [
+        'saker_id',
         'no_tiketing',
         'unit_id',
         'token',
@@ -67,5 +71,13 @@ class Report110 extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class, 'unit_id');
+    }
+
+    /**
+     * Get the Saker responsible for this report.
+     */
+    public function saker(): BelongsTo
+    {
+        return $this->belongsTo(Saker::class, 'saker_id');
     }
 }

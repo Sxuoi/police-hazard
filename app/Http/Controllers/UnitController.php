@@ -24,6 +24,8 @@ class UnitController extends Controller
             'no_wa' => 'required|string|max:50',
         ]);
 
+        $validated['saker_id'] = auth()->user()->saker_id ?? auth()->id();
+
         $this->unitRepository->create($validated);
 
         return redirect()->route('units.index')->with('success', 'Unit armada berhasil ditambahkan.');

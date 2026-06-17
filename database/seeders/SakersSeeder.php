@@ -33,6 +33,17 @@ class SakersSeeder extends Seeder
             ]
         );
 
+        $poldaJatim = Saker::firstOrCreate(
+            ['code' => 'POLDA-JATIM'],
+            [
+                'name' => 'POLDA JAWA TIMUR',
+                'type' => 'POLDA',
+                'email' => 'poldajatim@gmail.com',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+            ]
+        );
+
         $polrestabes = Saker::firstOrCreate(
             ['code' => 'PRTBS-SMG'],
             [
@@ -40,6 +51,18 @@ class SakersSeeder extends Seeder
                 'type' => 'POLRESTABES',
                 'parent_id' => $polda->id,
                 'email' => 'polrestabessemarang@gmail.com',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+            ]
+        );
+
+        $polrestabesSolo = Saker::firstOrCreate(
+            ['code' => 'PRTBS-SOLO'],
+            [
+                'name' => 'POLRESTABES SOLO',
+                'type' => 'POLRESTABES',
+                'parent_id' => $polda->id,
+                'email' => 'polrestabessolo@gmail.com',
                 'password' => Hash::make('password'),
                 'is_active' => true,
             ]
@@ -57,6 +80,18 @@ class SakersSeeder extends Seeder
             ]
         );
 
-        $this->command->info('✓ SakersSeeder: 4 Sakers (Admins) seeded.');
+        Saker::firstOrCreate(
+            ['code' => 'PLSK-GUNPAT'],
+            [
+                'name' => 'POLSEK GUNUNG PATI',
+                'type' => 'POLSEK',
+                'parent_id' => $polrestabes->id,
+                'email' => 'plskgunpat@gmail.com',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+            ]
+        );
+
+        $this->command->info('✓ SakersSeeder: 7 Sakers (Admins) seeded.');
     }
 }

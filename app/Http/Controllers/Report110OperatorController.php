@@ -27,7 +27,9 @@ class Report110OperatorController extends Controller
     public function store(StoreReport110Request $request, CreateReport110Action $action)
     {
         try {
-            $report = $action->execute($request->validated());
+            $data = $request->validated();
+            $data['saker_id'] = auth()->user()->saker_id ?? auth()->id();
+            $report = $action->execute($data);
 
             return redirect()->route('operator-110.show', $report->id)
                 ->with('success', 'Laporan 110 berhasil dibuat.');
@@ -56,6 +58,10 @@ class Report110OperatorController extends Controller
             $report = $this->reportRepository->findById($id);
             if (!$report) {
                 abort(404);
+            }
+
+            if ($report->saker_id !== auth()->user()->saker_id) {
+                abort(403, 'Unauthorized action.');
             }
 
             $updateData = $request->validated();
@@ -98,6 +104,10 @@ class Report110OperatorController extends Controller
         
         if (!$report) {
             abort(404);
+        }
+
+        if ($report->saker_id !== auth()->user()->saker_id) {
+            abort(403, 'Unauthorized action.');
         }
 
         if ($request->input('kode_tiket') !== $report->no_tiketing) {
