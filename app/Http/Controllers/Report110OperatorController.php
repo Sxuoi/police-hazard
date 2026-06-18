@@ -155,19 +155,19 @@ class Report110OperatorController extends Controller
         
         $waktuKejadian = $report->waktu_kejadian ? $report->waktu_kejadian->format('d-m-Y H:i') : '-';
 
-        $text = "🚨 *LAPORAN 110 MASUK* 🚨\n\n";
+        $text = "*LAPORAN 110 MASUK*\n\n";
         $text .= "Kepada Yth. {$unit->nama_unit},\n";
         $text .= "Mohon segera menindaklanjuti laporan masyarakat berikut:\n\n";
-        $text .= "🎫 *No Tiketing*: {$report->no_tiketing}\n";
+        $text .= "*No Tiketing*: {$report->no_tiketing}\n";
         if ($report->nama_pelapor) {
-            $text .= "👤 *Pelapor*: {$report->nama_pelapor}\n";
-            $text .= "📞 *No HP Pelapor*: {$report->no_hp_pelapor} ({$report->jenis_no_hp_pelapor})\n";
+            $text .= "*Pelapor*: {$report->nama_pelapor}\n";
+            $text .= "*No HP Pelapor*: {$report->no_hp_pelapor} ({$report->jenis_no_hp_pelapor})\n";
         }
-        $text .= "⚠️ *Jenis Gangguan*: {$report->jenis_gangguan}\n";
-        $text .= "📍 *TKP*: {$report->tempat_kejadian}\n";
-        $text .= "⏰ *Waktu Kejadian*: {$waktuKejadian}\n\n";
+        $text .= "*Jenis Gangguan*: {$report->jenis_gangguan}\n";
+        $text .= "*TKP*: {$report->tempat_kejadian}\n";
+        $text .= "*Waktu Kejadian*: {$waktuKejadian}\n\n";
         $text .= "Segera meluncur ke TKP dan isi laporan hasil penanganan melalui link khusus di bawah ini:\n";
-        $text .= "👉 {$linkPamapta}\n\n";
+        $text .= "{$linkPamapta}\n\n";
         $text .= "_Gunakan Kode Tiketing ({$report->no_tiketing}) sebagai verifikasi._";
 
         $urlencodedText = urlencode($text);
