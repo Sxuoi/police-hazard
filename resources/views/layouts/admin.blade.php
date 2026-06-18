@@ -136,7 +136,7 @@
                 <p class="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider mt-6 mb-2">Manajemen Komando</p>
 
                 @if(auth()->user()->isGodAdmin())
-                    <x-sidebar-item href="#" icon="flame" :active="request()->routeIs('heatmap')">
+                    <x-sidebar-item href="{{ route('heatmap') }}" icon="flame" :active="request()->routeIs('heatmap')">
                         Peta Panas
                     </x-sidebar-item>
                 @endif

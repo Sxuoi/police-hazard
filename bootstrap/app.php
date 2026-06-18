@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'saker.context' => EnsureSakerContext::class,
             'saker-context' => EnsureSakerContext::class,
             'god.admin' => SetGodAdminContext::class,
+            'god.admin.strict' => \App\Http\Middleware\EnsureGodAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

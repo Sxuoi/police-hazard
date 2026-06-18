@@ -104,6 +104,12 @@ Route::middleware(['auth:web', 'god.admin'])->group(function () {
     Route::put('operator-110/{report}', [\App\Http\Controllers\Report110OperatorController::class, 'update'])->name('operator-110.update');
     Route::delete('operator-110/{report}', [\App\Http\Controllers\Report110OperatorController::class, 'destroy'])->name('operator-110.destroy');
 
+    // ── God Admin Heatmap (Peta Panas) ───────────────────────────────
+    Route::middleware(['god.admin.strict'])->group(function () {
+        Route::get('heatmap', [\App\Http\Controllers\HeatmapController::class, 'index'])->name('heatmap');
+        Route::get('api/v1/admin/heatmap/data', [\App\Http\Controllers\HeatmapController::class, 'data'])->name('admin.heatmap.data');
+    });
+
     // ── Bypass Approvals ─────────────────────────────────────────────
     Route::get('/bypass-approvals', [BypassApprovalController::class, 'index'])
         ->name('bypass-approvals.index');
