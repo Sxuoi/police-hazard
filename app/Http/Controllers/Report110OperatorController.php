@@ -49,7 +49,9 @@ class Report110OperatorController extends Controller
         // Generate WA Deep Link
         $waLink = $this->generateWhatsAppLink($report);
 
-        return view('operator_110.show', compact('report', 'waLink'));
+        $units = $this->unitRepository->getAll();
+
+        return view('operator_110.show', compact('report', 'waLink', 'units'));
     }
 
     public function update(\App\Http\Requests\UpdateReport110Request $request, string $id, \App\Services\WatermarkService $watermarkService)
@@ -62,6 +64,10 @@ class Report110OperatorController extends Controller
 
             if ($report->saker_id !== auth()->user()->saker_id) {
                 abort(403, 'Unauthorized action.');
+            }
+
+            if ($report->status !== 'Sudah penanganan') {
+                abort(403, 'Laporan hanya dapat diubah jika statusnya telah diselesaikan.');
             }
 
             $updateData = $request->validated();
@@ -121,7 +127,7 @@ class Report110OperatorController extends Controller
             }
 
             $this->reportRepository->delete($report);
-            return back()->with('success', 'Laporan 110 berhasil dihapus.');
+            return redirect()->route('operator-110.index')->with('success', 'Laporan 110 berhasil dihapus.');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal menghapus laporan: ' . $e->getMessage());
         }

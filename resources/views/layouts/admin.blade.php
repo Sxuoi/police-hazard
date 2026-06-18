@@ -43,7 +43,7 @@
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
             </div>
-            <span class="font-semibold text-white text-sm tracking-tight">Police Hazard</span>
+            <span class="font-semibold text-white text-sm tracking-tight">Mini Command Center</span>
         </div>
 
         {{-- Navigation --}}
@@ -61,7 +61,7 @@
                     class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ $isPoliceHazardActive ? 'bg-[var(--color-surface-600)] text-white' : 'text-gray-400 hover:text-white hover:bg-[var(--color-surface-600)]' }}">
                     <div class="flex items-center gap-3">
                         <svg class="w-5 h-5 {{ $isPoliceHazardActive ? 'text-[#3b82f6]' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                        <span>Police Hazard</span>
+                        <span>Mini Command Center</span>
                     </div>
                     <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu === 'police_hazard' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
@@ -182,8 +182,8 @@
             <div class="flex items-center gap-3">
                 {{-- Saker Badge --}}
                 <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-accent)]/10 text-xs font-medium text-[var(--color-accent)]">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    {{ auth()->user()->saker?->code ?? 'ALL' }}
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sb-icon"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    {{ auth()->user()->name }}
                 </span>
 
                 {{-- Notification Bell --}}

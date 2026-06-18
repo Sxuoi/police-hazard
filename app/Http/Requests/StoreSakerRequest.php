@@ -22,7 +22,7 @@ class StoreSakerRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:150', 'unique:sakers,email'],
-            'password' => ['required', 'string', 'min:8'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
             'code' => ['required', 'string', 'max:20', 'unique:sakers,code'],
             'type' => ['sometimes', 'required', Rule::in(['MABES', 'POLDA', 'POLRESTABES', 'POLSEK'])],
             'parent_id' => ['nullable', 'exists:sakers,id'],

@@ -22,8 +22,7 @@ class Report110Repository implements Report110RepositoryInterface
     {
         return Report110::selectRaw('reports_110.*, ST_Y(koordinat_110::geometry) as lat, ST_X(koordinat_110::geometry) as lng')
             ->with('unit')
-            ->whereNotNull('koordinat_110')
-            ->whereIn('status', ['Sedang penanganan', 'Sudah penanganan'])
+            ->whereIn('status', ['Butuh penanganan', 'Sedang penanganan', 'Sudah penanganan'])
             ->get();
     }
 

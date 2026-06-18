@@ -55,6 +55,10 @@
         .pin-green {
             background: #22c55e; /* green-500 */
         }
+        .pin-red {
+            background: #ef4444; /* red-500 */
+            animation: pulse-red 2s infinite;
+        }
         
         .pin-container {
             position: relative;
@@ -66,6 +70,11 @@
             0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7), 0 4px 6px rgba(0,0,0,0.3); }
             70% { box-shadow: 0 0 0 15px rgba(234, 179, 8, 0), 0 4px 6px rgba(0,0,0,0.3); }
             100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0), 0 4px 6px rgba(0,0,0,0.3); }
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7), 0 4px 6px rgba(0,0,0,0.3); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0), 0 4px 6px rgba(0,0,0,0.3); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0), 0 4px 6px rgba(0,0,0,0.3); }
         }
     </style>
 @endpush
@@ -79,6 +88,13 @@
         <h4 class="text-white font-bold mb-3 border-b border-[var(--color-surface-600)] pb-2 text-sm">Status Laporan Aktif</h4>
         
         <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-red-500 animate-pulse border border-white"></span>
+                    <span class="text-xs text-gray-300">Butuh Penanganan</span>
+                </div>
+                <span class="text-xs font-bold text-white">{{ $activeReports->where('status', 'Butuh penanganan')->count() }}</span>
+            </div>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="w-3 h-3 rounded-full bg-yellow-500 animate-[pulse-yellow_2s_infinite] border border-white"></span>
@@ -123,8 +139,19 @@
         activeReports.forEach(report => {
             if (report.lat && report.lng) {
                 // Determine icon based on status
-                const isCompleted = report.status === 'Sudah penanganan';
-                const pinClass = isCompleted ? 'pin-green' : 'pin-yellow';
+                let pinClass = 'pin-red';
+                let displayStatus = 'Butuh penanganan';
+                let statusColorClass = 'text-red-400';
+                
+                if (report.status === 'Sudah penanganan') {
+                    pinClass = 'pin-green';
+                    displayStatus = 'Telah diselesaikan';
+                    statusColorClass = 'text-green-400';
+                } else if (report.status === 'Sedang penanganan') {
+                    pinClass = 'pin-yellow';
+                    displayStatus = 'Sedang penanganan';
+                    statusColorClass = 'text-yellow-400';
+                }
                 
                 const customIcon = L.divIcon({
                     html: `<div class="pin-container"><div class="pin-marker ${pinClass}"></div></div>`,
@@ -135,7 +162,6 @@
 
                 const marker = L.marker([report.lat, report.lng], { icon: customIcon }).addTo(map);
                 
-                const displayStatus = isCompleted ? 'Telah di selesaikan' : 'Sedang penanganan';
                 const formatTime = (timeStr) => timeStr ? new Date(timeStr).toLocaleString('id-ID') : '-';
                 
                 let popupContent = `
@@ -143,7 +169,7 @@
                         <div class="font-bold text-sm mb-1 text-blue-400">${report.no_tiketing}</div>
                         <div class="text-xs font-bold text-white mb-2">${report.jenis_gangguan || '-'}</div>
                         <div class="text-xs border-t border-gray-600 pt-2 mb-2 space-y-1">
-                            <div><span class="text-gray-400">Status:</span> <span class="${isCompleted ? 'text-green-400' : 'text-yellow-400'} font-semibold">${displayStatus}</span></div>
+                            <div><span class="text-gray-400">Status:</span> <span class="${statusColorClass} font-semibold">${displayStatus}</span></div>
                             <div><span class="text-gray-400">Dilaporkan:</span> ${formatTime(report.waktu_dilaporkan)}</div>
                             <div><span class="text-gray-400">Kejadian:</span> ${formatTime(report.waktu_kejadian)}</div>
                             <div><span class="text-gray-400">Mendatangi TKP:</span> ${formatTime(report.waktu_mendatangi_tkp)}</div>`;
