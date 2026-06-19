@@ -128,9 +128,11 @@
                 </span>
             </x-sidebar-item>
 
-            <x-sidebar-item href="{{ route('audit-logs.index') }}" icon="scroll" :active="request()->routeIs('audit-logs.*')">
-                Audit Log
-            </x-sidebar-item>
+            @if(auth()->check() && auth()->user()->isGodAdmin())
+                <x-sidebar-item href="{{ route('audit-logs.index') }}" icon="scroll" :active="request()->routeIs('audit-logs.*')">
+                    Audit Log
+                </x-sidebar-item>
+            @endif
 
             @if(auth()->check() && auth()->user()->type !== 'POLSEK')
                 <p class="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider mt-6 mb-2">Manajemen Komando</p>

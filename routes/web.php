@@ -83,9 +83,7 @@ Route::middleware(['auth:web', 'god.admin'])->group(function () {
     Route::get('ajax/officer-search', [AssignmentController::class, 'officerSearch'])
         ->name('ajax.officer-search');
 
-    // ── Audit Logs (read-only) ────────────────────────────────────────
-    Route::get('audit-logs', [AuditLogController::class, 'index'])
-        ->name('audit-logs.index');
+
 
     // ── Reports ──────────────────────────────────────────────────────
     Route::get('reports', [ReportController::class, 'index'])
@@ -104,10 +102,11 @@ Route::middleware(['auth:web', 'god.admin'])->group(function () {
     Route::put('operator-110/{report}', [\App\Http\Controllers\Report110OperatorController::class, 'update'])->name('operator-110.update');
     Route::delete('operator-110/{report}', [\App\Http\Controllers\Report110OperatorController::class, 'destroy'])->name('operator-110.destroy');
 
-    // ── God Admin Heatmap (Peta Panas) ───────────────────────────────
+    // ── God Admin Heatmap & Audit Logs ───────────────────────────────
     Route::middleware(['god.admin.strict'])->group(function () {
         Route::get('heatmap', [\App\Http\Controllers\HeatmapController::class, 'index'])->name('heatmap');
         Route::get('api/v1/admin/heatmap/data', [\App\Http\Controllers\HeatmapController::class, 'data'])->name('admin.heatmap.data');
+        Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     });
 
     // ── Bypass Approvals ─────────────────────────────────────────────
