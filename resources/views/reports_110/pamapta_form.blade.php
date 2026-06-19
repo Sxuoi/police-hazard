@@ -162,66 +162,97 @@
                     </div>
 
                     @if($isUnlocked && $report->status !== 'Sudah penanganan')
-                    <!-- Foto is required on complete -->
-                    <!-- Alpine.js variable to track selected file -->
                     <div x-data="{ 
-                        showSourceModal: false, 
                         fileName: '',
+                        fileSize: '',
+                        isCompressing: false,
                         openCamera() {
-                            this.$refs.fotoInput.setAttribute('capture', 'environment');
-                            this.$refs.fotoInput.click();
-                            this.showSourceModal = false;
+                            this.$refs.rawCameraInput.click();
                         },
-                        openGallery() {
-                            this.$refs.fotoInput.removeAttribute('capture');
-                            this.$refs.fotoInput.click();
-                            this.showSourceModal = false;
-                        },
-                        fileSelected(event) {
-                            if (event.target.files.length > 0) {
-                                this.fileName = event.target.files[0].name;
-                            } else {
-                                this.fileName = '';
+                        async handleCapture(event) {
+                            const file = event.target.files[0];
+                            if (!file) { this.fileName = ''; return; }
+
+                            this.isCompressing = true;
+                            this.fileName = 'Mengompres foto...';
+                            this.fileSize = '';
+
+                            try {
+                                const compressed = await this.compressImage(file, 1200, 0.7);
+                                this.fileName = file.name;
+                                this.fileSize = (compressed.size / 1024).toFixed(0) + ' KB';
+
+                                // Replace the real form input's file with the compressed blob
+                                const dt = new DataTransfer();
+                                dt.items.add(new File([compressed], file.name, { type: 'image/jpeg' }));
+                                this.$refs.fotoInput.files = dt.files;
+                            } catch (e) {
+                                console.error('Compression failed, using original:', e);
+                                this.fileName = file.name;
+                                this.fileSize = (file.size / 1024 / 1024).toFixed(1) + ' MB (asli)';
+                                // Fallback: copy original file to form input
+                                const dt = new DataTransfer();
+                                dt.items.add(file);
+                                this.$refs.fotoInput.files = dt.files;
+                            } finally {
+                                this.isCompressing = false;
+                                // Reset camera input so same photo can be retaken
+                                event.target.value = '';
                             }
+                        },
+                        compressImage(file, maxWidth, quality) {
+                            return new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    const img = new Image();
+                                    img.onload = () => {
+                                        const canvas = document.createElement('canvas');
+                                        let w = img.width, h = img.height;
+                                        if (w > maxWidth) {
+                                            h = Math.round(h * maxWidth / w);
+                                            w = maxWidth;
+                                        }
+                                        canvas.width = w;
+                                        canvas.height = h;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, 0, 0, w, h);
+                                        canvas.toBlob(
+                                            (blob) => blob ? resolve(blob) : reject(new Error('toBlob failed')),
+                                            'image/jpeg',
+                                            quality
+                                        );
+                                    };
+                                    img.onerror = reject;
+                                    img.src = e.target.result;
+                                };
+                                reader.onerror = reject;
+                                reader.readAsDataURL(file);
+                            });
                         }
                     }">
                         <label class="block text-sm font-semibold mb-2">Foto Dokumentasi</label>
                         
-                        <!-- Hidden File Input -->
-                        <input type="file" name="foto" x-ref="fotoInput" accept="image/*" class="hidden" @change="fileSelected" {{ $report->bukti_foto_path ? '' : 'required' }}>
+                        <!-- Raw camera input (captures photo, triggers compression) -->
+                        <input type="file" x-ref="rawCameraInput" accept="image/*" capture="environment" class="hidden" @change="handleCapture">
+                        <!-- Actual form input (receives the compressed file) -->
+                        <input type="file" name="foto" x-ref="fotoInput" accept="image/*" class="hidden" {{ $report->bukti_foto_path ? '' : 'required' }}>
                         
-                        <!-- Custom Button -->
-                        <button type="button" @click="showSourceModal = true" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-3 px-4 border border-blue-300 rounded-lg shadow-sm transition flex items-center justify-center gap-2">
+                        <!-- Camera Button -->
+                        <button type="button" @click="openCamera()" :disabled="isCompressing" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-3 px-4 border border-blue-300 rounded-lg shadow-sm transition flex items-center justify-center gap-2 disabled:opacity-50">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            Ambil Dokumentasi
+                            <span x-text="isCompressing ? 'Mengompres foto...' : 'Ambil Foto dari Kamera'"></span>
                         </button>
 
-                        <!-- File Name Preview -->
-                        <div x-show="fileName" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700 text-sm">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span>File dipilih: <span x-text="fileName" class="font-bold"></span></span>
+                        <!-- Compression Progress -->
+                        <div x-show="isCompressing" class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 text-blue-700 text-sm">
+                            <span class="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></span>
+                            <span>Mengompres foto untuk upload cepat...</span>
                         </div>
 
-                        <!-- Source Selection Modal -->
-                        <div x-show="showSourceModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" x-cloak>
-                            <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden" @click.away="showSourceModal = false">
-                                <div class="p-5 border-b border-gray-100">
-                                    <h3 class="text-lg font-bold text-gray-800 text-center">Pilih Sumber Foto</h3>
-                                </div>
-                                <div class="p-4 grid grid-cols-2 gap-4">
-                                    <button type="button" @click="openCamera" class="flex flex-col items-center justify-center gap-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 p-6 rounded-xl transition">
-                                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        <span class="font-semibold text-sm">Kamera</span>
-                                    </button>
-                                    <button type="button" @click="openGallery" class="flex flex-col items-center justify-center gap-3 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 p-6 rounded-xl transition">
-                                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                        <span class="font-semibold text-sm">Galeri File</span>
-                                    </button>
-                                </div>
-                                <div class="p-3 bg-gray-50 border-t border-gray-100">
-                                    <button type="button" @click="showSourceModal = false" class="w-full py-2 text-sm text-gray-500 font-medium hover:text-gray-800 transition">Batal</button>
-                                </div>
-                            </div>
+                        <!-- File Name Preview -->
+                        <div x-show="fileName && !isCompressing" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700 text-sm">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span>Foto siap: <span x-text="fileName" class="font-bold"></span> (<span x-text="fileSize"></span>)</span>
                         </div>
                     </div>
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Unit Model — PRD §7.
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[ScopedBy([StrictSakerScope::class])]
 class Unit extends Model
 {
-    use HasUuidV7;
+    use HasUuidV7, SoftDeletes;
 
     protected $fillable = [
         'saker_id',

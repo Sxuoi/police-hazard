@@ -7,14 +7,14 @@
     <title>Login — Mini Command Center</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen flex items-center justify-center bg-[var(--color-surface-900)]">
+<body class="min-h-screen flex items-center justify-center bg-surface-900">
 
     <div class="w-full max-w-md mx-auto px-6" x-data="{ loading: false }">
 
         {{-- Logo / Branding --}}
         <div class="text-center mb-10">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--color-accent)]/10 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-[var(--color-accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
             </div>
@@ -23,7 +23,7 @@
         </div>
 
         {{-- Login Card --}}
-        <div class="bg-[var(--color-surface-800)] rounded-2xl border border-[var(--color-surface-600)] p-8 shadow-xl">
+        <div class="bg-surface-800 rounded-2xl border border-surface-600 p-8 shadow-xl">
 
             {{-- Error Messages --}}
             @if ($errors->any())
@@ -52,7 +52,7 @@
                         required
                         autofocus
                         placeholder="contoh@gmail.com"
-                        class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent transition-all duration-200"
+                        class="w-full px-4 py-3 bg-surface-700 border border-surface-500 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200"
                     />
                 </div>
 
@@ -67,7 +67,7 @@
                             required
                             autocomplete="current-password"
                             placeholder="••••••••"
-                            class="w-full pl-4 pr-12 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent transition-all duration-200"
+                            class="w-full pl-4 pr-12 py-3 bg-surface-700 border border-surface-500 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200"
                         />
                         <button
                             type="button"
@@ -89,7 +89,7 @@
                 <button
                     type="submit"
                     :disabled="loading"
-                    class="w-full py-3 px-4 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    class="w-full py-3 px-4 bg-accent hover:bg-accent-hover text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                     <template x-if="loading">
                         <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
@@ -104,7 +104,7 @@
         </p>
         <p class="text-center text-xs text-gray-500 mt-2">
             Anggota?
-            <a href="/officer/login" class="text-[var(--color-accent)] hover:underline">Masuk lewat halaman Anggota</a>
+            <a href="/officer/login" class="text-accent hover:underline">Masuk lewat halaman Anggota</a>
         </p>
     </div>
 

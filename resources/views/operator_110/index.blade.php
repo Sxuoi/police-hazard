@@ -48,7 +48,7 @@
                 </thead>
                 <tbody>
                     @forelse($reports as $report)
-                    <tr class="border-b border-surface-600/50 hover:bg-[var(--color-surface-700)]/50 transition-colors">
+                    <tr class="border-b border-surface-600/50 hover:bg-surface-700/50 transition-colors">
                         <td class="py-3 px-4 text-white font-medium">{{ $report->no_tiketing }}</td>
                         <td class="py-3 px-4 text-gray-300">{{ $report->waktu_dilaporkan ? $report->waktu_dilaporkan->format('d/m/Y H:i') : '-' }}</td>
                         <td class="py-3 px-4 text-gray-300 truncate max-w-[150px]" title="{{ $report->jenis_gangguan }}">{{ $report->jenis_gangguan }}</td>
@@ -148,11 +148,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Nomor Tiketing</label>
-                                <input type="text" name="no_tiketing" required value="TKT-{{ time() }}" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="no_tiketing" required value="TKT-{{ time() }}" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Unit Armada Tugas</label>
-                                <select name="unit_id" required class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)] appearance-none">
+                                <select name="unit_id" required class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent appearance-none">
                                     <option value="" disabled selected>Pilih Unit</option>
                                     @foreach($units as $unit)
                                         <option value="{{ $unit->id }}">{{ $unit->nama_unit }} ({{ $unit->no_wa }})</option>
@@ -161,20 +161,20 @@
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Jenis Gangguan</label>
-                                <input type="text" name="jenis_gangguan" required placeholder="Contoh: Kecelakaan Lalu Lintas, Perkelahian..." class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="jenis_gangguan" required placeholder="Contoh: Kecelakaan Lalu Lintas, Perkelahian..." class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div class="sm:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-1">Nama Pelapor</label>
-                                    <input type="text" name="nama_pelapor" required placeholder="Nama lengkap..." class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                    <input type="text" name="nama_pelapor" required placeholder="Nama lengkap..." class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-1">No HP Pelapor</label>
-                                    <input type="text" name="no_hp_pelapor" required placeholder="Contoh: 0812..." class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                    <input type="text" name="no_hp_pelapor" required placeholder="Contoh: 0812..." class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-1">Jenis No HP</label>
-                                    <select name="jenis_no_hp_pelapor" required class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                    <select name="jenis_no_hp_pelapor" required class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                         <option value="WhatsApp">WhatsApp</option>
                                         <option value="Telepon Biasa">Telepon Biasa</option>
                                     </select>
@@ -182,15 +182,15 @@
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Tempat Kejadian Perkara (TKP)</label>
-                                <textarea name="tempat_kejadian" required rows="2" placeholder="Detail alamat lokasi..." class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]"></textarea>
+                                <textarea name="tempat_kejadian" required rows="2" placeholder="Detail alamat lokasi..." class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"></textarea>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Waktu Kejadian</label>
-                                <input type="datetime-local" name="waktu_kejadian" required class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)] [color-scheme:dark]">
+                                <input type="datetime-local" name="waktu_kejadian" required value="{{ date('Y-m-d\TH:i') }}" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent scheme-dark">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Waktu Dilaporkan</label>
-                                <input type="datetime-local" name="waktu_dilaporkan" required value="{{ date('Y-m-d\TH:i') }}" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)] [color-scheme:dark]">
+                                <input type="datetime-local" name="waktu_dilaporkan" required value="{{ date('Y-m-d\TH:i') }}" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent scheme-dark">
                             </div>
                         </div>
                     </div>
@@ -232,7 +232,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Unit Armada Tugas</label>
-                                <select name="unit_id" required x-model="editForm.unit_id" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)] appearance-none">
+                                <select name="unit_id" required x-model="editForm.unit_id" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent appearance-none">
                                     <option value="" disabled>Pilih Unit</option>
                                     @foreach($units as $unit)
                                         <option value="{{ $unit->id }}">{{ $unit->nama_unit }} ({{ $unit->no_wa }})</option>
@@ -241,20 +241,20 @@
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Jenis Gangguan</label>
-                                <input type="text" name="jenis_gangguan" required x-model="editForm.jenis_gangguan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="jenis_gangguan" required x-model="editForm.jenis_gangguan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div class="sm:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-1">Nama Pelapor</label>
-                                    <input type="text" name="nama_pelapor" required x-model="editForm.nama_pelapor" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                    <input type="text" name="nama_pelapor" required x-model="editForm.nama_pelapor" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-1">No HP Pelapor</label>
-                                    <input type="text" name="no_hp_pelapor" required x-model="editForm.no_hp_pelapor" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                    <input type="text" name="no_hp_pelapor" required x-model="editForm.no_hp_pelapor" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-1">Jenis No HP</label>
-                                    <select name="jenis_no_hp_pelapor" required x-model="editForm.jenis_no_hp_pelapor" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                    <select name="jenis_no_hp_pelapor" required x-model="editForm.jenis_no_hp_pelapor" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                         <option value="WhatsApp">WhatsApp</option>
                                         <option value="Telepon Biasa">Telepon Biasa</option>
                                     </select>
@@ -262,15 +262,15 @@
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Tempat Kejadian Perkara (TKP)</label>
-                                <textarea name="tempat_kejadian" required rows="2" x-model="editForm.tempat_kejadian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]"></textarea>
+                                <textarea name="tempat_kejadian" required rows="2" x-model="editForm.tempat_kejadian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"></textarea>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Waktu Kejadian</label>
-                                <input type="datetime-local" name="waktu_kejadian" required x-model="editForm.waktu_kejadian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)] [color-scheme:dark]">
+                                <input type="datetime-local" name="waktu_kejadian" required x-model="editForm.waktu_kejadian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent scheme-dark">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Waktu Dilaporkan</label>
-                                <input type="datetime-local" name="waktu_dilaporkan" required x-model="editForm.waktu_dilaporkan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)] [color-scheme:dark]">
+                                <input type="datetime-local" name="waktu_dilaporkan" required x-model="editForm.waktu_dilaporkan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent scheme-dark">
                             </div>
                         </div>
 
@@ -285,59 +285,59 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Nama Pamapta</label>
-                                <input type="text" name="nama_pamapta" x-model="editForm.nama_pamapta" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="nama_pamapta" x-model="editForm.nama_pamapta" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">NRP Pamapta</label>
-                                <input type="text" name="nrp_pamapta" x-model="editForm.nrp_pamapta" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="nrp_pamapta" x-model="editForm.nrp_pamapta" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Uraian Kejadian</label>
-                                <textarea name="uraian_kejadian" rows="2" x-model="editForm.uraian_kejadian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]"></textarea>
+                                <textarea name="uraian_kejadian" rows="2" x-model="editForm.uraian_kejadian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"></textarea>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Modus Operandi</label>
-                                <input type="text" name="modus_operandi" x-model="editForm.modus_operandi" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="modus_operandi" x-model="editForm.modus_operandi" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Motif</label>
-                                <input type="text" name="motif" x-model="editForm.motif" class="w-full bg-surface-900 border border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="motif" x-model="editForm.motif" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Korban</label>
-                                <input type="text" name="korban" x-model="editForm.korban" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="korban" x-model="editForm.korban" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Pelaku</label>
-                                <input type="text" name="pelaku" x-model="editForm.pelaku" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="pelaku" x-model="editForm.pelaku" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Alat Yang Digunakan</label>
-                                <input type="text" name="alat_yang_digunakan" x-model="editForm.alat_yang_digunakan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="alat_yang_digunakan" x-model="editForm.alat_yang_digunakan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Barang Bukti</label>
-                                <input type="text" name="bukti_yang_dapat_disita" x-model="editForm.bukti_yang_dapat_disita" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="bukti_yang_dapat_disita" x-model="editForm.bukti_yang_dapat_disita" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Kerugian</label>
-                                <input type="text" name="kerugian" x-model="editForm.kerugian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="kerugian" x-model="editForm.kerugian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Sanksi-sanksi</label>
-                                <input type="text" name="sanksi_sanksi" x-model="editForm.sanksi_sanksi" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="sanksi_sanksi" x-model="editForm.sanksi_sanksi" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Tindakan Kepolisian</label>
-                                <textarea name="tindakan_kepolisian" rows="2" x-model="editForm.tindakan_kepolisian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]"></textarea>
+                                <textarea name="tindakan_kepolisian" rows="2" x-model="editForm.tindakan_kepolisian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"></textarea>
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Keterangan Lain</label>
-                                <textarea name="keterangan_lain" rows="2" x-model="editForm.keterangan_lain" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)]"></textarea>
+                                <textarea name="keterangan_lain" rows="2" x-model="editForm.keterangan_lain" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"></textarea>
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Perbarui Foto Dokumentasi (Opsional)</label>
-                                <input type="file" name="foto" accept="image/*" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-accent)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-accent)] file:text-white hover:file:bg-blue-600 transition-colors">
+                                <input type="file" name="foto" accept="image/*" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-blue-600 transition-colors">
                                 <p class="text-xs text-gray-400 mt-1">Hanya unggah jika ingin mengubah foto. Watermark historis akan otomatis ditempelkan pada foto baru.</p>
                             </div>
                         </div>
