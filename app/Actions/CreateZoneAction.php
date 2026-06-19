@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Operation;
+use App\Models\Saker;
 use App\Models\User;
 use App\Models\Zone;
 use App\Services\AuditService;
@@ -17,7 +18,7 @@ class CreateZoneAction
         private readonly AuditService $auditService,
     ) {}
 
-    public function execute(array $data, User $actor): Zone
+    public function execute(array $data, Saker|User $actor): Zone
     {
         $operation = Operation::findOrFail($data['operation_id']);
 

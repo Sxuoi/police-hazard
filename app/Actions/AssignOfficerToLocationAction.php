@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\Assignment;
 use App\Models\Operation;
+use App\Models\Saker;
 use App\Models\User;
 use App\Services\AuditService;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +28,7 @@ class AssignOfficerToLocationAction
     /**
      * @param  array{officer_id: string, location_id: string, operation_id: string, saker_id: string, assigned_saker_id: string, start_date: string, end_date: ?string, assigned_by: string}  $data
      */
-    public function execute(array $data, User $actor): array
+    public function execute(array $data, Saker|User $actor): array
     {
         $created = [];
 

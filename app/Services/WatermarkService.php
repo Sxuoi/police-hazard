@@ -52,7 +52,7 @@ class WatermarkService
         $rawBytes = Storage::disk($privateDisk)->get($att->photo_raw_path);
 
         $manager = new ImageManager(new Driver);
-        $image = $manager->read($rawBytes);
+        $image = $manager->decode($rawBytes);
 
         $lines = $this->composeLines($att);
         $this->overlayBanner($image, $lines);

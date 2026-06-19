@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Exceptions\Bypass\BypassExpiredException;
+use App\Models\Saker;
 use App\Models\User;
 use App\Repositories\Contracts\ManualBypassApprovalRepositoryInterface;
 use App\Services\AuditService;
@@ -30,7 +31,7 @@ final class DenyManualBypassAction
      * @throws BypassExpiredException
      * @throws AccessDeniedHttpException
      */
-    public function __invoke(string $bypassId, string $reviewerNote, User $reviewer): void
+    public function __invoke(string $bypassId, string $reviewerNote, Saker|User $reviewer): void
     {
         DB::transaction(function () use ($bypassId, $reviewerNote, $reviewer) {
             // Find pending bypass with lock for safe state transition

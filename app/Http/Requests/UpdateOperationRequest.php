@@ -14,13 +14,18 @@ class UpdateOperationRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'saker_id' => ['sometimes', 'required', 'exists:sakers,id'],
+        $rules = [
             'name' => ['sometimes', 'required', 'string', 'max:150'],
             'description' => ['nullable', 'string'],
-            'start_date' => ['sometimes', 'required', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'is_active' => ['boolean'],
+            'operation_type' => ['sometimes', 'required', 'string', 'in:PH,PATROL'],
+            'start_time' => ['sometimes', 'required', 'string'],
+            'end_time' => ['nullable', 'string'],
         ];
+
+        if ($this->user() && $this->user()->isGodAdmin()) {
+            $rules['saker_id'] = ['sometimes', 'required', 'exists:sakers,id'];
+        }
+
+        return $rules;
     }
 }

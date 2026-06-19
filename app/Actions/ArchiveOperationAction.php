@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Operation;
+use App\Models\Saker;
 use App\Models\User;
 use App\Services\AuditService;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -18,7 +19,7 @@ class ArchiveOperationAction
         private readonly AuditService $auditService,
     ) {}
 
-    public function execute(Operation $operation, User $actor): Operation
+    public function execute(Operation $operation, Saker|User $actor): Operation
     {
         $blockingAssignments = $operation->assignments()
             ->whereIn('status', ['pending', 'active'])

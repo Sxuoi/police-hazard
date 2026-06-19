@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Operation;
+use App\Models\Saker;
 use App\Models\User;
 use App\Services\AuditService;
 use Illuminate\Validation\ValidationException;
@@ -17,7 +18,7 @@ class UpdateOperationAction
         private readonly AuditService $auditService,
     ) {}
 
-    public function execute(Operation $operation, array $data, User $actor): Operation
+    public function execute(Operation $operation, array $data, Saker|User $actor): Operation
     {
         // Guard: type is immutable after first zone
         if (

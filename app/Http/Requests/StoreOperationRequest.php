@@ -14,13 +14,18 @@ class StoreOperationRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'saker_id' => ['required', 'exists:sakers,id'],
+        $rules = [
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string'],
-            'start_date' => ['required', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'is_active' => ['boolean'],
+            'operation_type' => ['required', 'string', 'in:PH,PATROL'],
+            'start_time' => ['required', 'string'],
+            'end_time' => ['nullable', 'string'],
         ];
+
+        if ($this->user() && $this->user()->isGodAdmin()) {
+            $rules['saker_id'] = ['required', 'exists:sakers,id'];
+        }
+
+        return $rules;
     }
 }

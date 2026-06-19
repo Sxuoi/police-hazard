@@ -6,6 +6,7 @@ use App\Exceptions\Bypass\BypassExpiredException;
 use App\Exceptions\Bypass\MockLocationNeverBypassableException;
 use App\Jobs\ProcessCheckinPhoto;
 use App\Models\Attendance;
+use App\Models\Saker;
 use App\Models\User;
 use App\Repositories\Contracts\AttendanceRepositoryInterface;
 use App\Repositories\Contracts\ManualBypassApprovalRepositoryInterface;
@@ -38,7 +39,7 @@ final class ApproveManualBypassAction
      * @throws BypassExpiredException
      * @throws AccessDeniedHttpException
      */
-    public function __invoke(string $bypassId, string $reviewerNote, User $reviewer): Attendance
+    public function __invoke(string $bypassId, string $reviewerNote, Saker|User $reviewer): Attendance
     {
         return DB::transaction(function () use ($bypassId, $reviewerNote, $reviewer) {
             // Find pending bypass with lock for safe state transition

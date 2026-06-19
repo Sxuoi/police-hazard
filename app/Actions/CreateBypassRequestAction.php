@@ -186,7 +186,7 @@ final class CreateBypassRequestAction
         $tempPath = sys_get_temp_dir().'/'.$uuid.'_stripped.jpg';
 
         $manager = new ImageManager(new Driver);
-        $img = $manager->read($dto->photo->getPathname());
+        $img = $manager->decodePath($dto->photo->getPathname());
         $img->save($tempPath);
 
         $disk = config('policehazard.photo.private_disk', 'local');

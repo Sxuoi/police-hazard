@@ -202,7 +202,7 @@ class ProcessCheckinAction
             // Strip EXIF from photo via Intervention Image v4 re-encoding
             $tempPath = sys_get_temp_dir().'/'.$attendanceId.'_stripped.jpg';
             $manager = new ImageManager(new Driver);
-            $img = $manager->read($dto->photo->getPathname());
+            $img = $manager->decodePath($dto->photo->getPathname());
             $img->save($tempPath);
 
             // Persist to private disk

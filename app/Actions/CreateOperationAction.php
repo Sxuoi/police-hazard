@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Operation;
+use App\Models\Saker;
 use App\Models\User;
 use App\Services\AuditService;
 
@@ -16,7 +17,7 @@ class CreateOperationAction
         private readonly AuditService $auditService,
     ) {}
 
-    public function execute(array $data, User $actor): Operation
+    public function execute(array $data, Saker|User $actor): Operation
     {
         $operation = Operation::create([
             'saker_id' => $actor->isGodAdmin() ? $data['saker_id'] : $actor->saker_id,

@@ -126,6 +126,14 @@ class Saker extends Authenticatable
         return $this->type === 'MABES';
     }
 
+    public function canAccessSaker(?string $sakerId): bool
+    {
+        if ($this->isGodAdmin()) {
+            return true;
+        }
+        return in_array($sakerId, $this->accessibleSakerIds(), true);
+    }
+
     /**
      * Backwards compatibility for code expecting $user->saker_id
      */
