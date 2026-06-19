@@ -43,7 +43,7 @@ class OperationsSeeder extends Seeder
                 'operation_type' => 'PH',
                 'status' => 'active',
                 'start_time' => '08:00',
-                'end_time' => null,
+                'end_time' => '16:00',
                 'created_by' => $polsek->id,
             ],
             [

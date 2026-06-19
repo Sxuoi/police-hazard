@@ -181,19 +181,23 @@ export function registerOfficerComponents() {
             const id = window.location.pathname.split('/').pop();
             try {
                 const res = await officerFetch('GET', `/api/v1/officer/assignments/${id}`);
-                if (!res) return;
+                if (!res) {
+                    this.loading = false;
+                    return;
+                }
                 if (res.ok) {
                     const body = await res.json();
                     this.assignment = body.data || body;
+                    this.loading = false;
                     // Wait for the Alpine template to render the #officer-minimap
                     // div before we touch it with Leaflet.
                     await this.$nextTick();
                     this.renderMap();
                     this.startWatchingPosition();
+                } else {
+                    this.loading = false;
                 }
             } catch (err) {
-                // Silent fail
-            } finally {
                 this.loading = false;
             }
         },
