@@ -62,6 +62,29 @@ class AssignmentsSeeder extends Seeder
             $assignIdx++;
         }
 
+        // Explicitly assign OF0001 to Polrestabes Semarang today/active
+        $of1 = User::withoutGlobalScopes()->where('nrp', 'OF0001')->first();
+        $locPolrestabes = Location::where('name', 'Polrestabes Semarang')->first();
+        if ($of1 && $locPolrestabes) {
+            $op = $locPolrestabes->zone->operation;
+            $sakerId = $locPolrestabes->saker_id;
+
+            // Delete any other active assignments for OF0001 to prevent conflicts
+            Assignment::where('officer_id', $of1->id)->delete();
+
+            Assignment::create([
+                'officer_id' => $of1->id,
+                'location_id' => $locPolrestabes->id,
+                'operation_id' => $op->id,
+                'saker_id' => $sakerId,
+                'assigned_saker_id' => $sakerId,
+                'start_date' => $yesterday,
+                'end_date' => null,
+                'status' => 'active',
+                'assigned_by' => $sakerId,
+            ]);
+        }
+
         $count = Assignment::count();
         $this->command->info("✓ AssignmentsSeeder: {$count} Assignments seeded.");
     }

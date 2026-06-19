@@ -17,6 +17,7 @@ export function checkinScreen() {
         bypassEligible: false,
         bypassId: null,
         stream: null,
+        facingMode: 'user',
 
         init() {
             // Extract assignmentId from URL: /officer/checkin/{assignmentId}
@@ -120,8 +121,9 @@ export function checkinScreen() {
 
         async openCamera() {
             try {
+                this.stopStream(); // Ensure previous stream is stopped
                 this.stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } },
+                    video: { facingMode: this.facingMode, width: { ideal: 720 }, height: { ideal: 960 } },
                     audio: false,
                 });
                 this.state = 'camera_open';
@@ -141,11 +143,17 @@ export function checkinScreen() {
             }
         },
 
+        async toggleCamera() {
+            if (this.state !== 'camera_open') return;
+            this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+            await this.openCamera();
+        },
+
         async attachStreamToVideo() {
             // The <template x-if> may need a render cycle or two before the
             // video element exists. Poll briefly so we don't lose the stream.
-            for (let i = 0; i < 10; i++) {
-                const video = this.$refs.video;
+            for (let i = 0; i < 15; i++) {
+                const video = this.$refs.video || this.$el.querySelector('video') || document.querySelector('video');
                 if (video) {
                     video.srcObject = this.stream;
                     video.muted = true;
@@ -158,7 +166,7 @@ export function checkinScreen() {
         },
 
         async capturePhoto() {
-            const video = this.$refs.video;
+            const video = this.$refs.video || this.$el.querySelector('video') || document.querySelector('video');
             const canvas = this.$refs.canvas;
             if (!video || !canvas) return;
 

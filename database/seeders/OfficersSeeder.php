@@ -23,7 +23,7 @@ class OfficersSeeder extends Seeder
                 User::firstOrCreate(
                     ['nrp' => $nrp],
                     [
-                        'saker_id' => $saker->id,
+                        'saker_id' => ($nrp === 'OF0001') ? Saker::where('code', 'PRTBS-SMG')->sole()->id : $saker->id,
                         'name' => fake('id_ID')->name(),
                         'phone' => fake('id_ID')->phoneNumber(),
                         'safung' => fake()->randomElement(['Bhabinkamtibmas', 'Reskrim', 'Sabhara', 'Intelkam', 'Lantas']),

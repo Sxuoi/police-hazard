@@ -48,6 +48,7 @@ class LocationsSeeder extends Seeder
             // Zone Banyumanik (POLRESTABES)
             [$zoneBanyumanik, $polrestabes, 'Transmart Setiabudi', -7.0505, 110.4146, 'Jl. Setiabudi'],
             [$zoneBanyumanik, $polrestabes, 'Taman Tirto Agung', -7.0573, 110.4246, 'Jl. Tirto Agung'],
+            [$zoneBanyumanik, $polrestabes, 'Polrestabes Semarang', -6.9926, 110.4078, 'Jl. Dr. Sutomo No. 19'],
             // Zone Simpang Lima (POLSEK)
             [$zoneSimpangLima, $polsek, 'Simpang Lima', -6.9904, 110.4228, 'Simpang Lima'],
             [$zoneSimpangLima, $polsek, 'Citraland Mall', -6.9912, 110.4239, 'Simpang Lima'],

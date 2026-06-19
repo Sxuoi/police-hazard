@@ -53,7 +53,17 @@
                 <p class="text-sm text-gray-400 mt-1">Arahkan kamera ke wajah Anda</p>
             </div>
             <div class="relative rounded-xl overflow-hidden bg-black aspect-[3/4]">
-                <video x-ref="video" autoplay playsinline class="w-full h-full object-cover"></video>
+                <video x-ref="video" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                <button
+                    @click="toggleCamera()"
+                    type="button"
+                    class="absolute top-4 right-4 z-10 p-2.5 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/10 transition-colors cursor-pointer"
+                    title="Ganti Kamera"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 6H16m0 0v5h5" />
+                    </svg>
+                </button>
             </div>
             <button
                 @click="capturePhoto()"
