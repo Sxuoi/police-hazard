@@ -36,11 +36,18 @@ class Report110Repository implements Report110RepositoryInterface
 
     public function findByToken(string $token): ?Report110
     {
-        return Report110::withoutGlobalScope(\App\Models\Concerns\SakerScope::class)
-            ->selectRaw('reports_110.*, ST_Y(koordinat_110::geometry) as lat, ST_X(koordinat_110::geometry) as lng')
-            ->with('unit')
-            ->where('token', $token)
-            ->first();
+        // Bypass ALL tenant scopes (SakerScope on Report110 + StrictSakerScope
+        // on Unit) because the Pamapta page is public — no authenticated user.
+        app()->instance('saker.bypass', true);
+        try {
+            return Report110::withoutGlobalScope(\App\Models\Concerns\SakerScope::class)
+                ->selectRaw('reports_110.*, ST_Y(koordinat_110::geometry) as lat, ST_X(koordinat_110::geometry) as lng')
+                ->with('unit')
+                ->where('token', $token)
+                ->first();
+        } finally {
+            app()->instance('saker.bypass', false);
+        }
     }
 
     public function create(array $data): Report110
