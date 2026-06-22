@@ -80,12 +80,12 @@
 @endpush
 
 @section('content')
-<div class="h-[calc(100vh-12rem)] min-h-[500px] relative rounded-xl overflow-hidden border border-[var(--color-surface-600)] shadow-lg z-0">
+<div class="h-[calc(100vh-12rem)] min-h-[500px] relative rounded-xl overflow-hidden border border-surface-600 shadow-lg z-0">
     <div id="global-map" class="absolute inset-0"></div>
 
     <!-- Map Overlay Controls (Top Right) -->
-    <div class="absolute top-4 right-4 z-[400] bg-[var(--color-surface-800)]/90 backdrop-blur border border-[var(--color-surface-600)] p-4 rounded-xl shadow-lg w-64">
-        <h4 class="text-white font-bold mb-3 border-b border-[var(--color-surface-600)] pb-2 text-sm">Status Laporan Aktif</h4>
+    <div class="absolute top-4 right-4 z-400 bg-surface-800/90 backdrop-blur border border-surface-600 p-4 rounded-xl shadow-lg w-64">
+        <h4 class="text-white font-bold mb-3 border-b border-surface-600 pb-2 text-sm">Status Laporan Aktif</h4>
         
         <div class="space-y-3">
             <div class="flex items-center justify-between">
@@ -110,7 +110,7 @@
                 <span class="text-xs font-bold text-white">{{ $activeReports->where('status', 'Sudah penanganan')->count() }}</span>
             </div>
             
-            <div class="pt-3 mt-3 border-t border-[var(--color-surface-600)]">
+            <div class="pt-3 mt-3 border-t border-surface-600">
                 <p class="text-xs text-gray-500 italic text-center">Total: {{ $activeReports->count() }} Laporan Berjalan</p>
             </div>
         </div>
@@ -139,11 +139,12 @@
         activeReports.forEach(report => {
             if (report.lat && report.lng) {
                 // Determine icon based on status
+                const isCompleted = report.status === 'Sudah penanganan';
                 let pinClass = 'pin-red';
                 let displayStatus = 'Butuh penanganan';
                 let statusColorClass = 'text-red-400';
                 
-                if (report.status === 'Sudah penanganan') {
+                if (isCompleted) {
                     pinClass = 'pin-green';
                     displayStatus = 'Telah diselesaikan';
                     statusColorClass = 'text-green-400';

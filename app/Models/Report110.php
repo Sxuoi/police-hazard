@@ -70,7 +70,7 @@ class Report110 extends Model
      */
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'unit_id');
+        return $this->belongsTo(Unit::class, 'unit_id')->withTrashed();
     }
 
     /**

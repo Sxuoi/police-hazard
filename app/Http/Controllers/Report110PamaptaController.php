@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessReport110Watermark;
 use App\Models\Report110;
 use App\Repositories\Contracts\Report110RepositoryInterface;
-use App\Services\WatermarkService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +13,6 @@ class Report110PamaptaController extends Controller
 {
     public function __construct(
         protected Report110RepositoryInterface $reportRepository,
-        protected WatermarkService $watermarkService
     ) {}
 
     public function show(Request $request, string $token)
@@ -133,19 +132,17 @@ class Report110PamaptaController extends Controller
         // Upload photo jika ada
         if ($request->hasFile('foto')) {
             $path = $request->file('foto')->store('reports_110', 'public');
-            $fullPath = storage_path('app/public/' . $path);
 
-            $watermarkData = [
+            // Dispatch watermark processing to background queue
+            // so the HTTP response returns immediately
+            ProcessReport110Watermark::dispatch($path, [
                 'Nama' => $request->nama_pamapta ?? '-',
                 'NRP' => $request->nrp_pamapta ?? '-',
                 'Alamat' => $request->alamat ?? 'Tidak diketahui',
                 'Koordinat' => "{$request->lat}, {$request->lng}",
                 'Waktu' => now()->format('d-m-Y H:i:s'),
                 'Tiket' => $report->no_tiketing
-            ];
-
-            // Apply watermark (yang juga mengompres foto)
-            $this->watermarkService->applyWatermark($fullPath, $watermarkData);
+            ]);
         }
 
         // Prepare Update Data
