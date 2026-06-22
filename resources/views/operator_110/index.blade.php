@@ -161,7 +161,12 @@
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Jenis Gangguan</label>
-                                <input type="text" name="jenis_gangguan" required placeholder="Contoh: Kecelakaan Lalu Lintas, Perkelahian..." class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
+                                <select name="jenis_gangguan" required class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent appearance-none">
+                                    <option value="" disabled selected>Pilih Jenis Gangguan</option>
+                                    @foreach($jenisGangguans as $jg)
+                                        <option value="{{ $jg->nama }}">{{ $jg->nama }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="sm:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
@@ -241,7 +246,12 @@
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Jenis Gangguan</label>
-                                <input type="text" name="jenis_gangguan" required x-model="editForm.jenis_gangguan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
+                                <select name="jenis_gangguan" required x-model="editForm.jenis_gangguan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent appearance-none">
+                                    <option value="" disabled>Pilih Jenis Gangguan</option>
+                                    @foreach($jenisGangguans as $jg)
+                                        <option value="{{ $jg->nama }}">{{ $jg->nama }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="sm:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>

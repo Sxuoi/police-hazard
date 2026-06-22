@@ -22,32 +22,58 @@
         <p class="text-sm">Tiket: {{ $report->no_tiketing }}</p>
     </div>
 
-    <!-- Locking Overlay (Tiba di TKP) -->
-    @if($report->status === 'Butuh penanganan')
-    <div x-show="showTibaModal" class="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-        <!-- Bulat Modal -->
-        <div class="bg-gradient-to-br from-blue-600 to-blue-900 rounded-full shadow-[0_0_40px_rgba(37,99,235,0.4)] text-white w-80 h-80 flex flex-col items-center justify-center border-4 border-white/50">
-            
-            <!-- Icon Lokasi -->
-            <div class="bg-white/20 p-5 rounded-full mb-6">
-                <svg class="w-20 h-20 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-            </div>
-            
-            <!-- Tombol Mendatangi TKP -->
-            <button @click="arriveAtTkp" :disabled="loadingArrive" class="bg-white text-blue-900 hover:bg-gray-100 font-bold py-3 px-6 rounded-full text-base transition shadow-xl flex justify-center items-center min-w-[200px]">
-                <span x-show="!loadingArrive">MENDATANGI TKP</span>
-                <span x-show="loadingArrive" class="animate-spin h-6 w-6 border-4 border-blue-900 border-t-transparent rounded-full" style="display: none;"></span>
-            </button>
-            
-        </div>
-    </div>
-    @endif
-
     <!-- Content Form -->
-    <div class="p-4" :class="{ 'blur-sm pointer-events-none': showTibaModal }">
+    <div class="p-4">
+
+        <!-- Section Konfirmasi Tiba di TKP -->
+        @if($report->status === 'Butuh penanganan')
+        <div class="mb-6">
+            <div class="bg-white p-5 w-full rounded-2xl shadow-lg border border-blue-100 flex flex-col gap-4 text-left transition-all">
+                <div class="border-b border-gray-100 pb-3 mb-1">
+                    <h2 class="text-lg font-bold text-blue-900 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Konfirmasi Kehadiran
+                    </h2>
+                    <p x-show="showTibaModal" class="text-xs text-gray-500 mt-1">Sistem akan mencatat lokasi GPS Anda secara otomatis.</p>
+                </div>
+                
+                <!-- State: Belum Tiba -->
+                <div x-show="showTibaModal" class="flex flex-col gap-4">
+                    <div>
+                        <label class="block mb-1 text-sm font-medium text-gray-700">Nama Pamapta</label>
+                        <input type="text" x-model="input_nama_pamapta" placeholder="Ketik nama lengkap..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-base text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-sm font-medium text-gray-700">NRP Pamapta</label>
+                        <input type="text" inputmode="numeric" x-model="input_nrp_pamapta" placeholder="Ketik NRP angka..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-base text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <button @click="arriveAtTkp" :disabled="loadingArrive || !input_nama_pamapta || !input_nrp_pamapta" class="mt-2 w-full py-3 px-4 rounded-lg text-base font-semibold transition-colors flex justify-center items-center shadow disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 text-white">
+                        <span x-show="!loadingArrive">MENDATANGI TKP</span>
+                        <span x-show="loadingArrive" class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" style="display: none;"></span>
+                    </button>
+                </div>
+
+                <!-- State: Sudah Tiba (Read-Only) -->
+                <div x-show="!showTibaModal" x-cloak class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex flex-col gap-3">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-medium text-gray-500">Nama Pamapta</span>
+                        <span class="text-base font-bold text-gray-800" x-text="input_nama_pamapta"></span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xs font-medium text-gray-500">NRP Pamapta</span>
+                        <span class="text-base font-bold text-gray-800" x-text="input_nrp_pamapta"></span>
+                    </div>
+                    <div class="mt-1 pt-3 border-t border-gray-200 flex items-center justify-center gap-2 text-green-600 font-semibold text-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Sudah tiba di TKP
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- Wrapper Form Utama (Disabled & Grayed out saat belum tiba di TKP) -->
+        <div :class="{ 'opacity-50 pointer-events-none grayscale': showTibaModal }" class="transition-all duration-300">
 
         @if(session('success'))
             <div class="bg-green-100 text-green-800 p-3 rounded mb-4 text-sm">{{ session('success') }}</div>
@@ -80,7 +106,7 @@
             <div class="relative rounded-lg overflow-hidden border bg-gray-200">
                 <div id="map" class="h-48 w-full z-10"></div>
                 <!-- Custom GPS Button on map -->
-                <button @click="updateLocation(false)" type="button" class="absolute bottom-4 right-4 z-[400] bg-white p-2 rounded-full shadow-lg border border-gray-300 hover:bg-gray-50 focus:outline-none">
+                <button @click="updateLocation(false)" type="button" class="absolute bottom-4 right-4 z-400 bg-white p-2 rounded-full shadow-lg border border-gray-300 hover:bg-gray-50 focus:outline-none">
                     <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.196 1.99-.555 2.914m4.242 3.146a13.945 13.945 0 01-2.906 3.44m2.906-3.44a13.945 13.945 0 002.906-3.44M12 11V3"></path></svg>
                 </button>
             </div>
@@ -90,22 +116,18 @@
         <form action="{{ route('pamapta.report.complete', $report->token) }}" method="POST" enctype="multipart/form-data">
             @csrf
             
-            <fieldset {{ (!$isUnlocked) ? 'disabled' : '' }}>
+            <fieldset :disabled="showTibaModal" {{ (!$isUnlocked) ? 'disabled' : '' }}>
                 <!-- Hidden inputs for final lat/lng set upon complete submit -->
                 <input type="hidden" name="lat" id="final_lat">
                 <input type="hidden" name="lng" id="final_lng">
                 <input type="hidden" name="alamat" id="final_alamat">
                 <input type="hidden" name="action_type" id="action_type" value="complete">
+                
+                <!-- Hidden inputs for Pamapta info (since it's now displayed in the read-only card above) -->
+                <input type="hidden" name="nama_pamapta" :value="input_nama_pamapta">
+                <input type="hidden" name="nrp_pamapta" :value="input_nrp_pamapta">
 
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Nama Pamapta</label>
-                        <input type="text" name="nama_pamapta" value="{{ old('nama_pamapta', $report->nama_pamapta) }}" class="w-full border rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">NRP Pamapta</label>
-                        <input type="text" name="nrp_pamapta" value="{{ old('nrp_pamapta', $report->nrp_pamapta) }}" class="w-full border rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100" required>
-                    </div>
                     <div>
                         <label class="block text-sm font-semibold mb-1">Uraian Kejadian</label>
                         <textarea name="uraian_kejadian" class="w-full border rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 min-h-[100px]" required>{{ old('uraian_kejadian', $report->uraian_kejadian) }}</textarea>
@@ -250,13 +272,13 @@
 
                         <!-- File Name Preview -->
                         <div x-show="fileName && !isCompressing" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700 text-sm">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             <span>Foto siap: <span x-text="fileName" class="font-bold"></span> (<span x-text="fileSize"></span>)</span>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 mt-6">
-                        <button type="button" @click="submitReport('draft')" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-2 rounded-lg shadow-md flex justify-center items-center text-sm transition">
+                        <button type="button" @click="saveDraft()" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-2 rounded-lg shadow-md flex justify-center items-center text-sm transition">
                             <span x-show="!loadingDraft">SIMPAN SEMENTARA</span>
                             <span x-show="loadingDraft" class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
                         </button>
@@ -264,6 +286,10 @@
                             <span x-show="!loadingComplete">SELESAIKAN LAPORAN</span>
                             <span x-show="loadingComplete" class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
                         </button>
+                    </div>
+                    <!-- Indikator Draft -->
+                    <div x-show="draftSavedTime" x-transition.opacity class="mt-2 text-center text-sm text-green-600 font-medium" style="display: none;">
+                        <span x-text="'Draft terakhir disimpan pukul ' + draftSavedTime"></span>
                     </div>
                     <!-- hidden actual submit -->
                     <button type="submit" id="actual_submit_btn" class="hidden"></button>
@@ -280,6 +306,7 @@
 
         </form>
 
+        </div> <!-- End of Wrapper Form Utama -->
     </div>
 </div>
 
@@ -294,7 +321,10 @@ function pamaptaForm() {
         marker: null,
         currentLat: null,
         currentLng: null,
-        currentAlamat: '{{ $report->alamat_aktual_110 ?? "" }}',
+        currentAlamat: '{{ addslashes($report->alamat_aktual_110 ?? "") }}',
+        input_nama_pamapta: '{{ addslashes(old('nama_pamapta', $report->nama_pamapta)) }}',
+        input_nrp_pamapta: '{{ addslashes(old('nrp_pamapta', $report->nrp_pamapta)) }}',
+        draftSavedTime: null,
 
         init() {
             let lat = -6.200000;
@@ -362,7 +392,9 @@ function pamaptaForm() {
                     body: JSON.stringify({
                         lat: lat,
                         lng: lng,
-                        alamat: this.currentAlamat
+                        alamat: this.currentAlamat,
+                        nama_pamapta: this.input_nama_pamapta,
+                        nrp_pamapta: this.input_nrp_pamapta
                     })
                 });
 
@@ -413,20 +445,7 @@ function pamaptaForm() {
         async submitReport(type) {
             const form = document.getElementById('actual_submit_btn').closest('form');
 
-            if (type === 'draft') {
-                document.getElementById('action_type').value = 'draft';
-                // Hapus atribut required agar HTML5 validasi tidak menghalangi simpan draft
-                form.querySelectorAll('[required]').forEach(el => {
-                    el.dataset.wasRequired = 'true';
-                    el.removeAttribute('required');
-                });
-            } else {
-                document.getElementById('action_type').value = 'complete';
-                // Kembalikan atribut required jika sebelumnya dihapus
-                form.querySelectorAll('[data-was-required="true"]').forEach(el => {
-                    el.setAttribute('required', 'required');
-                });
-            }
+            document.getElementById('action_type').value = 'complete';
 
             // Validasi HTML bawaan (HTML5 validation) sebelum menyalakan spinner
             if (!form.checkValidity()) {
@@ -435,11 +454,7 @@ function pamaptaForm() {
             }
 
             // Jika lolos validasi, nyalakan spinner
-            if (type === 'draft') {
-                this.loadingDraft = true;
-            } else {
-                this.loadingComplete = true;
-            }
+            this.loadingComplete = true;
 
             try {
                 const pos = await this.getGeolocation();
@@ -455,6 +470,46 @@ function pamaptaForm() {
             } catch(e) {
                 alert('Gagal memverifikasi lokasi terakhir. Pastikan GPS aktif!');
                 this.loadingComplete = false;
+            }
+        },
+
+        async saveDraft() {
+            this.loadingDraft = true;
+            try {
+                const pos = await this.getGeolocation();
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const alamat = await this.fetchAddress(lat, lng);
+
+                const form = document.getElementById('actual_submit_btn').closest('form');
+                const formData = new FormData(form);
+                formData.set('lat', lat);
+                formData.set('lng', lng);
+                formData.set('alamat', alamat);
+                formData.set('nama_pamapta', this.input_nama_pamapta);
+                formData.set('nrp_pamapta', this.input_nrp_pamapta);
+
+                // Buang foto dari draft agar lebih ringan dan cepat
+                formData.delete('foto');
+
+                let res = await fetch('{{ route('pamapta.report.draft', $report->token) }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                if(res.ok) {
+                    let data = await res.json();
+                    this.draftSavedTime = data.updated_at;
+                } else {
+                    alert('Gagal menyimpan draft ke server.');
+                }
+            } catch(e) {
+                alert('Gagal menyimpan draft. Pastikan GPS aktif.');
+            } finally {
                 this.loadingDraft = false;
             }
         }

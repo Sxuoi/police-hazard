@@ -140,9 +140,17 @@
 
             <!-- Dokumentasi Hasil Penanganan -->
             <div class="bg-[var(--color-surface-800)] p-6 rounded-xl border border-[var(--color-surface-600)] shadow-sm">
-                <h4 class="text-white font-bold mb-4 border-b border-[var(--color-surface-600)] pb-2">Hasil Penanganan Pamapta</h4>
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4 border-b border-[var(--color-surface-600)] pb-3">
+                    <h4 class="text-white font-bold">Hasil Penanganan Pamapta</h4>
+                    @if($report->status === 'Sedang penanganan')
+                        <span class="text-xs bg-yellow-500/20 text-yellow-400 px-3 py-1.5 rounded-md border border-yellow-500/30 font-medium inline-flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></span>
+                            Draft tersimpan: {{ $report->updated_at ? $report->updated_at->format('d/m/Y H:i') : '-' }}
+                        </span>
+                    @endif
+                </div>
                 
-                @if($report->status === 'Sudah penanganan')
+                @if(in_array($report->status, ['Sedang penanganan', 'Sudah penanganan']))
                     <div class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="col-span-full border-b border-[var(--color-surface-600)] pb-2 mb-2">
@@ -217,7 +225,7 @@
                     </div>
                 @else
                     <div class="flex items-center justify-center h-32 bg-[var(--color-surface-900)] rounded-lg border border-dashed border-[var(--color-surface-600)]">
-                        <p class="text-gray-500 text-sm">Petugas belum menyelesaikan penanganan laporan ini.</p>
+                        <p class="text-gray-500 text-sm">Petugas belum mendatangi TKP (status: Butuh penanganan).</p>
                     </div>
                 @endif
             </div>
@@ -300,7 +308,12 @@
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Jenis Gangguan</label>
-                                        <input type="text" name="jenis_gangguan" required x-model="editForm.jenis_gangguan" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <select name="jenis_gangguan" required x-model="editForm.jenis_gangguan" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)] appearance-none">
+                                            <option value="" disabled>Pilih Jenis Gangguan</option>
+                                            @foreach($jenisGangguans as $jg)
+                                                <option value="{{ $jg->nama }}">{{ $jg->nama }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                     <div class="sm:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>

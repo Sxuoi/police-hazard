@@ -91,5 +91,10 @@ class RepositoryServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\Report110RepositoryInterface::class,
             \App\Repositories\Report110Repository::class
         );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\JenisGangguanRepositoryInterface::class,
+            \App\Repositories\JenisGangguanRepository::class
+        );
     }
 }

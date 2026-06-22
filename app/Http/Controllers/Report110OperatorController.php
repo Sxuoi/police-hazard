@@ -7,21 +7,24 @@ use App\Http\Requests\StoreReport110Request;
 use App\Models\Report110;
 use App\Repositories\Contracts\Report110RepositoryInterface;
 use App\Repositories\Contracts\UnitRepositoryInterface;
+use App\Repositories\Contracts\JenisGangguanRepositoryInterface;
 use Illuminate\Http\Request;
 
 class Report110OperatorController extends Controller
 {
     public function __construct(
         protected Report110RepositoryInterface $reportRepository,
-        protected UnitRepositoryInterface $unitRepository
+        protected UnitRepositoryInterface $unitRepository,
+        protected JenisGangguanRepositoryInterface $jenisGangguanRepository
     ) {}
 
     public function index()
     {
         $reports = $this->reportRepository->paginate(15);
         $units = $this->unitRepository->getAll();
+        $jenisGangguans = $this->jenisGangguanRepository->getAll();
         
-        return view('operator_110.index', compact('reports', 'units'));
+        return view('operator_110.index', compact('reports', 'units', 'jenisGangguans'));
     }
 
     public function store(StoreReport110Request $request, CreateReport110Action $action)
@@ -50,8 +53,9 @@ class Report110OperatorController extends Controller
         $waLink = $this->generateWhatsAppLink($report);
 
         $units = $this->unitRepository->getAll();
+        $jenisGangguans = $this->jenisGangguanRepository->getAll();
 
-        return view('operator_110.show', compact('report', 'waLink', 'units'));
+        return view('operator_110.show', compact('report', 'waLink', 'units', 'jenisGangguans'));
     }
 
     public function update(\App\Http\Requests\UpdateReport110Request $request, string $id, \App\Services\WatermarkService $watermarkService)

@@ -31,6 +31,8 @@ Route::middleware('guest')->group(function () {
         ->name('pamapta.report.location');
     Route::post('/laporan-110/isi/{token}/unlock', [\App\Http\Controllers\Report110PamaptaController::class, 'unlock'])
         ->name('pamapta.report.unlock');
+    Route::post('/laporan-110/isi/{token}/draft', [\App\Http\Controllers\Report110PamaptaController::class, 'draft'])
+        ->name('pamapta.report.draft');
     Route::post('/laporan-110/isi/{token}/complete', [\App\Http\Controllers\Report110PamaptaController::class, 'complete'])
         ->name('pamapta.report.complete');
 });
@@ -91,8 +93,9 @@ Route::middleware(['auth:web', 'god.admin'])->group(function () {
     Route::get('reports/export', [ReportController::class, 'export'])
         ->name('reports.export');
 
-    // ── Fitur 110: Manajemen Unit ────────────────────────────────────
+    // ── Fitur 110: Manajemen Unit & Jenis Gangguan ───────────────────
     Route::resource('units', \App\Http\Controllers\UnitController::class);
+    Route::resource('jenis-gangguan', \App\Http\Controllers\JenisGangguanController::class);
 
     // ── Fitur 110: Dashboard Operator 110 ────────────────────────────
     Route::get('operator-110', [\App\Http\Controllers\Report110OperatorController::class, 'index'])->name('operator-110.index');

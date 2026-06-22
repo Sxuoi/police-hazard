@@ -106,6 +106,7 @@
                     <x-sidebar-item href="{{ route('operator-110.index') }}" icon="clipboard-list" :active="request()->routeIs('operator-110.index') || request()->routeIs('operator-110.show')">Daftar Laporan</x-sidebar-item>
                     <x-sidebar-item href="{{ route('operator-110.monitor') }}" icon="globe" :active="request()->routeIs('operator-110.monitor')">Peta Pantauan</x-sidebar-item>
                     <x-sidebar-item href="{{ route('units.index') }}" icon="truck" :active="request()->routeIs('units.*')">Manajemen Armada</x-sidebar-item>
+                    <x-sidebar-item href="{{ route('jenis-gangguan.index') }}" icon="list" :active="request()->routeIs('jenis-gangguan.*')">Jenis Gangguan</x-sidebar-item>
                 </div>
             </div>
 

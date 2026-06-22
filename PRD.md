@@ -1,301 +1,657 @@
 # Product Requirements Document (PRD) - Mini Command Center (Police Hazard & Fitur 110)
 
----
+## 1. Executive Summary
 
-## 1. Executive Summary & Product Overview
+### Nama Sistem
+Mini Command Center (Police Hazard & Fitur 110)
 
-### Latar Belakang & Visi
-Proyek **Mini Command Center** berevolusi dari sebuah inisiatif pencatatan presensi digital (Sistem Wajib Lapor / Police Hazard) menjadi platform komando dan kontrol terpadu berskala *Enterprise* bagi instansi penegak hukum kepolisian (Indonesian Law-Enforcement Agencies). Visi utamanya adalah mendigitalkan, mengotomatisasi, dan menyatukan dua pilar operasional kepolisian secara berdampingan: 
-1. **Modul Police Hazard**: Pemantauan presensi dan pergerakan personel kepolisian di lapangan (titik rawan, pos statis, dan rute patroli) secara *real-time* dengan verifikasi geospasial yang ketat.
-2. **Modul Fitur 110**: Sistem komando respons cepat penanganan kedaruratan masyarakat yang memungkinkan operator dan pasukan lapangan (*Pamapta*) berkoordinasi secara mulus, akurat, dan nirbatas.
+### Tujuan Sistem
+Mendigitalkan, mengotomatisasi, dan menyatukan pemantauan presensi personel kepolisian di lapangan (Police Hazard) serta sistem komando respons cepat penanganan kedaruratan masyarakat (Fitur 110) secara real-time dengan verifikasi geospasial yang ketat.
+
+### Ringkasan Fungsi Utama
+1. **Police Hazard (PH)**: Pemantauan presensi (check-in) dengan validasi Geofence (PostGIS) dan Anti-Spoofing.
+2. **Fitur 110**: Pembuatan tiket darurat, penugasan unit, dan pelaporan penanganan langsung dari lapangan via tautan token (Bypass Token).
+
+### Target Pengguna
+1. **God Admin (Propam/Pusat)**: Audit kepatuhan nasional dan monitoring eskalasi.
+2. **Saker Admin (Polres/Polsek)**: Manajemen operasi, zona, lokasi, dan personel wilayah.
+3. **Operator 110 (Command Center)**: Penerima panggilan dan pembuat tiket kedaruratan.
+4. **Pamapta / Officer**: Petugas lapangan yang melakukan check-in dan menindaklanjuti insiden.
+
+### Value Proposition
+Visibilitas real-time, jejak audit yang tidak dapat diubah (immutable), dan koordinasi darurat instan tanpa hambatan administratif bagi petugas di lapangan.
 
 ### Masalah yang Diselesaikan
-* **Modul Police Hazard**:
-  * **Inakurasi & Manipulasi Presensi:** Menghilangkan kelemahan sistem kertas konvensional dengan validasi *Geofence* (PostGIS) dan proteksi *Anti-Spoofing* (deteksi *mock location*).
-  * **Silo Data Operasional:** Mengatasi ketidaktahuan pimpinan terhadap posisi riil pasukan pengamanan secara *real-time* saat terjadi eskalasi massa.
-* **Modul Fitur 110**:
-  * **Respons Darurat Lambat:** Menghilangkan jeda waktu koordinasi melalui otomatisasi pembuatan tautan penanganan (*Bypass Token*) yang langsung terintegrasi dengan WhatsApp Unit Lapangan.
-  * **Ketidakjelasan Bukti Penanganan:** Memastikan setiap insiden yang dinyatakan "Selesai" memiliki dokumentasi visual yang valid berkat otomatisasi *Watermarking* (koordinat, alamat aktual, stempel waktu, dan identitas petugas).
-
-### Target Pengguna & Stakeholders
-1. **Pimpinan Pusat / Propam (God Admin):** Membutuhkan *overview* global (lintas wilayah) untuk audit kepatuhan, evaluasi kinerja komprehensif, serta pemantauan titik-titik eskalasi darurat secara nasional/regional.
-2. **Administrator Wilayah / Polres (Saker Admin):** Bertanggung jawab merancang Operasi, mendistribusikan personel ke Lokasi/Zona, dan mengawasi laporan 110 yang secara eksklusif terjadi di wilayah hukumnya.
-3. **Operator Command Center (CC):** Agen garda terdepan yang menerima panggilan masuk masyarakat, membuat tiket insiden, dan menugaskan Unit Lapangan untuk bertindak.
-4. **Petugas Lapangan & Pamapta (Officer):** Personel yang mengeksekusi pengamanan (*check-in* Police Hazard) dan menindaklanjuti insiden (melakukan laporan *Draft* hingga *Complete* pada Fitur 110) langsung dari *smartphone* mereka.
+* Manipulasi absensi fisik.
+* Jeda komunikasi dalam respons darurat.
+* Ketidakpastian bukti penanganan (diselesaikan dengan watermarking foto otomatis).
 
 ---
 
-## 2. User Roles & Authorization Matrix
+## 2. Business Background
 
-Sistem ini didesain dengan hierarki peran yang spesifik, memadukan autentikasi konvensional (Sesi Login) dan autentikasi asimetris (*Token Bypass* untuk kecepatan di lapangan).
+### Latar Belakang Kebutuhan
+Proses pemantauan personel secara manual (kertas/radio) tidak dapat divalidasi dan rawan manipulasi. Respons darurat masyarakat (110) sering terhambat oleh lambatnya diseminasi informasi ke unit terdekat.
 
-### Deskripsi Role Pengguna
-* `god_admin` (Super Administrator): Puncak hierarki sistem. Memiliki visibilitas tanpa batas lintas *tenant* (Saker) untuk keperluan pengawasan global dan audit absolut.
-* `saker_admin` (Administrator Wilayah): Pemimpin operasional di tingkat wilayah hukum (POLDA/POLRESTABES/POLSEK). Hanya memiliki wewenang pada data di dalam wilayah kekuasaannya.
-* `operator_110` (Operator Command Center): Staf operator komunikasi yang berwenang membuka dan merespons tiket kedaruratan awal, namun tidak berwenang merancang operasi kepolisian.
-* `officer` / `pamapta` (Petugas Lapangan): Aktor eksekusi. Melakukan *check-in* presensi dan menyelesaikan tiket 110.
+### Pain Point
+* Inakurasi data presensi.
+* Tidak ada pengawasan visual (peta) atas sebaran petugas.
+* Laporan penanganan insiden tidak terstandarisasi dan minim bukti valid.
 
-### Tabel Matriks Hak Akses
+### Proses Manual Sebelumnya
+Petugas melapor tiba di titik via radio. Operator mencatat di buku mutasi. Laporan foto dikirim sporadis via WhatsApp tanpa verifikasi koordinat/waktu.
 
-| Fitur / Modul | `god_admin` | `saker_admin` | `operator_110` | `pamapta` / `officer` (Lapangan) | Sifat Isolasi Data (Tenancy) |
+### Benefit Setelah Sistem
+* Kepastian kehadiran 100% berbasis GPS.
+* Pemantauan pergerakan unit secara live di peta komando.
+* Bukti digital yang tak terbantahkan (tamper-proof watermarked photos).
+
+---
+
+## 3. Product Vision
+
+Menjadi "Sistem Syaraf Pusat" operasional kepolisian yang memastikan setiap personel berada di titik yang tepat pada waktu yang tepat, serta merespons setiap panggilan darurat masyarakat dengan kecepatan dan transparansi absolut.
+
+---
+
+## 4. User Roles & Permissions
+
+| Role Name | Deskripsi | Hak Akses | Batasan | Menu Akses | Fitur |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Login & Dashboard** | Full Access | Akses Wilayah | Akses Wilayah | Akses Mobile/Guest | Terisolasi via `SakerScope` |
-| **Manajemen Operasi & Zona** | Read, Create, Update | Read, Create, Update | No Access | No Access | Terisolasi via `SakerScope` |
-| **Manajemen Lokasi & Shift** | Read, Create, Update | Read, Create, Update | No Access | No Access | Terisolasi via `SakerScope` |
-| **Manajemen Officer (NRP)** | Read, Create, Update | Read, Create, Update | No Access | No Access | Terisolasi via `SakerScope` |
-| **Distribusi Penugasan** | Read, Create, Cancel | Read, Create, Cancel | No Access | No Access | Terisolasi via `SakerScope` |
-| **Pemantauan Map Global 110** | View All Regions | View Region Only | View Region Only | No Access | **Global / Pengecualian SakerScope** |
-| **Manajemen Unit Lapangan**| Read, Create, Update | Read, Create, Update | Read, Create, Update| No Access | Terisolasi via `SakerScope` |
-| **Penerbitan Tiket 110** | Read, Delete | Read, Delete | Read, Create, Update| No Access | **Global / Pengecualian SakerScope** |
-| **Pengisian Form Tiba & Draft**| No Access | No Access | No Access | **Create/Update via Bypass Token**| **Bypass Auth** |
-| **Penyelesaian Laporan (Complete)**| No Access | No Access | No Access | **Update via Bypass Token** | **Bypass Auth** |
-| **Log Audit (Immutability)** | View All Logs | View Region Logs | No Access | No Access | Terisolasi via `SakerScope` |
+| **god_admin** | Super Admin (Propam) | Lintas Tenant (Global) | Tidak menangani operasional harian | Peta Pantauan 110 (Global), Audit Logs, Saker | Heatmap, Bypass Approval global, Full Audit |
+| **saker_admin** | Admin Wilayah | Terisolasi per Saker | Hanya melihat/mengedit data di wilayahnya | Dashboard, Operasi, Lokasi, Shift, Officer, Assignments | Buat operasi, assign officer, lihat rekap, setujui bypass |
+| **operator_110** | Operator CC | Terisolasi per Saker | Tidak bisa buat operasi PH | Peta Pantauan 110, Kelola Laporan | Buat tiket 110, pantau unit, ubah status laporan |
+| **officer / pamapta** | Petugas Lapangan | Hanya data penugasan sendiri | Web Mobile Guest (Token) & Sanctum Auth | Mobile Web Officer | Check-in PH, Isi form Laporan 110 (Tiba & Selesai) |
 
 ---
 
-## 3. System Architecture & Data Flow
+## 5. Feature Inventory
 
-### Pola Arsitektur Kode (Enterprise Backend Design)
-Aplikasi dibangun di atas pondasi **Laravel 13.x** dan **PHP 8.3** dengan menerapkan arsitektur berorientasi domain (*Domain-Driven Architecture*):
-1. **Presentation Layer:** Antarmuka responsif menggunakan `Blade Templates`, `Tailwind CSS v4.0`, dan interaktivitas peta spasial dengan `Leaflet.js`.
-2. **Controller Layer:** Menjadi pengarah *traffic* HTTP semata. Validasi input sepenuhnya didelegasikan kepada `FormRequest`.
-3. **Action Layer:** (*Single Source of Truth* transaksi). Aksi bisnis kompleks, seperti membuat operasi atau memvalidasi kordinat presensi, dienkapsulasi dalam kelas mandiri (contoh: `CreateReport110Action`, `UpdateOperationAction`).
-4. **Service Layer:** Menampung logika pendukung yang bisa digunakan ulang (contoh: `GeofenceService` untuk komputasi spasial murni, `WatermarkService` untuk pemrosesan citra digital, `AuditService` untuk penjejakan perubahan).
-5. **Repository Layer:** Pemisah (*Abstraction Layer*) antara logika bisnis dan kueri *Eloquent ORM*. Memastikan kode pengontrol tidak bergantung langsung pada skema database.
+### 5.1 Modul Organisasi & Tenancy
+* **Tujuan**: Mengelola struktur institusi (Polda, Polrestabes, Polsek).
+* **Flow**: God Admin membuat Saker -> Saker memiliki hierarki parent-child.
+* **Validasi**: Saker code unik.
+* **Business Rule**: Penghapusan diblokir jika Saker memiliki riwayat operasional.
 
-### Mekanisme Isolasi Data (Multi-Tenancy & Bypass)
-Sistem ini menggunakan arsitektur *Single Database, Multi-Tenant* berbasis hirarki Satuan Kerja (Saker).
-* **Global Scope Filtering:** Modul Police Hazard (Operasi, Lokasi, Shift, Presensi) diamankan menggunakan `SakerScope` (Global Scope). Setiap kueri database secara gaib disisipkan `WHERE saker_id IN (...)` yang membatasi pembacaan data hanya pada hierarki Saker milik Admin yang *login*.
-* **Pengecualian Filter (Global Data Bypass):** Khusus pada Modul 110 (Tabel `reports_110`), `SakerScope` secara sengaja **dilepas/dieksklusi**. Hal ini krusial agar pimpinan tertinggi (contoh: *God Admin* atau komandan wilayah) dapat memonitor *Dashboard Peta Pantauan 110* dan merespons seluruh insiden darurat secara global dan tanpa batas wilayah (Cross-Border Incident Monitoring).
+### 5.2 Modul Perencanaan Pengamanan (Police Hazard)
+* **Tujuan**: Merancang geofence (radius) patroli.
+* **Input**: Nama, Operasi, Zona, Kordinat GPS, Radius.
+* **Business Rule**: Kordinat lokasi terkunci (read-only) setelah ada 1 absensi untuk mencegah fraud.
 
-### Diagram Alur Proses (Mermaid Workflow) - Fitur 110
+### 5.3 Modul Presensi (Officer Check-In)
+* **Tujuan**: Rekam kehadiran petugas.
+* **Input**: GPS Device, Foto.
+* **Validasi**: ST_DWithin (PostGIS), Anti-Spoofing (Mock Location detection).
+* **Output**: Immutable attendance record.
+
+### 5.4 Modul Operator 110
+* **Tujuan**: Mencatat insiden masyarakat.
+* **Input**: TKP, Jenis Gangguan, Assign Unit.
+* **Output**: Bypass Token link untuk dikirim via WA ke unit lapangan.
+
+### 5.5 Modul Form Lapangan Pamapta
+* **Tujuan**: Pelaporan insiden dari lapangan.
+* **Flow**: Klik link -> Konfirmasi Tiba (GPS) -> Isi Draft -> Upload Foto (Complete).
+* **Business Rule**: Setelah Complete, form terkunci. Buka kembali butuh Kode Tiketing. Watermark foto diproses di *background queue*.
+
+### 5.6 Peta Pantauan (Monitor Dashboard)
+* **Tujuan**: Visualisasi live Leaflet.js.
+* **Business Rule**: Hanya menampilkan status "Sedang penanganan" (Pulse Kuning) dan "Sudah penanganan" (Hijau Solid).
+
+---
+
+## 6. User Journey
+
+### Alur Police Hazard (Absensi)
+Saker Admin (Buat Operasi/Lokasi) -> Saker Admin (Assign Officer) -> Officer (Login Mobile Web) -> Officer (Check-In via GPS + Foto) -> Sistem (Validasi Geofence & Spoofing) -> Saker Admin (Lihat Rekap).
+
+### Alur Laporan 110
+Masyarakat (Telepon 110) -> Operator (Buat Tiket) -> Sistem (Generate Token Link) -> Operator (Share WA) -> Pamapta (Buka Link & Konfirmasi Tiba) -> Pamapta (Isi Laporan & Upload Foto) -> Sistem (Background Watermark) -> Peta Pantauan (Pin Hijau).
+
+---
+
+## 7. Functional Requirements
+
+* **FR-001 [Manajemen Saker]**: Sistem harus dapat membuat hierarki Saker.
+* **FR-002 [Isolasi Data]**: Kueri model harus selalu disaring menggunakan `SakerScope` sesuai `saker_id` user login.
+* **FR-003 [Bypass 110]**: Peta Pantauan 110 harus dapat diakses `god_admin` secara global (tanpa SakerScope).
+* **FR-004 [Check-In Geofence]**: Sistem menolak check-in jika jarak GPS device > radius `locations`.
+* **FR-005 [Watermark 110]**: Sistem wajib membubuhkan watermark (NRP, waktu, GPS, tiket) pada foto laporan secara asynchronous (Queue).
+* **FR-006 [Immutability]**: Tabel `attendances` dan `audit_logs` menolak kueri UPDATE/DELETE (via DB Rules).
+
+---
+
+## 8. Non Functional Requirements
+
+* **Performance**: Upload foto dikompresi di sisi client (browser) sebelum dikirim (mengurangi payload dari 10MB ke 300KB). Pemrosesan watermark menggunakan background queue.
+* **Security**: Sanctum untuk mobile, Auth Session untuk admin. Isolasi data RLS (Row Level Security) di DB.
+* **Availability**: 99.5% uptime.
+* **Scalability**: Stateless deployment.
+* **Logging**: Semua perubahan entitas dicatat dalam `audit_logs`.
+* **Data Retention**: Log tidak pernah dihapus.
+
+---
+
+## 9. System Architecture
+
+* **Framework**: Laravel 13.x, PHP 8.3
+* **Pola**: Domain-Driven, Service-Action-Repository pattern.
+* **Isolasi**: Multi-tenant via `SakerScope` dan DB RLS.
 
 ```mermaid
-sequenceDiagram
-    participant Warga as Masyarakat
-    participant CC as Operator CC (110)
-    participant Sistem as System (Backend)
-    participant Pamapta as Petugas Lapangan
-
-    Warga->>CC: Panggilan Darurat (Telepon 110)
-    CC->>Sistem: Create Ticket (Input TKP, Jenis Gangguan, Pilih Unit)
-    Sistem-->>CC: Generate Token Unik & Link Form
-    CC->>Pamapta: Share WA (Link Bypass Token + Info)
-    
-    Note over Pamapta, Sistem: FASE KEDATANGAN
-    Pamapta->>Sistem: Buka Link Form (Guest)
-    Sistem->>Pamapta: Kunci Layar (Wajib Konfirmasi Tiba)
-    Pamapta->>Sistem: Klik "Mendatangi TKP" (Kirim Koordinat GPS)
-    Sistem-->>Sistem: Rekam waktu_mendatangi_tkp & Reverse Geocode
-    
-    Note over Pamapta, Sistem: FASE PENANGANAN
-    Pamapta->>Sistem: Input Draft (Pelaku, Korban, Bukti) & Update Peta
-    Sistem-->>Sistem: Update Laporan (Status: Sedang penanganan)
-    
-    Note over Pamapta, Sistem: FASE PENYELESAIAN
-    Pamapta->>Sistem: Klik "Complete" + Unggah Foto Dokumentasi
-    Sistem->>Sistem: WatermarkService (Tulis GPS, Waktu, NRP ke Foto)
-    Sistem-->>Sistem: Kunci Form Permanen (Status: Sudah penanganan)
-    Sistem-->>CC: Indikator Peta Pantauan berubah Hijau
+graph TD
+    Client[Web/Mobile Browser] --> HTTP_Kernel[HTTP Kernel / Middleware]
+    HTTP_Kernel --> Controllers[Controllers]
+    Controllers --> FormRequests[Form Requests / Validation]
+    Controllers --> Actions[Action Layer - Business Logic]
+    Controllers --> Jobs[Queued Jobs - Watermark]
+    Actions --> Services[Domain Services - Geofence, Spoofing]
+    Actions --> Repositories[Repository Layer]
+    Repositories --> Models[Eloquent Models]
+    Models --> DB[(PostgreSQL + PostGIS)]
 ```
 
 ---
 
-## 4. Feature Modules Specification (Spesifikasi Modul)
+## 10. Frontend Architecture
 
-### 4.1 Modul Organisasi & Tenancy (Saker & Users)
-* **Tujuan Modul:** Mengatur fondasi isolasi institusi kepolisian berdasar struktur komando (POLDA, POLRESTABES, POLSEK).
-* **Kebutuhan Fungsional (FR):**
-  * Mendukung pembentukan struktur *Parent-Child* mandiri (*Self-referencing*).
-  * Pembuatan akun Admin (`saker_admin`) wajib terikat pada sebuah Saker. Akun `god_admin` bersifat absolut.
-* **Kondisi Kasus Khusus:** Penghapusan Saker secara kaskade (*cascade delete*) diblokir apabila Saker tersebut telah memiliki riwayat operasional untuk menjamin integritas rekam jejak.
-
-### 4.2 Modul Perencanaan Pengamanan (Operations, Zones, Locations)
-* **Tujuan Modul:** Merancang titik tangkal gangguan kamtibmas melalui *geofencing* sebelum ditugaskan kepada personel.
-* **Kebutuhan Fungsional (FR):**
-  * Operasi didefinisikan berdasarkan Tipe (PH / Patroli Mobile).
-  * Lokasi dikonfigurasi melalui interaksi pemetaan (klik pada peta) yang menghasilkan titik koordinat PostGIS (`POINT(Lng Lat)`) dan diatur batas toleransinya (Radius Geofence dalam satuan meter).
-* **Kondisi Kasus Khusus:** Koordinat `locations` secara sistematis dikunci dari modifikasi (Read-Only) apabila telah ada petugas yang melakukan absensi pertama di titik tersebut, mencegah admin curang memindah titik untuk merekayasa data (*Fraud Prevention*).
-
-### 4.3 Modul Presensi & Anti-Spoofing (Assignments & Attendances)
-* **Tujuan Modul:** Alokasi petugas dan perekaman bukti kehadiran di lapangan yang anti-bocor.
-* **Kebutuhan Fungsional (FR):**
-  * Proses *Check-In* menuntut pembacaan sensor GPS perangkat dengan spesifikasi akurasi tertinggi (`enableHighAccuracy: true`).
-  * Backend menggunakan fungsi kalkulasi spasial `ST_DWithin` dan `ST_DistanceSphere` untuk memastikan jarak titik *check-in* berada dalam batas radius toleransi lokasi penugasan.
-* **Kondisi Kasus Khusus:** Jika perangkat mencoba memanipulasi waktu (*Timestamp Drift*) atau menggunakan aplikasi GPS Palsu (*Mock Location*), `SpoofingDetectionService` akan mendeteksinya dan memicu penolakan otomtais (Auto-Reject) atau menaikkan `spoofing_score` sebagai log bendera merah (*Red Flag*). Tabel `attendances` bersifat *Append-Only* mutlak (Tidak ada query `UPDATE` atau `DELETE`).
-
-### 4.4 Modul Operator Command Center (Fitur 110 - Tiketing)
-* **Tujuan Modul:** Titik masuk utama penerimaan insiden gawat darurat dari masyarakat.
-* **Kebutuhan Fungsional (FR):**
-  * Operator wajib menginput *Nomor Tiketing* valid, menunjuk Unit Lapangan dari database, dan mendeklarasikan Nama TKP & Jenis Gangguan.
-  * Sistem menggenerasi token kriptografis ber-entropi tinggi (`Str::random(40)`) sebagai mekanisme *Bypass Authentication* bagi petugas.
-  * Terintegrasi dengan fitur pembentukan dinamis pesan WhatsApp (`wa.me`) untuk kecepatan diseminasi perintah.
-* **Kondisi Kasus Khusus:** Jika koneksi WhatsApp Web terputus, tautan tetap dapat disalin secara manual melalui UI untuk dikirim via radio komunikasi.
-
-### 4.5 Modul Form Lapangan Pamapta (Fitur 110 - Eksekusi)
-* **Tujuan Modul:** Fasilitas perakitan "Laporan Segera" digital bagi petugas di lokasi insiden secara *real-time* tanpa keharusan login.
-* **Kebutuhan Fungsional (FR):**
-  * **Gatekeeping Kedatangan:** Layar petugas terkunci oleh modal paksa saat pertama kali diakses. Tombol "Mendatangi TKP" wajib ditekan untuk menarik koordinat presisi.
-  * **Draft Fleksibel:** Pengisian 11 poin penyelidikan awal (Modus Operandi, Identitas Korban, Kerugian, dsb.) dapat disimpan berulang kali sebagai draf.
-  * **Validasi Selesai (Completion Lock):** Status akhir mewajibkan unggahan berkas gambar (Foto Bukti). *WatermarkService* (Intervention Image v4) otomatis mematrikan: Nomor Tiket, Nama/NRP Pamapta, Alamat Reverse-Geocoding, Kordinat GPS Tiba/Selesai, dan Stempel Waktu Server langsung ke piksel gambar (*Tamper-Proof*).
-* **Kondisi Kasus Khusus:** Setelah diselesaikan, form berubah wujud menjadi `Read-Only`. Jika petugas menyadari adanya salah ketik fatal, pengeditan susulan hanya dapat dibuka dengan memasukkan `kode_tiketing` otentik (*Aturan Keamanan Sesi*).
-
-### 4.6 Modul Peta Pantauan (Monitor Dashboard)
-* **Tujuan Modul:** Penyajian *Heat Map* komando terpusat kepada pimpinan atas mobilitas penanganan laporan 110.
-* **Kebutuhan Fungsional (FR):**
-  * Data ditarik dari *Backend* untuk dirender di atas Peta berbasis `Leaflet.js`.
-  * **Filter Logika Status:** Sistem secara spesifik HANYA menampilkan *marker* laporan yang berstatus `Sedang penanganan` dan `Sudah penanganan` (Karena status *Butuh penanganan* belum memiliki koordinat GPS Pamapta).
-  * **Desain UI Peta:** Marker divisualisasikan dengan Ikon PIN CSS *Custom*. PIN Kuning Berdenyut (*Pulse*) merepresentasikan tim yang sedang bertugas (*Sedang penanganan*). PIN Hijau Solid merepresentasikan tugas rampung (*Telah diselesaikan*). Kotak informasi (*Pop-Up*) menyajikan seluruh parameter laporan termasuk Waktu Tiba dan Waktu Selesai.
+* **Framework**: Blade Templates, TailwindCSS v4, Alpine.js (State Management ringan).
+* **Maps**: Leaflet.js (tanpa API Key, OpenStreetMap).
+* **Modul Mobile**: Canvas API untuk image compression client-side (di form Pamapta). HTML5 Geolocation API (`enableHighAccuracy`).
+* **Routing**: Sinkron (Laravel web routes).
 
 ---
 
-## 5. Lifecycle & Status Specification
+## 11. Backend Architecture
 
-Siklus hidup (Lifecycle) ini mengikat status dari entitas `reports_110` (Modul 110) dari lahir hingga penutupan kasus.
-
-| Nama Status | Pemicu (Trigger) | Perilaku Antarmuka (UI/UX) Form Pamapta | Dampak Database |
-| :--- | :--- | :--- | :--- |
-| **`Butuh penanganan`** | Tiket diciptakan pertama kali oleh Operator CC via Dashboard. | Halaman memunculkan *Overlay Modal* raksasa bertuliskan "Tiba di Lokasi". Seluruh kolom form di-blur dan dikunci total (*Disabled*). | Kolom kordinat dan waktu kehadiran masih bernilai `NULL`. |
-| **`Sedang penanganan`** | Pamapta menekan tombol konfirmasi "Mendatangi TKP" pada Overlay Modal awal. | Modal pengunci menghilang. Seluruh kolom formulir 11 Poin dapat diketik. Pin peta dapat digeser. Tombol "Simpan Draft" aktif. | Mencatat koordinat GPS perangkat ke `koordinat_tiba`, serta mengisi `waktu_mendatangi_tkp`. |
-| **`Sudah penanganan`** (Selesai) | Pamapta mengunggah Foto Bukti dan menekan tombol "Complete / Selesai". | Semua *Text-Input* berubah menjadi teks statis (*Read-Only*). Tombol *Submit* hilang. Form terkunci mati. Muncul kolom peminta PIN rahasia untuk membuka revisi. | Mengubah status. Mencatat timestamp ke `waktu_diselesaikan`. Proses *Watermark* pada `bukti_foto_path`. |
+* **Controllers**: Hanya untuk mengatur HTTP Request/Response (e.g. `Report110PamaptaController`, `DashboardController`).
+* **Services**: Logika domain eksternal (e.g. `WatermarkService`, `GeofenceService`, `SpoofingDetectionService`).
+* **Repositories**: Abstraksi kueri database untuk memisahkan ORM dari controller.
+* **Jobs**: `ProcessCheckinPhoto` dan `ProcessReport110Watermark` (Asynchronous processing).
+* **Middleware**: `god.admin`, `EnsureSakerContext` (Tenancy validation).
+* **Global Scopes**: `SakerScope` (Sangat Kritikal).
 
 ---
 
-## 6. Database Schema Design (Skema Data)
+## 12. Database Documentation
 
-Desain relasional dibangun memprioritaskan ketangguhan penelusuran (Audit) dan kalkulasi spasial.
+### `users`
+Menyimpan akun login.
+| Kolom | Tipe | Keterangan |
+| --- | --- | --- |
+| id | UUID (PK) | |
+| saker_id | UUID (FK) | Relasi ke `sakers` |
+| role | string | god_admin, saker_admin, operator_110, officer |
 
-### 6.1 Diagram Entity-Relationship (ERD)
+### `locations`
+Titik patroli (Police Hazard).
+| Kolom | Tipe | Keterangan |
+| --- | --- | --- |
+| id | UUID | |
+| coordinates | GEOMETRY(POINT) | Titik spasial PostGIS |
+| coords_locked | boolean | Mengunci kordinat pasca absensi |
+
+### `reports_110`
+Tiket laporan darurat masyarakat.
+| Kolom | Tipe | Keterangan |
+| --- | --- | --- |
+| token | string | Token unik untuk bypass link |
+| status | string | Butuh penanganan, Sedang penanganan, Sudah penanganan |
+| koordinat_110 | GEOMETRY(POINT) | Lokasi aktual insiden |
+| bukti_foto_path | string | Path AWS/MinIO gambar hasil watermark |
+
+### `attendances`
+Data check-in officer. **IMMUTABLE** (Tidak bisa di-update/delete).
+| Kolom | Tipe | Keterangan |
+| --- | --- | --- |
+| checkin_coordinates | GEOMETRY(POINT) | Lokasi petugas saat absensi |
+| spoofing_score | int | Deteksi fake GPS |
+
+---
+
+## 13. Entity Relationship Documentation
+
+* `Saker` memiliki banyak `User`, `Operation`, `Report110`.
+* `Operation` memiliki banyak `Zone`.
+* `Zone` mencakup banyak `Location`.
+* `Location` dialokasikan dalam banyak `Assignment`.
+* `User` (Officer) menerima banyak `Assignment`.
+* `Assignment` merekam satu/banyak `Attendance`.
+* `Unit` (Armada) direferensikan oleh `Report110`. (Soft Deletes aktif pada `Unit` untuk menjaga FK integrity).
+
+---
+
+## 14. ERD (Entity Relationship Diagram)
 
 ```mermaid
 erDiagram
-    SAKER ||--o{ USER : "menaungi"
-    SAKER ||--o{ OPERATION : "memiliki"
-    OPERATION ||--o{ ZONE : "memiliki"
-    ZONE ||--o{ LOCATION : "mencakup"
-    LOCATION ||--o{ SHIFT : "memiliki jadwal"
-    USER ||--o{ ASSIGNMENT : "diberikan"
-    LOCATION ||--o{ ASSIGNMENT : "dialokasikan ke"
-    SHIFT ||--o{ ASSIGNMENT : "dibatasi oleh"
-    ASSIGNMENT ||--o{ ATTENDANCE : "merekam"
-    USER ||--o{ AUDIT_LOG : "memicu"
-    UNITS ||--o{ REPORTS_110 : "menangani"
-
-    SAKER {
-        uuid id PK
-        string name
-        uuid parent_id FK
-    }
-    USER {
-        uuid id PK
-        uuid saker_id FK
-        string nrp
-        string role
-    }
-    LOCATION {
-        uuid id PK
-        geometry coordinates
-        int radius_meters
-    }
-    ATTENDANCE {
-        uuid id PK
-        uuid assignment_id FK
-        geometry checkin_coordinates
-        int spoofing_score
-    }
-    REPORTS_110 {
-        uuid id PK
-        string no_tiketing UK
-        uuid unit_id FK
-        string token UK
-        string status
-        geometry koordinat_tiba
-        timestamp waktu_mendatangi_tkp
-        timestamp waktu_diselesaikan
-        string bukti_foto_path
-    }
+    SAKER ||--o{ USER : "has"
+    SAKER ||--o{ OPERATION : "owns"
+    SAKER ||--o{ REPORTS_110 : "handles"
+    SAKER ||--o{ UNITS : "manages"
+    OPERATION ||--o{ ZONE : "contains"
+    ZONE ||--o{ LOCATION : "has"
+    USER ||--o{ ASSIGNMENT : "receives"
+    LOCATION ||--o{ ASSIGNMENT : "assigned_to"
+    ASSIGNMENT ||--o{ ATTENDANCE : "records"
+    UNITS ||--o{ REPORTS_110 : "dispatched_to"
 ```
 
-### 6.2 Dokumentasi Detail Tabel Utama
+---
 
-**Tabel `reports_110` (Manajemen Insiden Darurat)**
-| Nama Kolom | Tipe Data | Atribut | Deskripsi |
-| :--- | :--- | :--- | :--- |
-| `id` | `UUIDv7` | PK | Identitas berurut berdasarkan waktu. |
-| `no_tiketing` | `VARCHAR` | Unique | Nomor referensi formal dari pelapor masyarakat. |
-| `token` | `VARCHAR(60)` | Unique | Kunci bypass rahasia untuk otorisasi form lapangan tanpa login. |
-| `status` | `ENUM` | Default | Menentukan *Lifecycle*: Butuh penanganan, Sedang penanganan, Sudah penanganan. |
-| `waktu_mendatangi_tkp` | `TIMESTAMP` | Nullable | Dicatat seketika saat tombol "Mendatangi TKP" ditekan pertama kali. |
-| `waktu_diselesaikan` | `TIMESTAMP` | Nullable | Dicatat seketika saat form dikirim (*Submit Complete*). |
-| `koordinat_tiba` | `GEOMETRY(Point, 4326)`| Nullable | Titik koordinat kedatangan petugas (*Spatial Data*). |
-| `koordinat_110` | `GEOMETRY(Point, 4326)`| Nullable | Koordinat pemutakhiran terakhir yang ditampilkan di Map. |
-| `bukti_foto_path` | `VARCHAR` | Nullable | Alamat *path* penyimpanan gambar di direktori *Storage* yang telah di-watermark. |
+## 15. API Documentation
 
-**Tabel `attendances` (Presensi Pasukan)**
-| Nama Kolom | Tipe Data | Atribut | Deskripsi |
-| :--- | :--- | :--- | :--- |
-| `id` | `UUIDv7` | PK | Primary key presensi. |
-| `assignment_id` | `UUID` | FK | Relasi ke detail penugasan. |
-| `checkin_coordinates` | `GEOMETRY(Point, 4326)`| Not Null | Titik tembak absensi yang wajib berada dalam batas geofence lokasi. |
-| `spoofing_score` | `INTEGER` | Not Null | Bobot kecurigaan manipulasi koordinat. |
-*(Catatan: Tabel ini tidak memiliki `updated_at` untuk memastikan integritas data - Append Only Concept).*
+Khusus Mobile Officer Flow & Pamapta (AJAX):
+
+| Method | URL | Description | Auth | Validation |
+| --- | --- | --- | --- | --- |
+| POST | `/api/v1/auth/login` | Officer Login (Sanctum) | No | nrp, password |
+| POST | `/laporan-110/isi/{token}/arrive` | Pamapta tiba di TKP | Token Bypass | lat, lng |
+| POST | `/laporan-110/isi/{token}/complete` | Submit Laporan | Token Bypass | lat, lng, foto, data laporan |
+| POST | `/laporan-110/isi/{token}/unlock` | Buka form terkunci | Token Bypass | kode_tiketing |
 
 ---
 
-## 7. Non-Functional Requirements (NFR)
+## 16. Business Rules
 
-1. **Spatial Database & Indexing:** Kolom koordinat (`koordinat_tiba`, `checkin_coordinates`, dll) WAJIB menggunakan tipe `Geometry(Point, 4326)`. Kueri radius WAJIB diindeks menggunakan *Spatial Index* (`GIST` pada PostgreSQL) agar performa pencarian geofence tetap instan pada skala jutaan baris.
-2. **Immutabilitas Data (Keamanan Log):** Entitas Audit dan Presensi menggunakan basis desain data tidak dapat dimutasi. Perubahan struktur di *layer database* sebaiknya dikunci dengan `SQL TRIGGER` untuk mencegah perintah `UPDATE/DELETE` secara manual.
-3. **Standarisasi Zona Waktu (Timezone):** Database Engine wajib diatur menyimpan *timestamp* dalam basis **UTC** (`TIMESTAMPTZ`). Konversi ke Waktu Indonesia Barat (`Asia/Jakarta`) dilakukan murni di lapis *Presentation/View* melalui *Carbon*.
-4. **Ketahanan *Bypass Endpoint*:** *Endpoint Token* form 110 dirancang *stateless*. Algoritma penarikan form tidak membutuhkan *session cookies* guna mengantisipasi hilangnya sesi akibat area *blank spot* (zona mati sinyal seluler) yang sering dialami petugas di hutan/pedalaman.
-5. **Pemrosesan Citra Digital (Watermarking):** Pembubuhan watermark memanfaatkan `Intervention Image v4`. Karena memakan *Memory Limit* PHP tinggi, unggahan dibatasi maksimal 10MB. Foto asli akan otomatis dihapus oleh *Garbage Collector* (`Storage::delete`) saat laporan dikirim ulang untuk mencegah penumpukan berkas yatim piatu (*Orphaned Files*) pada Disk.
+1. **PH Overlap Guard**: 1 Officer tidak boleh di-assign ke Shift & Hari yang sama.
+2. **Immutability Absensi**: `attendances` tidak bisa diubah setelah tercatat. Jika error (misal GPS drift), gunakan mekanisme `Manual Bypass Approval` oleh Saker Admin.
+3. **Location Lock**: Koordinat `locations` menjadi Read-Only segera setelah 1 check-in diverifikasi.
+4. **Saker Scope**: Semua data difilter berdasarkan `saker_id`. **Pengecualian**: `reports_110` dapat dilihat oleh `god_admin` secara global.
+5. **Form 110 Lock**: Form Pamapta (Token Link) otomatis terkunci (read-only) ketika status berubah menjadi "Sudah penanganan". Harus input `kode_tiketing` untuk membuka kembali (session based). Session `unlocked_110_{id}` dibersihkan otomatis setelah submit perbaikan.
 
 ---
 
-## 8. Deployment & Technical Analysis
+## 17. Validation Rules
 
-### Spesifikasi Server & Lingkungan Eksekusi (Environment)
-* **Sistem Operasi:** Ubuntu Server 22.04 LTS / 24.04 LTS.
-* **Web Engine:** Nginx Server dengan PHP-FPM.
-* **Bahasa Pemrograman:** PHP versi 8.3 (Mutlak diperlukan untuk kompabilitas *Typed Attributes* & *Native Enums*).
-* **Manajemen Basis Data:** PostgreSQL versi 16+ disandingkan dengan **PostGIS Extension versi 3+** (WAJIB terinstal pada *cluster database*).
-* **Frontend Toolkit:** Node.js v20+ untuk kompilasi `Tailwind CSS v4` dan `Vite`.
+* **Foto Laporan 110**: Dikompresi otomatis via client-side (max 1200px, JPEG 0.7) sebelum diupload.
+* **Geofence**: Diukur menggunakan `ST_DWithin`. Toleransi sesuai `radius_meters` di tabel `locations`.
+* **Mock Location**: Flag `mock_location = true` langsung menyebabkan Auto-Reject.
 
-### Langkah-langkah Praktis Deployment (Production)
+---
 
-1. **Instalasi Basis Sistem:**
-   ```bash
-   git clone <repository_url> /var/www/police-hazard
-   cd /var/www/police-hazard
-   composer install --optimize-autoloader --no-dev
-   npm install && npm run build
-   ```
+## 18. Security Design
 
-2. **Pengaturan Variabel Lingkungan:**
-   Salin `.env.example` ke `.env` dan konfigurasikan:
-   * `DB_CONNECTION=pgsql` (WAJIB). Masukkan kredensial database yang ekstensinya sudah diaktifkan (`CREATE EXTENSION postgis;`).
-   * `APP_ENV=production` dan `APP_DEBUG=false`.
+* **Authentication**: Web Session (Admin), Sanctum Token (Officer Mobile).
+* **Authorization**: `SakerScope` Eloquent Trait. Row-Level Security (RLS) di level Database PostgreSQL.
+* **Bypass Auth**: URL ber-token kriptografis tinggi (`Str::random(40)`) untuk Pamapta lapangan. URL dibagikan via WhatsApp.
+* **Spoofing Detection**: Analisis metadata GPS (Timestamp drift, accuracy radius).
+* **Immutability**: PostgreSQL RULES `DO INSTEAD NOTHING` pada operasi UPDATE/DELETE di tabel `attendances` dan `audit_logs`.
 
-3. **Inisiasi Skema & File Storage:**
-   ```bash
-   php artisan key:generate
-   php artisan storage:link
-   php artisan migrate --force
-   php artisan db:seed --force
-   ```
+---
 
-4. **Optimasi Kompilasi Kerangka Kerja (Framework Tuning):**
-   ```bash
-   php artisan optimize
-   php artisan view:cache
-   php artisan route:cache
-   ```
+## 19. Third Party Integrations
 
-5. **Izin Akses Berkas (Permission Fix):**
-   Pastikan web server (contoh `www-data`) memiliki akses penuh pada *Storage* dan *Cache*:
-   ```bash
-   chown -R www-data:www-data storage bootstrap/cache
-   chmod -R 775 storage bootstrap/cache
-   ```
+* **OpenStreetMap (Nominatim)**: Reverse geocoding alamat (`fetchAddress` AJAX pada form Pamapta).
+* **WhatsApp (wa.me)**: Redirect URL dinamis untuk membagikan Token Bypass dari Operator CC ke Pamapta.
+* **AWS S3 / MinIO**: Object storage untuk menampung gambar ter-watermark (`bukti_foto_path`).
 
-*Dokumen ini merupakan sumber kebenaran teknis (Source of Technical Truth) proyek Police Hazard versi teranyar.*
+---
+
+## 20. Configuration Requirements
+
+| Variable | Required | Description |
+| -------- | -------- | ----------- |
+| `DB_CONNECTION` | YES | Harus `pgsql` (PostGIS required) |
+| `QUEUE_CONNECTION` | YES | Rekomendasi: `database` atau `redis` untuk job watermark |
+| `AWS_BUCKET` | NO | Untuk storage eksternal |
+| `APP_TIMEZONE` | YES | Default: `Asia/Jakarta` |
+
+---
+
+## 21. Deployment Architecture
+
+* **Server**: Nginx / Apache
+* **PHP**: ^8.3 (Laravel 13.x)
+* **Database**: PostgreSQL 16+ dengan ekstensi PostGIS 3.4+.
+* **Queue**: Laravel Horizon atau `php artisan queue:listen` (Kritikal untuk memproses watermark foto laporan 110).
+* **Storage**: Local public storage atau S3 Bucket.
+
+---
+
+## 22. Project Structure
+
+* `app/Models/` : Entitas data dengan traits khusus (seperti `SakerScope`).
+* `app/Http/Controllers/` : Mengelola trafik HTTP. Terpisah antara Web Admin dan API/Guest.
+* `app/Jobs/` : Terdapat `ProcessReport110Watermark` & `ProcessCheckinPhoto` (Background Processing).
+* `app/Services/` : Core business services (WatermarkService, GeofenceService).
+* `database/migrations/` : Menggunakan tipe data spesifik `GEOMETRY(POINT, 4326)`.
+* `resources/views/reports_110/` : Form Pamapta publik dengan integrasi Vue/Alpine & Canvas Compression.
+
+---
+
+## 23. Sequence Diagram (Laporan 110)
+
+```mermaid
+sequenceDiagram
+    participant Op as Operator 110
+    participant Sys as Sistem
+    participant Pam as Pamapta (Mobile)
+    
+    Op->>Sys: Buat Tiket & Assign Unit
+    Sys-->>Op: Generate Token Link
+    Op->>Pam: Share Link via WA
+    Pam->>Sys: Buka Link -> Klik "Tiba di TKP" (GPS)
+    Sys->>Sys: Update Status "Sedang penanganan"
+    Pam->>Sys: Isi Laporan -> Upload Foto (Client Compress) -> Selesai
+    Sys-->>Sys: Dispatch Job Watermark (Queue)
+    Sys-->>Pam: Return Success
+    Sys->>Sys: Form Terkunci -> Status "Sudah penanganan"
+```
+
+---
+
+## 24. Edge Cases
+
+* **Client Upload Timeout**: Terjadi jika foto kamera (10MB+) dikirim via 3G/Ngrok. *Mitigasi*: Client-side Canvas Image Compression memotong ukuran jadi ~300KB.
+* **Unit Dihapus Saat Masih Menangani**: `reports_110` menggunakan Soft Deletes pada tabel `units` (menggunakan method `withTrashed()`) sehingga relasi historis tidak pecah (`Foreign Key Violation`).
+* **Selesai Edit Tapi Form Masih Terbuka**: Session `unlocked_110_{id}` dibuang paksa `session()->forget()` di akhir controller submit agar form kembali terkunci aman.
+* **Reverse Geocoding Gagal**: Fallback string statis "Alamat tidak ditemukan" agar tidak memblokir submit.
+
+---
+
+## 25. Technical Debt & Improvement Opportunities
+
+* **Nominatim Rate Limit**: Reverse geocoding gratisan rawan terkena HTTP 429 jika traffic masif. *Rekomendasi*: Integrasi Google Maps API atau Self-hosted Pelias.
+* **Storage Bloat**: Foto original dan watermarked menyita space besar seiring waktu. *Rekomendasi*: Implementasi log-rotation atau auto-archive foto ke S3 Glacier setelah 6 bulan.
+
+---
+
+## 26. Future Roadmap
+
+1. **Dashboard Analytics Lanjut**: Menambahkan grafik AI sentimen masyarakat berdasarkan `uraian_kejadian`.
+2. **Mobile App Native**: Membuat APK/AAB native agar bisa menggunakan background GPS tracking tanpa henti (Battery Optimized).
+3. **Integrasi CCTV**: Memadukan titik lokasi dengan API RTSP CCTV Command Center terdekat.
+
+---
+
+## 27. AI Context Section
+
+### System Summary
+Laravel 13 application for law enforcement. Focus on Attendance (Police Hazard) and Emergency Ticketing (Fitur 110). Uses PostGIS for geospatial logic.
+
+### Main Entities
+`Saker` (Tenant), `User` (Officer/Admin), `Report110` (Emergency Ticket), `Attendance` (Immutable check-in log).
+
+### Core Business Process
+1. **PH**: Admin draws polygon/radius -> Assigns Officer -> Officer submits GPS/Photo -> PostGIS ST_DWithin validates -> Saved (Immutable).
+2. **110**: Operator creates ticket -> Shares token link -> Officer clicks "Arrive" -> Submits draft -> Uploads photo -> Background Watermark Job -> Ticket Completed.
+
+### Critical Files
+* `app/Models/Concerns/SakerScope.php` (Never remove this logic).
+* `app/Http/Controllers/Report110PamaptaController.php` (Guest flow for field officers).
+* `resources/views/reports_110/pamapta_form.blade.php` (Includes client-side JS Canvas compression & Leaflet maps).
+* `database/migrations/` (Look for GEOMETRY fields).
+
+### Development Guidelines
+* NEVER use `cat`, `grep`, `ls` shell commands; ALWAYS use native AI tools `grep_search` and `view_file`.
+* If a file upload is involved, ALWAYS compress on client side if possible or push heavy logic (Watermark) to Laravel Queue.
+* SoftDeletes (`withTrashed`) MUST be used on master data (like `units`) if referenced by historical transaction data (`reports_110`) to prevent DB foreign key crashes.
+
+---
+
+# 28. Complete Database Schema
+
+## Nama Tabel: `users`
+### Tujuan Tabel
+Menyimpan identitas pengguna sistem, termasuk role dan relasi tenant (`saker_id`).
+### Struktur Lengkap
+| Kolom | Tipe | Nullable | Default | Unique | Keterangan |
+| ----- | ---- | -------- | ------- | ------ | ---------- |
+| id | UUID | No | `gen_random_uuid()` | Yes | PK |
+| saker_id | UUID | No | - | No | Relasi tenant wilayah |
+| name | VARCHAR(100) | No | - | No | Nama lengkap pengguna |
+| nrp | VARCHAR(20) | No | - | Yes | Nomor Registrasi Pokok |
+| email | VARCHAR(150) | Yes | - | Yes | |
+| phone | VARCHAR(20) | Yes | - | No | |
+| role | VARCHAR(20) | No | - | No | Enum: `god_admin`, `saker_admin`, `operator_110`, `officer` |
+| safung | VARCHAR(50) | Yes | - | No | Satuan Fungsi |
+| avatar_path | VARCHAR(255) | Yes | - | No | Path foto profil |
+| password | VARCHAR(255) | No | - | No | Hash |
+| is_active | BOOLEAN | No | TRUE | No | Status aktif user |
+### Primary Key: `id`
+### Foreign Key: `saker_id` (references `sakers.id`)
+### Index: `idx_users_saker`, `idx_users_nrp`, `idx_users_role`
+### Constraint: Pengecekan role IN ('god_admin', 'saker_admin', 'operator_110', 'officer')
+### Business Rules: NRP harus unik. Role `god_admin` memiliki akses lintas tenant.
+
+## Nama Tabel: `reports_110`
+### Tujuan Tabel
+Mencatat pelaporan masyarakat (Tiket 110) dan progress penanganannya oleh armada di lapangan.
+### Struktur Lengkap
+| Kolom | Tipe | Nullable | Default | Unique | Keterangan |
+| ----- | ---- | -------- | ------- | ------ | ---------- |
+| id | UUID | No | `gen_random_uuid()` | Yes | PK |
+| no_tiketing | VARCHAR(50) | No | - | Yes | Kode tiket yang dibuat operator CC |
+| unit_id | UUID | No | - | No | ID armada/unit yang bertugas |
+| saker_id | UUID | No | - | No | Filter tenant |
+| token | VARCHAR(64) | No | - | Yes | Token untuk URL public Pamapta |
+| status | VARCHAR(30) | No | 'Butuh penanganan' | No | Enum Status |
+| koordinat_110 | GEOMETRY(POINT) | Yes | - | No | PostGIS spasial lokasi penanganan |
+| alamat_aktual_110 | TEXT | Yes | - | No | Alamat hasil reverse geocoding |
+| jenis_gangguan | VARCHAR(150) | No | - | No | Label insiden (Curas, Laka, dsb) |
+| waktu_kejadian | TIMESTAMPTZ | No | - | No | |
+| waktu_dilaporkan | TIMESTAMPTZ | No | - | No | |
+| waktu_mendatangi_tkp | TIMESTAMPTZ | Yes | - | No | Diisi saat pamapta klik "Tiba" |
+| waktu_diselesaikan | TIMESTAMPTZ | Yes | - | No | Diisi saat laporan di-complete |
+| tempat_kejadian | VARCHAR(250) | No | - | No | TKP awal yang dilaporkan warga |
+| nama_pamapta | VARCHAR(150) | Yes | - | No | Nama pelapor di lapangan |
+| bukti_foto_path | VARCHAR(500) | Yes | - | No | Path foto sesudah diwatermark |
+### Primary Key: `id`
+### Foreign Key: `unit_id` (references `units.id`), `saker_id` (references `sakers.id`)
+### Index: `idx_reports_110_koordinat_110` (GIST)
+### Constraint: Status IN ('Butuh penanganan', 'Sedang penanganan', 'Sudah penanganan')
+### Business Rules: Status tidak bisa mundur. `koordinat_110` hanya diisi ketika status menjadi `Sedang penanganan`.
+
+## Nama Tabel: `units`
+### Tujuan Tabel
+Menyimpan daftar armada (mobil patroli/tim) yang dapat di-assign ke tiket 110.
+### Struktur Lengkap
+| Kolom | Tipe | Nullable | Default | Unique | Keterangan |
+| ----- | ---- | -------- | ------- | ------ | ---------- |
+| id | UUID | No | `gen_random_uuid()` | Yes | PK |
+| saker_id | UUID | No | - | No | Kepemilikan unit berdasar wilayah |
+| nama_unit | VARCHAR(150) | No | - | No | Cth: "Patroli 01" |
+| no_wa | VARCHAR(20) | No | - | No | Nomor WA yang dikirimi token link |
+| deleted_at | TIMESTAMPTZ | Yes | - | No | Soft Deletes |
+### Primary Key: `id`
+### Business Rules: Dihapus secara soft delete agar tidak melanggar foreign key di tabel historis `reports_110`.
+
+## Data Dictionary
+### `users.role`
+| Value | Label | Deskripsi |
+| --- | --- | --- |
+| `god_admin` | Super Admin | Akses seluruh sakers dan heatmap global |
+| `saker_admin` | Admin Wilayah | Admin operasional untuk 1 wilayah Saker |
+| `operator_110` | Operator | Pembuat tiket insiden (Command Center) |
+| `officer` | Petugas | Personel lapangan yang melakukan check-in |
+
+### `reports_110.status`
+| Value | Label | Deskripsi |
+| --- | --- | --- |
+| `Butuh penanganan` | Menunggu | Tiket baru dibuat oleh operator, pamapta belum buka link |
+| `Sedang penanganan`| Penanganan | Pamapta telah tiba di lokasi (koordinat dikunci) |
+| `Sudah penanganan` | Selesai | Form dikirim komplit berserta foto bukti watermark |
+
+### `assignments.status`
+| Value | Label | Deskripsi |
+| --- | --- | --- |
+| `pending` | Belum Dimulai | Penugasan dibuat, belum jadwalnya |
+| `active` | Berjalan | Jadwal penugasan sedang berlangsung (hari ini) |
+| `completed` | Selesai | Penugasan selesai / waktu shift habis |
+| `cancelled` | Dibatalkan | Penugasan dibatalkan secara manual oleh admin |
+
+## Database Dependency Map
+```text
+sakers
+├── users (role: god_admin, saker_admin, operator_110, officer)
+├── operations
+│   └── zones
+│       └── locations
+│           └── shifts
+├── units
+└── reports_110 (references units)
+
+users
+└── assignments
+    └── attendances
+    └── audit_logs (actor_id)
+
+locations
+└── assignments
+
+assignments
+└── attendances
+```
+
+---
+
+# 29. Permission Matrix
+
+| Resource / Fitur | Action | God Admin | Saker Admin | Operator 110 | Officer / Pamapta |
+| --- | --- | --- | --- | --- | --- |
+| **Sakers** | CRUD | ✓ (Semua) | ✗ | ✗ | ✗ |
+| **Operations** | CRUD | ✓ (Semua) | ✓ (Saker Sendiri) | ✗ | ✗ |
+| **Locations** | CRUD | ✓ (Semua) | ✓ (Saker Sendiri) | ✗ | ✗ |
+| **Units** | CRUD | ✓ (Semua) | ✓ (Saker Sendiri) | ✓ (Saker Sendiri) | ✗ |
+| **Reports 110** | Create | ✗ | ✗ | ✓ | ✗ |
+| **Reports 110** | Update | ✓ (Unlock) | ✓ (Unlock) | ✓ | ✓ (Guest Token) |
+| **Reports 110** | Delete | ✓ | ✓ | ✓ | ✗ |
+| **Dashboard** | View | ✓ (Semua) | ✓ (Saker Sendiri) | ✗ | ✗ |
+| **Peta Pantauan 110**| View | ✓ (Global) | ✓ (Saker Sendiri) | ✓ (Saker Sendiri) | ✗ |
+| **Heatmap Global** | View | ✓ | ✗ | ✗ | ✗ |
+| **Audit Logs** | View | ✓ (Global) | ✗ | ✗ | ✗ |
+
+## Authorization Flow
+1. **Middleware `auth:web`**: Memastikan user login menggunakan Session.
+2. **Middleware `auth:sanctum`**: Memastikan Officer login menggunakan API token.
+3. **Middleware `god.admin`**: Pengecekan `Auth::user()->role === 'god_admin'`. Rute seperti `/sakers` dan `/heatmap` hanya bisa diakses via middleware ini.
+4. **`SakerScope` (Global Scope)**: Ter-bind secara otomatis pada Models (seperti `Operation`, `Zone`, `Location`, `Assignment`, `Report110`). Secara otomatis menambahkan klausul `WHERE saker_id = ?` sesuai Saker ID dari user yang sedang login. **Pengecualian**: `Report110` mengabaikan SakerScope HANYA untuk `god_admin` agar pimpinan bisa melihat peta insiden skala nasional.
+5. **Guest Token (`Bypass Token`)**: Laporan 110 Pamapta tidak mewajibkan login, namun harus menggunakan parameter unik `{token}` yang di-generate sistem (Bypass Auth).
+
+## Tenant Isolation Matrix
+
+| Entity | Tenant Scoped (`SakerScope`) | Global Access |
+| --- | --- | --- |
+| `Operation`, `Zone`, `Location` | Ya (dibatasi per `saker_id`) | `god_admin` |
+| `Assignment`, `Attendance` | Ya (dibatasi per `saker_id`) | `god_admin` |
+| `Unit` | Ya (dibatasi per `saker_id`) | `god_admin` |
+| `Report110` | Ya (dibatasi per `saker_id`) | **`god_admin` Bypass Global** |
+| `AuditLog` | Ya (dibatasi per `saker_id`) | `god_admin` |
+
+---
+
+# 30. Screen Documentation
+
+## Nama Halaman: Dashboard (Admin)
+### URL: `/dashboard`
+### Role Akses: `saker_admin`, `god_admin`
+### Tujuan: Melihat ringkasan data, grafik absensi (Police Hazard).
+### API yang Dipanggil: `/dashboard/map-data` (AJAX Leaflet)
+
+## Nama Halaman: Operator 110 - Peta Pantauan
+### URL: `/operator-110/monitor`
+### Role Akses: `operator_110`, `saker_admin`, `god_admin`
+### Tujuan: Memantau live tracking pergerakan penanganan laporan darurat.
+### Data Source: `reports_110` (Hanya status `Sedang penanganan` dan `Sudah penanganan`)
+
+## Nama Halaman: Form Laporan Pamapta (Token Link)
+### URL: `/laporan-110/isi/{token}`
+### Role Akses: `Guest` (Pamapta lapangan)
+### Tujuan: Pelaporan hasil penanganan darurat tanpa login.
+### Action Tersedia: "Tiba di TKP" (Membaca GPS), "Simpan Sementara", "Selesai Laporan" (Mengirim Foto Bukti).
+### Error Handling: Jika status sudah "Sudah penanganan", form terkunci (Read-Only) kecuali di-unlock menggunakan `kode_tiketing`.
+
+## Sitemap
+```text
+Admin Web
+├── Dashboard
+├── Master Data
+│   ├── Saker (God Admin Only)
+│   ├── Unit Armada
+│   └── Officer
+├── Perencanaan Operasi (Police Hazard)
+│   ├── Operations
+│   ├── Zones
+│   ├── Locations
+│   └── Assignments
+├── Fitur 110
+│   ├── Buat Tiket & Manajemen
+│   └── Peta Pantauan 110 (Monitor)
+└── Laporan & Audit
+    ├── Rekapitulasi
+    ├── Heatmap Global (God Admin Only)
+    └── Audit Logs
+
+Public Web (Mobile)
+└── Form Pamapta (via Token Link)
+```
+
+---
+
+# 31. State Machine Documentation
+
+## Report110 State Machine
+
+```mermaid
+stateDiagram-v2
+[*] --> Butuh_penanganan : Tiket Dibuat Operator
+
+Butuh_penanganan --> Sedang_penanganan : Pamapta Klik "Mendatangi TKP" (GPS Terekam)
+
+Sedang_penanganan --> Sudah_penanganan : Pamapta Klik "Selesaikan Laporan" & Upload Foto
+
+Sudah_penanganan --> Sedang_penanganan : Pamapta Input "Kode Tiketing" untuk Unlock Edit
+```
+* **Trigger & Validasi**: Form berubah dari *Disabled* menjadi *Editable* setelah konfirmasi kedatangan. Koordinat dikunci (read-only) dan tak bisa diganti manual setelah kedatangan terekam. Saat selesai, form otomatis masuk mode *Read-Only* dan membuang session.
+
+## Attendance State Machine (Police Hazard)
+
+```mermaid
+stateDiagram-v2
+[*] --> VERIFIED : Normal Check-In
+[*] --> REJECTED : Geofence Error / Mock Location
+[*] --> FLAGGED : Akurasi Rendah / Spoof Score = 1
+
+REJECTED --> BYPASS_APPROVED : Saker Admin Menyetujui Bypass Request
+```
+* **Immutability**: Entri `Attendance` bersifat *Append-Only* di tingkat Postgre Rules. Tidak bisa di `UPDATE` atau `DELETE`. Segala perbaikan (seperti Byapss) akan membuat *row* baru yang bertautan.
+
+---
+
+# 32. AI Developer Guide
+
+## Project Mental Model
+Aplikasi ini berdiri pada dua pilar utama:
+1. **Modul Operasi Taktis (Police Hazard)**: Fokus pada pengaturan *Geofence* spasial (Lokasi), jadwal penugasan (Shift), dan presensi absensi berbasis GPS yang dikawal oleh algoritma anti-spoofing dan arsitektur database *immutable*.
+2. **Modul Kedaruratan (Fitur 110)**: Berfokus pada penanganan insiden kilat (Rapid Response) tanpa otentikasi login klasik (menggunakan *Token Link*). Menekankan validasi lapangan melalui *Watermarking Foto* secara asinkron.
+
+## Core Business Rules (Wajib Dipatuhi)
+* **Attendance Immutable**: Anda tidak boleh membuat query `UPDATE` atau `DELETE` pada tabel `attendances` & `audit_logs`.
+* **Tenant Isolation**: Semua Model memiliki global scope `SakerScope`. Jangan sekali-kali mencoba membypass *Scope* ini (seperti memakai `withoutGlobalScopes()`) tanpa alasan super absolut (seperti Heatmap `god_admin`).
+* **Location Lock**: Koordinat (`ST_POINT`) pada tabel `locations` tidak bisa diubah pasca-tercatatnya absensi pertama.
+* **Soft Deletes Reference**: Jangan melakukan hard delete pada master tabel (seperti `units`) yang *foreign-key* nya dipakai oleh tabel historis transaksional (`reports_110`). Selalu gunakan Soft Deletes.
+
+## Architectural Constraints
+* **Logic di Controller DILARANG**: Semua komputasi geospasial harus berada di `Services` (cth: `GeofenceService.php`). Logika bisnis penyimpanan yang kompleks (cth: membuat operasi + zona sekaligus) harus di `Actions`. Controller HANYA menerima dan membalas HTTP Response.
+* **Upload Image / Watermark**: Karena PHP/Laravel memproses request secara sinkron, memproses *Watermark Intervention* pada gambar besar di Controller akan menyebabkan Time-Out (terutama untuk HP yang di-sharing via NGROK). Semua manipulasi gambar besar **HARUS** diproses asinkron menggunakan *Laravel Queues* (Cth: `ProcessReport110Watermark`).
+* **Client-Side Image Compression**: Form pelaporan wajib menggunakan HTML5 `Canvas` untuk kompresi file menjadi WebP/JPEG kualitas rendah *sebelum* memanggil POST submit.
+
+## Important Files
+| File | Fungsi | Critical Level |
+| --- | --- | --- |
+| `app/Models/Concerns/SakerScope.php` | Tenancy Global Scope logic. | **Super Critical** |
+| `app/Services/SpoofingDetectionService.php` | Logika deteksi manipulasi Absensi GPS. | Critical |
+| `app/Http/Controllers/Report110PamaptaController.php` | Controller public untuk flow 110. | High |
+| `resources/views/reports_110/pamapta_form.blade.php` | Form UI public Pamapta yang mengandung logika SPA ringan (Alpine.js) dan JS Compression. | High |
+
+## Common Pitfalls (Sering Gagal)
+❌ Menghapus/Membypass `SakerScope` tanpa sadar.
+❌ Mencoba mengubah tabel `attendances` dan mendapatkan error `DO INSTEAD NOTHING` dari Postgre.
+❌ Melupakan penggunaan *Background Job* saat merekayasa fitur Watermark, yang menyebabkan sistem loading berputar-putar tanpa akhir pada jaringan seluler.
+❌ Mencoba mengeksekusi `DELETE` pada `units` dan langsung terkena *Foreign Key Violation* (Harus menggunakan *SoftDeletes*).
+
+## AI Quick Start Guide (The 2-Minute Read)
+Sistem ini adalah **Laravel 13 + PostGIS Application** untuk kepolisian. Memiliki dua fungsi: *Absensi Patroli Berbasis GPS* (Tabel `attendances`, Immutable) dan *Sistem Tiketing Darurat 110* (Tabel `reports_110`, URL Token). 
+Role terbagi berdasarkan hierarki kewilayahan/tenant (*Saker*). Setiap Model disekat ketat oleh `SakerScope`. 
+**Aturan Utama**: JANGAN PERNAH menyentuh query `UPDATE`/`DELETE` di tabel kehadiran, dan JANGAN menaruh logika komputasi / pengolahan gambar (Watermark) secara sinkron (blocking) di controller—selalu gunakan *Jobs (Queues)*. Gunakan `grep_search` & `view_file` (Bukan bash tools) saat melakukan inspeksi.

@@ -45,11 +45,15 @@ class Report110PamaptaController extends Controller
         $request->validate([
             'lat' => 'required|numeric',
             'lng' => 'required|numeric',
-            'alamat' => 'nullable|string'
+            'alamat' => 'nullable|string',
+            'nama_pamapta' => 'required|string|max:150',
+            'nrp_pamapta' => 'required|string|max:20',
         ]);
 
         $this->reportRepository->updateSpatial($report, $request->lat, $request->lng, [
             'alamat_aktual_110' => $request->alamat,
+            'nama_pamapta' => $request->nama_pamapta,
+            'nrp_pamapta' => $request->nrp_pamapta,
             'waktu_mendatangi_tkp' => now(),
             'status' => 'Sedang penanganan'
         ]);
@@ -85,12 +89,54 @@ class Report110PamaptaController extends Controller
         return back()->with('error', 'Kode Tiketing salah.');
     }
 
+    public function draft(Request $request, string $token)
+    {
+        $report = $this->reportRepository->findByToken($token);
+        if (!$report) return response()->json(['error' => 'Not found'], 404);
+
+        if ($report->status !== 'Sedang penanganan' && !session()->has("unlocked_110_{$report->id}")) {
+            return response()->json(['error' => 'Draft hanya bisa disimpan saat penanganan berlangsung.'], 403);
+        }
+
+        $request->validate([
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
+            'alamat' => 'nullable|string',
+            'uraian_kejadian' => 'nullable|string',
+            'modus_operandi' => 'nullable|string',
+            'korban' => 'nullable|string',
+            'pelaku' => 'nullable|string',
+            'sanksi_sanksi' => 'nullable|string',
+            'motif' => 'nullable|string',
+            'alat_yang_digunakan' => 'nullable|string',
+            'kerugian' => 'nullable|string',
+            'bukti_yang_dapat_disita' => 'nullable|string',
+            'tindakan_kepolisian' => 'nullable|string',
+            'keterangan_lain' => 'nullable|string',
+        ]);
+
+        $updateData = $request->only([
+            'modus_operandi', 'korban',
+            'uraian_kejadian', 'pelaku', 'sanksi_sanksi', 'motif',
+            'alat_yang_digunakan', 'kerugian', 'bukti_yang_dapat_disita',
+            'tindakan_kepolisian', 'keterangan_lain'
+        ]);
+
+        $updateData['alamat_aktual_110'] = $request->alamat;
+        $updateData['koordinat_110'] = DB::raw("ST_GeomFromText('POINT({$request->lng} {$request->lat})', 4326)");
+
+        $this->reportRepository->update($report, $updateData);
+
+        return response()->json([
+            'success' => true,
+            'updated_at' => now()->format('H:i')
+        ]);
+    }
+
     public function complete(Request $request, string $token)
     {
         $report = $this->reportRepository->findByToken($token);
         if (!$report) abort(404);
-
-        $isDraft = $request->input('action_type') === 'draft';
 
         // CEGAH RACE CONDITION & BYPASS TOMBOL BACK BROWSER
         // Jika laporan sudah ditangani, pastikan perangkat ini memiliki izin (telah memasukkan kode tiket).
@@ -101,20 +147,15 @@ class Report110PamaptaController extends Controller
             }
         }
 
-        // Jika Draft, semua field bersifat nullable. Jika Complete, required.
-        $rule = $isDraft ? 'nullable' : 'required';
-        
         // Foto wajib saat complete jika belum pernah upload sebelumnya
-        $fotoRule = $isDraft ? 'nullable|image|max:10240' : ($report->bukti_foto_path ? 'nullable|image|max:10240' : 'required|image|max:10240');
+        $fotoRule = $report->bukti_foto_path ? 'nullable|image|max:10240' : 'required|image|max:10240';
 
         $request->validate([
             'lat' => 'required|numeric',
             'lng' => 'required|numeric',
             'alamat' => 'nullable|string',
             'foto' => $fotoRule,
-            'nama_pamapta' => "$rule|string",
-            'nrp_pamapta' => "$rule|string",
-            'uraian_kejadian' => "$rule|string",
+            'uraian_kejadian' => "required|string",
             'modus_operandi' => 'nullable|string',
             'korban' => 'nullable|string',
             'pelaku' => 'nullable|string',
@@ -147,29 +188,20 @@ class Report110PamaptaController extends Controller
 
         // Prepare Update Data
         $updateData = $request->only([
-            'nama_pamapta', 'nrp_pamapta', 'modus_operandi', 'korban',
+            'modus_operandi', 'korban',
             'uraian_kejadian', 'pelaku', 'sanksi_sanksi', 'motif',
             'alat_yang_digunakan', 'kerugian', 'bukti_yang_dapat_disita',
             'tindakan_kepolisian', 'keterangan_lain'
         ]);
 
-        // Status diubah hanya jika complete
-        if (!$isDraft) {
-            $updateData['status'] = 'Sudah penanganan';
-            $updateData['waktu_diselesaikan'] = now();
-        } else {
-            $updateData['status'] = 'Sedang penanganan';
-        }
+        $updateData['status'] = 'Sudah penanganan';
+        $updateData['waktu_diselesaikan'] = now();
 
         $updateData['bukti_foto_path'] = $path;
         $updateData['alamat_aktual_110'] = $request->alamat;
         $updateData['koordinat_110'] = DB::raw("ST_GeomFromText('POINT({$request->lng} {$request->lat})', 4326)");
 
         $this->reportRepository->update($report, $updateData);
-
-        if ($isDraft) {
-            return back()->with('success', 'Draft laporan berhasil disimpan sementara.');
-        }
 
         // Kunci kembali form setelah menyimpan hasil editan
         session()->forget("unlocked_110_{$report->id}");
