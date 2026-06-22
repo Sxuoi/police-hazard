@@ -109,6 +109,30 @@
                     </div>
                 @endif
 
+                <div class="mt-6 pt-6 border-t border-[var(--color-surface-600)]">
+                    <dt class="text-gray-500 text-xs uppercase tracking-wide mb-3">Petugas Terplot (Assigned Officers)</dt>
+                    <dd class="space-y-3">
+                        @forelse($location->assignments as $assignment)
+                            <div class="flex items-center justify-between bg-[var(--color-surface-700)] p-3 rounded-xl border border-[var(--color-surface-600)]">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-[var(--color-surface-600)] flex items-center justify-center text-gray-300 text-sm font-bold">
+                                        {{ strtoupper(substr($assignment->officer->name ?? '-', 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-white text-sm">{{ $assignment->officer->name ?? '-' }}</div>
+                                        <div class="text-xs text-gray-400 mt-0.5">{{ $assignment->officer->nrp ?? '-' }}</div>
+                                    </div>
+                                </div>
+                                @if($assignment->officer->phone)
+                                    <div class="text-xs text-gray-400">{{ $assignment->officer->phone }}</div>
+                                @endif
+                            </div>
+                        @empty
+                            <span class="text-gray-500 italic text-sm">Belum ada petugas terplot</span>
+                        @endforelse
+                    </dd>
+                </div>
+
                 <div class="flex gap-3 mt-6 pt-6 border-t border-[var(--color-surface-600)]">
                     <a href="{{ route('locations.edit', $location) }}" class="px-4 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm rounded-xl transition-colors">
                         Edit

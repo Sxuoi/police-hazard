@@ -9,7 +9,32 @@ class UpdateOperationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('update', $this->route('operation'));
+        $operation = $this->route('operation');
+
+        if (is_string($operation)) {
+            $operation = Operation::find($operation);
+        }
+
+        if (! $operation) {
+            return false;
+        }
+
+        return $this->user()->can('update', $operation);
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $operation = $this->route('operation');
+
+            if (is_string($operation)) {
+                $operation = Operation::find($operation);
+            }
+
+            if ($operation && in_array($operation->status, ['completed', 'archived'], true)) {
+                $validator->errors()->add('status', 'Operasi yang telah selesai atau diarsipkan tidak dapat diubah.');
+            }
+        });
     }
 
     public function rules(): array
