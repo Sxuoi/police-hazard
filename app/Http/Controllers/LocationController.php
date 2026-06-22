@@ -107,7 +107,6 @@ class LocationController extends Controller
 
         $operations = $this->operations->allActive();
         $officers = User::where('is_active', true)
-            ->where('saker_id', $location->saker_id)
             ->orderBy('name')->get(['id', 'name', 'nrp', 'phone', 'saker_id']);
 
         return view('locations.edit', compact('location', 'operations', 'officers'));
