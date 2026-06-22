@@ -5,7 +5,7 @@
 
 @section('content')
 <div x-data="{ openAddModal: false, openEditModal: false, editId: '', editNama: '' }">
-    <div class="bg-[var(--color-surface-800)] p-6 rounded-xl border border-[var(--color-surface-600)] shadow-sm">
+    <div class="hover:bg-surface-800 p-6 rounded-xl border border-surface-600 shadow-sm">
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h3 class="text-xl font-bold text-white mb-1">Daftar Jenis Gangguan</h3>
@@ -20,14 +20,14 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="border-b border-[var(--color-surface-600)] text-gray-400 text-sm">
+                    <tr class="border-b border-surface-600 text-gray-400 text-sm">
                         <th class="py-3 px-4 font-medium">Nama Jenis Gangguan</th>
                         <th class="py-3 px-4 font-medium text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($jenisGangguans as $jg)
-                    <tr class="border-b border-[var(--color-surface-600)]/50 hover:bg-[var(--color-surface-700)]/50 transition-colors">
+                    <tr class="border-b border-surface-600/50 hover:bg-surface-700/50 transition-colors">
                         <td class="py-3 px-4 text-white">{{ $jg->nama }}</td>
                         <td class="py-3 px-4 text-right">
                             <button @click="editId = '{{ $jg->id }}'; editNama = '{{ addslashes($jg->nama) }}'; openEditModal = true" 
@@ -78,7 +78,7 @@
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             
-            <div class="relative inline-block align-bottom bg-[var(--color-surface-800)] border border-[var(--color-surface-600)] rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+            <div class="relative inline-block align-bottom hover:bg-surface-800 border border-surface-600 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
                  x-show="openAddModal"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -99,11 +99,11 @@
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Nama Jenis Gangguan</label>
-                                <input type="text" name="nama" required class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]" placeholder="Contoh: Kecelakaan Lalu Lintas">
+                                <input type="text" name="nama" required class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent" placeholder="Contoh: Kecelakaan Lalu Lintas">
                             </div>
                         </div>
                     </div>
-                    <div class="bg-[var(--color-surface-900)] px-6 py-4 flex justify-end gap-3 border-t border-[var(--color-surface-600)]">
+                    <div class="bg-surface-900 px-6 py-4 flex justify-end gap-3 border-t border-surface-600">
                         <button type="button" @click="openAddModal = false" class="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">Batal</button>
                         <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">Simpan</button>
                     </div>
@@ -128,7 +128,7 @@
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             
-            <div class="relative inline-block align-bottom bg-[var(--color-surface-800)] border border-[var(--color-surface-600)] rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+            <div class="relative inline-block align-bottom hover:bg-surface-800 border border-surface-600 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
                  x-show="openEditModal"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -150,11 +150,11 @@
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Nama Jenis Gangguan</label>
-                                <input type="text" name="nama" x-model="editNama" required class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                <input type="text" name="nama" x-model="editNama" required class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                             </div>
                         </div>
                     </div>
-                    <div class="bg-[var(--color-surface-900)] px-6 py-4 flex justify-end gap-3 border-t border-[var(--color-surface-600)]">
+                    <div class="bg-surface-900 px-6 py-4 flex justify-end gap-3 border-t border-surface-600">
                         <button type="button" @click="openEditModal = false" class="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">Batal</button>
                         <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">Update</button>
                     </div>

@@ -39,7 +39,7 @@
     deleteForm: { id: '{{ $report->id }}', no_tiketing: '{{ $report->no_tiketing }}' }
 }">
     <!-- Header Card -->
-    <div class="bg-[var(--color-surface-800)] p-6 rounded-xl border border-[var(--color-surface-600)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="bg-surface-800 p-6 rounded-xl border border-surface-600 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <div class="flex items-center gap-3 mb-2">
                 <h3 class="text-2xl font-bold text-white">{{ $report->no_tiketing }}</h3>
@@ -63,7 +63,7 @@
         <div class="flex flex-col items-end gap-2">
             <div class="flex flex-wrap gap-2 justify-end">
                 <!-- Tombol Kembali -->
-                <a href="{{ route('operator-110.index') }}" class="inline-flex items-center justify-center gap-2 bg-[var(--color-surface-600)] hover:bg-[var(--color-surface-500)] text-white px-4 py-2.5 rounded-lg font-semibold transition-all">
+                <a href="{{ route('operator-110.index') }}" class="inline-flex items-center justify-center gap-2 bg-surface-600 hover:bg-surface-500 text-white px-4 py-2.5 rounded-lg font-semibold transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                     Kembali
                 </a>
@@ -99,17 +99,17 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Informasi Detail -->
         <div class="lg:col-span-2 space-y-6">
-            <div class="bg-[var(--color-surface-800)] p-6 rounded-xl border border-[var(--color-surface-600)] shadow-sm">
-                <h4 class="text-white font-bold mb-4 border-b border-[var(--color-surface-600)] pb-2">Informasi Laporan</h4>
+            <div class="bg-surface-800 p-6 rounded-xl border border-surface-600 shadow-sm">
+                <h4 class="text-white font-bold mb-4 border-b border-surface-600 pb-2">Informasi Laporan</h4>
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Nama Pelapor</p>
-                            <p class="text-white font-medium bg-[var(--color-surface-900)] p-3 rounded-lg">{{ $report->nama_pelapor ?? '-' }}</p>
+                            <p class="text-white font-medium bg-surface-900 p-3 rounded-lg">{{ $report->nama_pelapor ?? '-' }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 mb-1">No HP Pelapor</p>
-                            <p class="text-white font-medium bg-[var(--color-surface-900)] p-3 rounded-lg">
+                            <p class="text-white font-medium bg-surface-900 p-3 rounded-lg">
                                 {{ $report->no_hp_pelapor ?? '-' }} 
                                 @if($report->jenis_no_hp_pelapor)
                                     <span class="text-xs text-blue-400">({{ $report->jenis_no_hp_pelapor }})</span>
@@ -119,28 +119,28 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Jenis Gangguan</p>
-                        <p class="text-white font-medium bg-[var(--color-surface-900)] p-3 rounded-lg">{{ $report->jenis_gangguan }}</p>
+                        <p class="text-white font-medium bg-surface-900 p-3 rounded-lg">{{ $report->jenis_gangguan }}</p>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Waktu Kejadian</p>
-                            <p class="text-white font-medium bg-[var(--color-surface-900)] p-3 rounded-lg">{{ $report->waktu_kejadian ? $report->waktu_kejadian->format('d/m/Y H:i') : '-' }}</p>
+                            <p class="text-white font-medium bg-surface-900 p-3 rounded-lg">{{ $report->waktu_kejadian ? $report->waktu_kejadian->format('d/m/Y H:i') : '-' }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Waktu Mendatangi TKP</p>
-                            <p class="text-white font-medium bg-[var(--color-surface-900)] p-3 rounded-lg">{{ $report->waktu_mendatangi_tkp ? $report->waktu_mendatangi_tkp->format('d/m/Y H:i:s') : 'Belum mendatangi' }}</p>
+                            <p class="text-white font-medium bg-surface-900 p-3 rounded-lg">{{ $report->waktu_mendatangi_tkp ? $report->waktu_mendatangi_tkp->format('d/m/Y H:i:s') : 'Belum mendatangi' }}</p>
                         </div>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Tempat Kejadian Perkara (TKP) - Deskripsi</p>
-                        <p class="text-white font-medium bg-[var(--color-surface-900)] p-3 rounded-lg">{{ $report->tempat_kejadian }}</p>
+                        <p class="text-white font-medium bg-surface-900 p-3 rounded-lg">{{ $report->tempat_kejadian }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Dokumentasi Hasil Penanganan -->
-            <div class="bg-[var(--color-surface-800)] p-6 rounded-xl border border-[var(--color-surface-600)] shadow-sm">
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4 border-b border-[var(--color-surface-600)] pb-3">
+            <div class="bg-surface-800 p-6 rounded-xl border border-surface-600 shadow-sm">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4 border-b border-surface-600 pb-3">
                     <h4 class="text-white font-bold">Hasil Penanganan Pamapta</h4>
                     @if($report->status === 'Sedang penanganan')
                         <span class="text-xs bg-yellow-500/20 text-yellow-400 px-3 py-1.5 rounded-md border border-yellow-500/30 font-medium inline-flex items-center gap-1.5">
@@ -153,7 +153,7 @@
                 @if(in_array($report->status, ['Sedang penanganan', 'Sudah penanganan']))
                     <div class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="col-span-full border-b border-[var(--color-surface-600)] pb-2 mb-2">
+                            <div class="col-span-full border-b border-surface-600 pb-2 mb-2">
                                 <p class="text-sm text-gray-500 mb-1">Petugas Pamapta</p>
                                 <p class="text-white font-medium">{{ $report->nama_pamapta ?? '-' }} (NRP: {{ $report->nrp_pamapta ?? '-' }})</p>
                             </div>
@@ -213,7 +213,7 @@
                             <div class="mt-4">
                                 <p class="text-sm text-gray-500 mb-2">Foto Dokumentasi (Watermarked)</p>
                                 <a href="{{ asset('storage/' . $report->bukti_foto_path) }}" target="_blank">
-                                    <img src="{{ asset('storage/' . $report->bukti_foto_path) }}" alt="Foto Penanganan" class="rounded-lg w-full max-h-96 object-cover border border-[var(--color-surface-600)] hover:opacity-90 transition cursor-pointer">
+                                    <img src="{{ asset('storage/' . $report->bukti_foto_path) }}" alt="Foto Penanganan" class="rounded-lg w-full max-h-96 object-cover border border-surface-600 hover:opacity-90 transition cursor-pointer">
                                 </a>
                             </div>
                         @else
@@ -224,7 +224,7 @@
                         @endif
                     </div>
                 @else
-                    <div class="flex items-center justify-center h-32 bg-[var(--color-surface-900)] rounded-lg border border-dashed border-[var(--color-surface-600)]">
+                    <div class="flex items-center justify-center h-32 bg-surface-900 rounded-lg border border-dashed border-surface-600">
                         <p class="text-gray-500 text-sm">Petugas belum mendatangi TKP (status: Butuh penanganan).</p>
                     </div>
                 @endif
@@ -233,19 +233,19 @@
 
         <!-- Sidebar Map -->
         <div class="space-y-6">
-            <div class="bg-[var(--color-surface-800)] p-6 rounded-xl border border-[var(--color-surface-600)] shadow-sm">
-                <h4 class="text-white font-bold mb-4 border-b border-[var(--color-surface-600)] pb-2">Lokasi Terkini</h4>
+            <div class="bg-surface-800 p-6 rounded-xl border border-surface-600 shadow-sm">
+                <h4 class="text-white font-bold mb-4 border-b border-surface-600 pb-2">Lokasi Terkini</h4>
                 
                 @if($report->lat && $report->lng)
-                    <div class="rounded-lg overflow-hidden border border-[var(--color-surface-600)] h-64 relative z-0">
+                    <div class="rounded-lg overflow-hidden border border-surface-600 h-64 relative z-0">
                         <div id="map" class="absolute inset-0"></div>
                     </div>
                     <div class="mt-3 flex gap-2 text-xs text-gray-400">
-                        <span class="bg-[var(--color-surface-900)] px-2 py-1 rounded">Lat: {{ number_format($report->lat, 6) }}</span>
-                        <span class="bg-[var(--color-surface-900)] px-2 py-1 rounded">Lng: {{ number_format($report->lng, 6) }}</span>
+                        <span class="bg-surface-900 px-2 py-1 rounded">Lat: {{ number_format($report->lat, 6) }}</span>
+                        <span class="bg-surface-900 px-2 py-1 rounded">Lng: {{ number_format($report->lng, 6) }}</span>
                     </div>
                     
-                    <div class="mt-4 pt-4 border-t border-[var(--color-surface-600)]">
+                    <div class="mt-4 pt-4 border-t border-surface-600">
                         <p class="text-xs text-gray-500 mb-1.5 flex items-center gap-1">
                             <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -253,21 +253,21 @@
                             </svg>
                             Alamat Aktual Kedatangan
                         </p>
-                        <p class="text-sm text-white font-medium bg-[var(--color-surface-900)] p-3 rounded-lg border border-[var(--color-surface-600)] leading-relaxed">
+                        <p class="text-sm text-white font-medium bg-surface-900 p-3 rounded-lg border border-surface-600 leading-relaxed">
                             {{ $report->alamat_aktual_110 ?? 'Nama alamat tidak tersedia' }}
                         </p>
                     </div>
                 @else
-                    <div class="flex flex-col items-center justify-center h-64 bg-[var(--color-surface-900)] rounded-lg border border-dashed border-[var(--color-surface-600)] text-gray-500">
+                    <div class="flex flex-col items-center justify-center h-64 bg-surface-900 rounded-lg border border-dashed border-surface-600 text-gray-500">
                         <svg class="w-10 h-10 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         <p class="text-sm">Lokasi belum dikirim oleh petugas.</p>
                     </div>
                 @endif
             </div>
             
-            <div class="bg-[var(--color-surface-800)] p-6 rounded-xl border border-[var(--color-surface-600)] shadow-sm">
-                <h4 class="text-white font-bold mb-4 border-b border-[var(--color-surface-600)] pb-2">Status Link Akses Pamapta</h4>
-                <div class="bg-[var(--color-surface-900)] p-3 rounded-lg break-all">
+            <div class="bg-surface-800 p-6 rounded-xl border border-surface-600 shadow-sm">
+                <h4 class="text-white font-bold mb-4 border-b border-surface-600 pb-2">Status Link Akses Pamapta</h4>
+                <div class="bg-surface-900 p-3 rounded-lg break-all">
                     <p class="text-xs text-blue-400 font-mono">{{ route('pamapta.report.show', ['token' => $report->token]) }}</p>
             </div>
         </div>
@@ -278,12 +278,12 @@
                 <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                     <div class="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity" aria-hidden="true" x-show="openEditModal" @click="openEditModal = false"></div>
                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                    <div class="relative inline-block align-bottom bg-[var(--color-surface-800)] border border-[var(--color-surface-600)] rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full" x-show="openEditModal">
+                    <div class="relative inline-block align-bottom bg-surface-800 border border-surface-600 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full" x-show="openEditModal">
                         <form action="{{ route('operator-110.update', $report->id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
                             <div class="px-6 pt-5 pb-4">
-                                <div class="flex justify-between items-center mb-5 border-b border-[var(--color-surface-600)] pb-3">
+                                <div class="flex justify-between items-center mb-5 border-b border-surface-600 pb-3">
                                     <h3 class="text-lg leading-6 font-medium text-white flex items-center gap-2">
                                         <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                         Edit Laporan 110
@@ -295,11 +295,11 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Nomor Tiketing</label>
-                                        <input type="text" name="no_tiketing" required x-model="editForm.no_tiketing" readonly class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-gray-400 opacity-70 cursor-not-allowed">
+                                        <input type="text" name="no_tiketing" required x-model="editForm.no_tiketing" readonly class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-gray-400 opacity-70 cursor-not-allowed">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Unit Armada Tugas</label>
-                                        <select name="unit_id" required x-model="editForm.unit_id" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)] appearance-none">
+                                        <select name="unit_id" required x-model="editForm.unit_id" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent appearance-none">
                                             <option value="" disabled>Pilih Unit</option>
                                             @foreach($units as $unit)
                                                 <option value="{{ $unit->id }}">{{ $unit->nama_unit }} ({{ $unit->no_wa }})</option>
@@ -308,7 +308,7 @@
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Jenis Gangguan</label>
-                                        <select name="jenis_gangguan" required x-model="editForm.jenis_gangguan" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)] appearance-none">
+                                        <select name="jenis_gangguan" required x-model="editForm.jenis_gangguan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent appearance-none">
                                             <option value="" disabled>Pilih Jenis Gangguan</option>
                                             @foreach($jenisGangguans as $jg)
                                                 <option value="{{ $jg->nama }}">{{ $jg->nama }}</option>
@@ -318,15 +318,15 @@
                                     <div class="sm:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <label class="block text-sm font-medium text-gray-300 mb-1">Nama Pelapor</label>
-                                            <input type="text" name="nama_pelapor" required x-model="editForm.nama_pelapor" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                            <input type="text" name="nama_pelapor" required x-model="editForm.nama_pelapor" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-300 mb-1">No HP Pelapor</label>
-                                            <input type="text" name="no_hp_pelapor" required x-model="editForm.no_hp_pelapor" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                            <input type="text" name="no_hp_pelapor" required x-model="editForm.no_hp_pelapor" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-300 mb-1">Jenis No HP</label>
-                                            <select name="jenis_no_hp_pelapor" required x-model="editForm.jenis_no_hp_pelapor" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                            <select name="jenis_no_hp_pelapor" required x-model="editForm.jenis_no_hp_pelapor" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                                 <option value="WhatsApp">WhatsApp</option>
                                                 <option value="Telepon Biasa">Telepon Biasa</option>
                                             </select>
@@ -334,21 +334,21 @@
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Tempat Kejadian Perkara (TKP)</label>
-                                        <textarea name="tempat_kejadian" required rows="2" x-model="editForm.tempat_kejadian" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"></textarea>
+                                        <textarea name="tempat_kejadian" required rows="2" x-model="editForm.tempat_kejadian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"></textarea>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Waktu Kejadian</label>
-                                        <input type="datetime-local" name="waktu_kejadian" required x-model="editForm.waktu_kejadian" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)] [color-scheme:dark]">
+                                        <input type="datetime-local" name="waktu_kejadian" required x-model="editForm.waktu_kejadian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent scheme-dark">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Waktu Dilaporkan</label>
-                                        <input type="datetime-local" name="waktu_dilaporkan" required x-model="editForm.waktu_dilaporkan" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)] [color-scheme:dark]">
+                                        <input type="datetime-local" name="waktu_dilaporkan" required x-model="editForm.waktu_dilaporkan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent scheme-dark">
                                     </div>
                                 </div>
 
                                 <!-- Tab / Pembatas Data Pamapta -->
                                 <div class="mt-8 mb-4">
-                                    <h4 class="text-md font-semibold text-blue-400 border-b border-[var(--color-surface-600)] pb-2 flex items-center gap-2">
+                                    <h4 class="text-md font-semibold text-blue-400 border-b border-surface-600 pb-2 flex items-center gap-2">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                         Hasil Penanganan (Pamapta)
                                     </h4>
@@ -357,64 +357,64 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Nama Pamapta</label>
-                                        <input type="text" name="nama_pamapta" x-model="editForm.nama_pamapta" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <input type="text" name="nama_pamapta" x-model="editForm.nama_pamapta" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">NRP Pamapta</label>
-                                        <input type="text" name="nrp_pamapta" x-model="editForm.nrp_pamapta" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <input type="text" name="nrp_pamapta" x-model="editForm.nrp_pamapta" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Uraian Kejadian</label>
-                                        <textarea name="uraian_kejadian" rows="2" x-model="editForm.uraian_kejadian" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"></textarea>
+                                        <textarea name="uraian_kejadian" rows="2" x-model="editForm.uraian_kejadian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"></textarea>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Modus Operandi</label>
-                                        <input type="text" name="modus_operandi" x-model="editForm.modus_operandi" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <input type="text" name="modus_operandi" x-model="editForm.modus_operandi" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Motif</label>
-                                        <input type="text" name="motif" x-model="editForm.motif" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <input type="text" name="motif" x-model="editForm.motif" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Korban</label>
-                                        <input type="text" name="korban" x-model="editForm.korban" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <input type="text" name="korban" x-model="editForm.korban" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Pelaku</label>
-                                        <input type="text" name="pelaku" x-model="editForm.pelaku" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <input type="text" name="pelaku" x-model="editForm.pelaku" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Alat Yang Digunakan</label>
-                                        <input type="text" name="alat_yang_digunakan" x-model="editForm.alat_yang_digunakan" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <input type="text" name="alat_yang_digunakan" x-model="editForm.alat_yang_digunakan" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Barang Bukti</label>
-                                        <input type="text" name="bukti_yang_dapat_disita" x-model="editForm.bukti_yang_dapat_disita" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <input type="text" name="bukti_yang_dapat_disita" x-model="editForm.bukti_yang_dapat_disita" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Kerugian</label>
-                                        <input type="text" name="kerugian" x-model="editForm.kerugian" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <input type="text" name="kerugian" x-model="editForm.kerugian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Sanksi-sanksi</label>
-                                        <input type="text" name="sanksi_sanksi" x-model="editForm.sanksi_sanksi" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]">
+                                        <input type="text" name="sanksi_sanksi" x-model="editForm.sanksi_sanksi" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Tindakan Kepolisian</label>
-                                        <textarea name="tindakan_kepolisian" rows="2" x-model="editForm.tindakan_kepolisian" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"></textarea>
+                                        <textarea name="tindakan_kepolisian" rows="2" x-model="editForm.tindakan_kepolisian" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"></textarea>
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Keterangan Lain</label>
-                                        <textarea name="keterangan_lain" rows="2" x-model="editForm.keterangan_lain" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"></textarea>
+                                        <textarea name="keterangan_lain" rows="2" x-model="editForm.keterangan_lain" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"></textarea>
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-sm font-medium text-gray-300 mb-1">Perbarui Foto Dokumentasi (Opsional)</label>
-                                        <input type="file" name="foto" accept="image/*" class="w-full bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-accent)] file:text-white hover:file:bg-blue-600 transition-colors">
+                                        <input type="file" name="foto" accept="image/*" class="w-full bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-blue-600 transition-colors">
                                         <p class="text-xs text-gray-400 mt-1">Hanya unggah jika ingin mengubah foto. Watermark historis akan otomatis ditempelkan pada foto baru.</p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-[var(--color-surface-900)] px-6 py-4 flex justify-end gap-3 border-t border-[var(--color-surface-600)]">
+                            <div class="bg-surface-900 px-6 py-4 flex justify-end gap-3 border-t border-surface-600">
                                 <button type="button" @click="openEditModal = false" class="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">Batal</button>
                                 <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
                                     Simpan Perubahan
@@ -430,12 +430,12 @@
                 <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                     <div class="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity" aria-hidden="true" x-show="openDeleteModal" @click="openDeleteModal = false"></div>
                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                    <div class="relative inline-block align-bottom bg-[var(--color-surface-800)] border border-[var(--color-surface-600)] rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full" x-show="openDeleteModal">
+                    <div class="relative inline-block align-bottom bg-surface-800 border border-surface-600 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full" x-show="openDeleteModal">
                         <form action="{{ route('operator-110.destroy', $report->id) }}" method="POST">
                             @csrf
                             @method('DELETE')
                             <div class="px-6 pt-5 pb-4">
-                                <div class="flex flex-col items-center text-center mb-5 border-b border-[var(--color-surface-600)] pb-4">
+                                <div class="flex flex-col items-center text-center mb-5 border-b border-surface-600 pb-4">
                                     <div class="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mb-3">
                                         <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                     </div>
@@ -444,10 +444,10 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-1 text-center">Kode Tiket: <span x-text="deleteForm.no_tiketing" class="font-bold text-white"></span></label>
-                                    <input type="text" name="kode_tiket" required placeholder="Ketik ulang kode tiket..." class="w-full text-center bg-[var(--color-surface-900)] border border-[var(--color-surface-600)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
+                                    <input type="text" name="kode_tiket" required placeholder="Ketik ulang kode tiket..." class="w-full text-center bg-surface-900 border border-surface-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
                                 </div>
                             </div>
-                            <div class="bg-[var(--color-surface-900)] px-6 py-4 flex justify-end gap-3 border-t border-[var(--color-surface-600)]">
+                            <div class="bg-surface-900 px-6 py-4 flex justify-end gap-3 border-t border-surface-600">
                                 <button type="button" @click="openDeleteModal = false" class="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors w-full sm:w-auto">Batal</button>
                                 <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition-colors w-full sm:w-auto">
                                     Konfirmasi Hapus

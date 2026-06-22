@@ -26,8 +26,8 @@
     href="{{ $href }}"
     class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
         {{ $active
-            ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
-            : 'text-gray-400 hover:text-white hover:bg-[var(--color-surface-600)]'
+            ? 'bg-accent/10 text-accent'
+            : 'text-gray-400 hover:text-white hover:bg-surface-600'
         }}"
 >
     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
