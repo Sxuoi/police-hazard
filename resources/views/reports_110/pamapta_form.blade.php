@@ -160,8 +160,7 @@
                         <label class="block text-sm font-semibold mb-1">Keterangan Lain</label>
                         <textarea name="keterangan_lain" class="w-full border rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 min-h-[60px]">{{ old('keterangan_lain', $report->keterangan_lain) }}</textarea>
                     </div>
-
-                    @if($isUnlocked && $report->status !== 'Sudah penanganan')
+                    @if($isUnlocked)
                     <div x-data="{ 
                         fileName: '',
                         fileSize: '',

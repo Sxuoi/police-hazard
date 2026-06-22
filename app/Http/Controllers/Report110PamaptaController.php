@@ -171,6 +171,9 @@ class Report110PamaptaController extends Controller
             return back()->with('success', 'Draft laporan berhasil disimpan sementara.');
         }
 
+        // Kunci kembali form setelah menyimpan hasil editan
+        session()->forget("unlocked_110_{$report->id}");
+
         return back()->with('success', 'Laporan berhasil diselesaikan.');
     }
 }
