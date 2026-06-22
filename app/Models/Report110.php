@@ -80,4 +80,21 @@ class Report110 extends Model
     {
         return $this->belongsTo(Saker::class, 'saker_id');
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($report) {
+            if ($report->bukti_foto_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($report->bukti_foto_path);
+            }
+        });
+
+        static::updating(function ($report) {
+            if ($report->isDirty('bukti_foto_path') && $report->getOriginal('bukti_foto_path')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($report->getOriginal('bukti_foto_path'));
+            }
+        });
+    }
 }

@@ -77,10 +77,6 @@ class Report110OperatorController extends Controller
             $updateData = $request->validated();
 
             if ($request->hasFile('foto')) {
-                // Hapus file foto lama dari disk agar tidak menjadi file sampah (orphan)
-                if ($report->bukti_foto_path) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($report->bukti_foto_path);
-                }
 
                 $path = $request->file('foto')->store('reports_110', 'public');
                 $fullPath = storage_path('app/public/' . $path);
@@ -125,10 +121,6 @@ class Report110OperatorController extends Controller
         }
 
         try {
-            // Hapus file foto dari disk agar tidak tertinggal di server
-            if ($report->bukti_foto_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($report->bukti_foto_path);
-            }
 
             $this->reportRepository->delete($report);
             return redirect()->route('operator-110.index')->with('success', 'Laporan 110 berhasil dihapus.');
