@@ -33,8 +33,8 @@ class AssignOfficerToLocationAction
         $created = [];
 
         DB::transaction(function () use ($data, $actor, &$created) {
-            // Advisory lock to prevent concurrent duplicate PH assignments
-            $lockId = crc32($data['officer_id'].$data['location_id']);
+            // Advisory lock to prevent concurrent duplicate PH assignments for the same officer
+            $lockId = crc32($data['officer_id']);
             DB::statement("SELECT pg_advisory_xact_lock({$lockId})");
 
             // PH overlap guard — only for PH operations

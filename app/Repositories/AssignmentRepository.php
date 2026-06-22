@@ -76,6 +76,8 @@ class AssignmentRepository implements AssignmentRepositoryInterface
 
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
+        } else {
+            $query->where('status', '!=', 'cancelled');
         }
 
         return $query->orderByDesc('start_date')->paginate($perPage)->withQueryString();

@@ -90,7 +90,13 @@ class LocationController extends Controller
     public function show(string $id): View
     {
         $location = $this->locations->findOrFail($id);
-        $location->load(['zone.operation', 'padal']);
+        $location->load([
+            'zone.operation',
+            'padal',
+            'assignments' => function ($query) {
+                $query->where('status', 'active')->with('officer');
+            }
+        ]);
 
         return view('locations.show', compact('location'));
     }

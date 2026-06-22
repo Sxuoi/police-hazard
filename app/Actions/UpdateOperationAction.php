@@ -20,6 +20,13 @@ class UpdateOperationAction
 
     public function execute(Operation $operation, array $data, Saker|User $actor): Operation
     {
+        // Guard: operation cannot be updated if completed or archived
+        if (in_array($operation->status, ['completed', 'archived'], true)) {
+            throw ValidationException::withMessages([
+                'status' => ['Operasi yang telah selesai atau diarsipkan tidak dapat diubah.'],
+            ]);
+        }
+
         // Guard: type is immutable after first zone
         if (
             isset($data['operation_type'])
