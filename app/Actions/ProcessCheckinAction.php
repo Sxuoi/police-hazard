@@ -92,13 +92,32 @@ class ProcessCheckinAction
         // ── Step 3: Shift Window Check ───────────────────────────────
         $timezone = $location->timezone ?? config('policehazard.default_timezone', 'Asia/Jakarta');
 
-        [$shiftStart, $shiftEnd] = $this->locationTimezoneResolver->shiftWindow(
+        // Check both today and yesterday's windows to support midnight-spanning shifts
+        [$shiftStartToday, $shiftEndToday] = $this->locationTimezoneResolver->shiftWindow(
             $operation,
             Carbon::today($timezone),
             $timezone,
         );
 
-        $isWithinShift = now()->between($shiftStart, $shiftEnd);
+        [$shiftStartYesterday, $shiftEndYesterday] = $this->locationTimezoneResolver->shiftWindow(
+            $operation,
+            Carbon::yesterday($timezone),
+            $timezone,
+        );
+
+        $isWithinShift = false;
+        $shiftStart = $shiftStartToday;
+        $shiftEnd = $shiftEndToday;
+
+        if (now()->between($shiftStartToday, $shiftEndToday)) {
+            $isWithinShift = true;
+            $shiftStart = $shiftStartToday;
+            $shiftEnd = $shiftEndToday;
+        } elseif (now()->between($shiftStartYesterday, $shiftEndYesterday)) {
+            $isWithinShift = true;
+            $shiftStart = $shiftStartYesterday;
+            $shiftEnd = $shiftEndYesterday;
+        }
 
         if (! $isWithinShift) {
             $this->auditService->log('CHECKIN_REJECTED', null, [

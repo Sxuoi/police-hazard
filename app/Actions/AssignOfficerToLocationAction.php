@@ -43,7 +43,7 @@ class AssignOfficerToLocationAction
                 $existing = Assignment::withoutGlobalScopes()
                     ->where('officer_id', $data['officer_id'])
                     ->whereIn('status', ['active', 'pending'])
-                    ->whereHas('operation', fn ($q) => $q->where('operation_type', 'PH'))
+                    ->whereHas('operation', fn ($q) => $q->withoutGlobalScopes()->where('operation_type', 'PH'))
                     ->where(function ($query) use ($data) {
                         if (!empty($data['end_date'])) {
                             $query->where('start_date', '<=', $data['end_date']);

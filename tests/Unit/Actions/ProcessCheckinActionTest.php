@@ -298,4 +298,68 @@ class ProcessCheckinActionTest extends TestCase
 
         ($this->action)($dto);
     }
+
+    public function test_midnight_spanning_shift_checkin_success(): void
+    {
+        // Fake the queue so background jobs are not executed during this test
+        \Illuminate\Support\Facades\Queue::fake();
+
+        // Mock time to early morning (01:00) Jan 16, 2026
+        Carbon::setTestNow(Carbon::parse('2026-01-16 01:00:00', 'Asia/Jakarta'));
+
+        $location = new Location;
+        $location->id = 'loc-uuid-1';
+        $location->timezone = 'Asia/Jakarta';
+
+        // Midnight-spanning shift starting Jan 15 at 22:00 and ending Jan 16 at 06:00
+        $operation = new Operation;
+        $operation->operation_type = 'PATROL';
+        $operation->start_time = '22:00';
+        $operation->end_time = '06:00';
+
+        $officer = new User;
+        $officer->id = 'officer-uuid-1';
+
+        $assignment = Mockery::mock(Assignment::class)->makePartial();
+        $assignment->shouldReceive('getAttribute')->with('id')->andReturn('asgn-uuid-1');
+        // Assignment started Jan 15
+        $assignment->shouldReceive('getAttribute')->with('start_date')->andReturn(Carbon::parse('2026-01-15', 'Asia/Jakarta'));
+        $assignment->shouldReceive('getAttribute')->with('end_date')->andReturn(null);
+        $assignment->shouldReceive('loadMissing')->andReturnSelf();
+        $assignment->shouldReceive('getAttribute')->with('location')->andReturn($location);
+        $assignment->shouldReceive('getAttribute')->with('operation')->andReturn($operation);
+        $assignment->shouldReceive('getAttribute')->with('officer')->andReturn($officer);
+
+        $dto = $this->makeDto([
+            'timestampDevice' => Carbon::now(),
+            'checkedInAt' => Carbon::now(),
+        ]);
+
+        $this->assignmentRepo->shouldReceive('findForOfficerToday')
+            ->andReturn($assignment);
+
+        $this->geofenceService->shouldReceive('distanceFromLocation')->andReturn(10.0);
+        $this->geofenceService->shouldReceive('isWithinGeofence')->andReturn(true);
+
+        $this->spoofingService->shouldReceive('score')
+            ->andReturn((object) ['score' => 0, 'signals' => []]);
+
+        $mockAttendance = new \App\Models\Attendance();
+        $mockAttendance->id = '019eed70-9be0-7cb5-a10c-f3769c024501';
+
+        // Mock photo stripping and saving path
+        $this->attendanceRepo->shouldReceive('insertVerified')
+            ->once()
+            ->andReturn($mockAttendance);
+
+        // Call the action, should not throw OutsideShiftWindowException
+        ($this->action)($dto);
+
+        // Assert the job was pushed to queue
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\ProcessCheckinPhoto::class);
+
+        // Reset test time
+        Carbon::setTestNow();
+        $this->assertTrue(true);
+    }
 }
