@@ -36,17 +36,20 @@ class AuditLog extends Model
     {
         return [
             'payload_before' => 'array',
-            'payload_after'  => 'array',
-            'metadata'       => 'array',
-            'created_at'     => 'datetime',
+            'payload_after' => 'array',
+            'metadata' => 'array',
+            'created_at' => 'datetime',
         ];
     }
 
     // ── Relationships ────────────────────────────────────────────────
 
-    public function actor(): BelongsTo
+    /**
+     * Get the actor (either a Saker Admin or a User/Officer).
+     */
+    public function getActorAttribute()
     {
-        return $this->belongsTo(User::class, 'actor_id');
+        return Saker::find($this->actor_id) ?? User::find($this->actor_id);
     }
 
     public function saker(): BelongsTo

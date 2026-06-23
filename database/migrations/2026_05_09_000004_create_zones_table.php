@@ -27,8 +27,6 @@ return new class extends Migration
 
             $table->foreign('operation_id')->references('id')->on('operations');
             $table->foreign('saker_id')->references('id')->on('sakers');
-            $table->foreign('created_by')->references('id')->on('users');
-            $table->foreign('updated_by')->references('id')->on('users');
 
             $table->index('operation_id');
             $table->index('saker_id');

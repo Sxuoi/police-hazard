@@ -17,7 +17,7 @@ return [
 
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'web'),
-        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+        'passwords' => env('AUTH_PASSWORD_BROKER', 'sakers'),
     ],
 
     /*
@@ -39,6 +39,10 @@ return [
 
     'guards' => [
         'web' => [
+            'driver' => 'session',
+            'provider' => 'sakers',
+        ],
+        'officer' => [
             'driver' => 'session',
             'provider' => 'users',
         ],
@@ -62,15 +66,14 @@ return [
     */
 
     'providers' => [
+        'sakers' => [
+            'driver' => 'eloquent',
+            'model' => env('AUTH_SAKER_MODEL', App\Models\Saker::class),
+        ],
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
     ],
 
     /*

@@ -20,14 +20,16 @@
             <div class="mb-5">
                 <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Nama Operasi <span class="text-red-400">*</span></label>
                 <input type="text" id="name" name="name" value="{{ old('name', $operation->name) }}" required maxlength="150"
-                       class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
+                       @disabled(in_array($operation->status, ['completed', 'archived']))
+                       class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50 disabled:cursor-not-allowed" />
             </div>
 
             {{-- Description --}}
             <div class="mb-5">
                 <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Deskripsi</label>
                 <textarea id="description" name="description" rows="3" maxlength="500"
-                          class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] resize-none">{{ old('description', $operation->description) }}</textarea>
+                          @disabled(in_array($operation->status, ['completed', 'archived']))
+                          class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] resize-none disabled:opacity-50 disabled:cursor-not-allowed">{{ old('description', $operation->description) }}</textarea>
             </div>
 
             {{-- Operation Type --}}
@@ -35,19 +37,19 @@
                 <label class="block text-sm font-medium text-gray-300 mb-3">Tipe Operasi <span class="text-red-400">*</span></label>
                 <div class="grid grid-cols-2 gap-3">
                     <label class="relative cursor-pointer">
-                        <input type="radio" name="operation_type" value="PH" x-model="type" class="sr-only peer" @if($operation->zones()->exists()) disabled @endif />
-                        <div class="p-4 rounded-xl border-2 border-[var(--color-surface-500)] peer-checked:border-[var(--color-accent)] peer-checked:bg-[var(--color-accent)]/5 transition-all @if($operation->zones()->exists()) opacity-50 cursor-not-allowed @endif">
+                        <input type="radio" name="operation_type" value="PH" x-model="type" class="sr-only peer" @if($operation->zones()->exists() || in_array($operation->status, ['completed', 'archived'])) disabled @endif />
+                        <div class="p-4 rounded-xl border-2 border-[var(--color-surface-500)] peer-checked:border-[var(--color-accent)] peer-checked:bg-[var(--color-accent)]/5 transition-all @if($operation->zones()->exists() || in_array($operation->status, ['completed', 'archived'])) opacity-50 cursor-not-allowed @endif">
                             <div class="font-medium text-white text-sm">PH (Polisi Hazard)</div>
                         </div>
                     </label>
                     <label class="relative cursor-pointer">
-                        <input type="radio" name="operation_type" value="PATROL" x-model="type" class="sr-only peer" @if($operation->zones()->exists()) disabled @endif />
-                        <div class="p-4 rounded-xl border-2 border-[var(--color-surface-500)] peer-checked:border-[var(--color-accent)] peer-checked:bg-[var(--color-accent)]/5 transition-all @if($operation->zones()->exists()) opacity-50 cursor-not-allowed @endif">
+                        <input type="radio" name="operation_type" value="PATROL" x-model="type" class="sr-only peer" @if($operation->zones()->exists() || in_array($operation->status, ['completed', 'archived'])) disabled @endif />
+                        <div class="p-4 rounded-xl border-2 border-[var(--color-surface-500)] peer-checked:border-[var(--color-accent)] peer-checked:bg-[var(--color-accent)]/5 transition-all @if($operation->zones()->exists() || in_array($operation->status, ['completed', 'archived'])) opacity-50 cursor-not-allowed @endif">
                             <div class="font-medium text-white text-sm">Patrol (Patroli)</div>
                         </div>
                     </label>
                 </div>
-                @if($operation->zones()->exists())
+                @if($operation->zones()->exists() && !in_array($operation->status, ['completed', 'archived']))
                     <p class="text-xs text-yellow-400/80 mt-2">⚠️ Tipe tidak dapat diubah karena operasi ini sudah memiliki zona.</p>
                 @endif
             </div>
@@ -57,12 +59,14 @@
                 <div>
                     <label for="start_time" class="block text-sm font-medium text-gray-300 mb-2">Waktu Mulai <span class="text-red-400">*</span></label>
                     <input type="time" id="start_time" name="start_time" value="{{ old('start_time', $operation->start_time) }}" required
-                           class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
+                           @disabled(in_array($operation->status, ['completed', 'archived']))
+                           class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50 disabled:cursor-not-allowed" />
                 </div>
                 <div>
                     <label for="end_time" class="block text-sm font-medium text-gray-300 mb-2">Waktu Selesai</label>
                     <input type="time" id="end_time" name="end_time" value="{{ old('end_time', $operation->end_time) }}"
-                           class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
+                           @disabled(in_array($operation->status, ['completed', 'archived']))
+                           class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50 disabled:cursor-not-allowed" />
                 </div>
             </div>
 
@@ -73,10 +77,17 @@
                     Batal
                 </a>
                 <button type="submit"
-                        class="flex-1 px-4 py-3 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-medium rounded-xl transition-colors cursor-pointer">
+                        @disabled(in_array($operation->status, ['completed', 'archived']))
+                        class="flex-1 px-4 py-3 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-medium rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                     Simpan Perubahan
                 </button>
             </div>
+
+            @if(in_array($operation->status, ['completed', 'archived']))
+                <p class="text-sm text-yellow-400/90 mt-4 text-center">
+                    ⚠️ Operasi ini telah selesai atau diarsipkan. Data tidak dapat diubah kembali.
+                </p>
+            @endif
         </form>
     </div>
 </div>

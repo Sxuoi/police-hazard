@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Actions\AssignOfficerToLocationAction;
+use App\Models\Saker;
 use App\Repositories\Contracts\AssignmentRepositoryInterface;
 use App\Repositories\Contracts\LocationRepositoryInterface;
 use App\Repositories\Contracts\OperationRepositoryInterface;
-use App\Repositories\Contracts\ShiftRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Contracts\ZoneRepositoryInterface;
 use App\Services\AuditService;
@@ -22,7 +22,6 @@ class AssignmentController extends Controller
         private readonly OperationRepositoryInterface $operations,
         private readonly ZoneRepositoryInterface $zones,
         private readonly LocationRepositoryInterface $locations,
-        private readonly ShiftRepositoryInterface $shifts,
         private readonly UserRepositoryInterface $users,
         private readonly AssignOfficerToLocationAction $assignOfficer,
         private readonly AuditService $auditService,
@@ -43,7 +42,7 @@ class AssignmentController extends Controller
     public function create(): View
     {
         $operations = $this->operations->allActive();
-        $sakers = \App\Models\Saker::where('is_active', true)->get();
+        $sakers = Saker::where('is_active', true)->get();
 
         return view('assignments.create', compact('operations', 'sakers'));
     }
@@ -51,17 +50,17 @@ class AssignmentController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'officer_ids'       => ['required', 'array', 'min:1'],
-            'officer_ids.*'     => ['required', 'uuid', 'exists:users,id'],
-            'location_id'       => ['required', 'uuid', 'exists:locations,id'],
-            'shift_id'          => ['required', 'uuid', 'exists:shifts,id'],
-            'operation_id'      => ['required', 'uuid', 'exists:operations,id'],
-            'dates'             => ['required', 'array', 'min:1'],
-            'dates.*'           => ['required', 'date'],
+            'officer_ids' => ['required', 'array', 'min:1'],
+            'officer_ids.*' => ['required', 'uuid', 'exists:users,id'],
+            'location_id' => ['required', 'uuid', 'exists:locations,id'],
+            'operation_id' => ['required', 'uuid', 'exists:operations,id'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'assigned_saker_id' => ['required', 'uuid', 'exists:sakers,id'],
         ]);
 
         $location = $this->locations->findOrFail($validated['location_id']);
+        $operation = $this->operations->findOrFail($validated['operation_id']);
 
         foreach ($validated['officer_ids'] as $officerId) {
             $this->assignOfficer->execute(
@@ -73,7 +72,7 @@ class AssignmentController extends Controller
             );
         }
 
-        $count = count($validated['dates']) * count($validated['officer_ids']);
+        $count = count($validated['officer_ids']);
 
         return redirect()->route('assignments.index')
             ->with('success', "{$count} penugasan berhasil dibuat.");
@@ -95,7 +94,7 @@ class AssignmentController extends Controller
         ]);
 
         $assignment->update([
-            'status'      => 'cancelled',
+            'status' => 'cancelled',
             'cancel_reason' => $request->reason,
         ]);
 
@@ -120,13 +119,6 @@ class AssignmentController extends Controller
         $locations = $this->locations->byZone($request->zone_id);
 
         return response()->json($locations);
-    }
-
-    public function shiftsByLocation(Request $request): JsonResponse
-    {
-        $shifts = $this->shifts->byLocation($request->location_id);
-
-        return response()->json($shifts);
     }
 
     public function officerSearch(Request $request): JsonResponse

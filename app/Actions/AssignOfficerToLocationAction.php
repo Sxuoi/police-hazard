@@ -3,6 +3,8 @@
 namespace App\Actions;
 
 use App\Models\Assignment;
+use App\Models\Operation;
+use App\Models\Saker;
 use App\Models\User;
 use App\Services\AuditService;
 use Illuminate\Support\Facades\DB;
@@ -24,58 +26,77 @@ class AssignOfficerToLocationAction
     ) {}
 
     /**
-     * @param  array{officer_id: string, location_id: string, shift_id: string, operation_id: string, saker_id: string, assigned_saker_id: string, dates: string[], assigned_by: string}  $data
+     * @param  array{officer_id: string, location_id: string, operation_id: string, saker_id: string, assigned_saker_id: string, start_date: string, end_date: ?string, assigned_by: string}  $data
      */
-    public function execute(array $data, User $actor): array
+    public function execute(array $data, Saker|User $actor): array
     {
         $created = [];
 
         DB::transaction(function () use ($data, $actor, &$created) {
-            // Advisory lock to prevent concurrent duplicate PH assignments
-            $lockId = crc32($data['officer_id'] . $data['shift_id']);
+            // Advisory lock to prevent concurrent duplicate PH assignments for the same officer
+            $lockId = crc32($data['officer_id']);
             DB::statement("SELECT pg_advisory_xact_lock({$lockId})");
 
-            foreach ($data['dates'] as $date) {
-                // PH overlap guard — only for PH operations
-                $operation = \App\Models\Operation::find($data['operation_id']);
-                if ($operation && $operation->operation_type === 'PH') {
-                    $existing = Assignment::withoutGlobalScopes()
-                        ->where('officer_id', $data['officer_id'])
-                        ->where('shift_id', $data['shift_id'])
-                        ->where('assignment_date', $date)
-                        ->whereIn('status', ['active', 'pending'])
-                        ->whereHas('operation', fn ($q) => $q->where('operation_type', 'PH'))
-                        ->first();
+            $officer = User::withoutGlobalScopes()->findOrFail($data['officer_id']);
+            $borrowingSaker = Saker::findOrFail($data['assigned_saker_id']);
 
-                    if ($existing) {
-                        throw ValidationException::withMessages([
-                            'officer_id' => [
-                                "Anggota sudah memiliki penugasan PH pada tanggal {$date} untuk shift yang sama."
-                            ],
-                        ]);
-                    }
-                }
-
-                $assignment = Assignment::create([
-                    'officer_id'        => $data['officer_id'],
-                    'location_id'       => $data['location_id'],
-                    'shift_id'          => $data['shift_id'],
-                    'operation_id'      => $data['operation_id'],
-                    'saker_id'          => $data['saker_id'],
-                    'assigned_saker_id' => $data['assigned_saker_id'],
-                    'assignment_date'   => $date,
-                    'status'            => 'active',
-                    'assigned_by'       => $actor->id,
-                ]);
-
-                $created[] = $assignment;
-
-                $this->auditService->log('OFFICER_ASSIGNED', $assignment, [
-                    'officer_id'  => $data['officer_id'],
-                    'location_id' => $data['location_id'],
-                    'date'        => $date,
+            // Hierarchical borrowing constraint check
+            if (!$borrowingSaker->canAccessSaker($officer->saker_id)) {
+                throw ValidationException::withMessages([
+                    'officer_id' => [
+                        'Anggota tidak dapat ditugaskan ke Satker penugasan ini (hanya diperbolehkan meminjam dari Satker yang setingkat atau di bawahnya).',
+                    ],
                 ]);
             }
+
+            // PH overlap guard — only for PH operations
+            $operation = Operation::find($data['operation_id']);
+            if ($operation && $operation->operation_type === 'PH') {
+                $existing = Assignment::withoutGlobalScopes()
+                    ->where('officer_id', $data['officer_id'])
+                    ->whereIn('status', ['active', 'pending'])
+                    ->whereHas('operation', fn ($q) => $q->withoutGlobalScopes()->where('operation_type', 'PH'))
+                    ->where(function ($query) use ($data) {
+                        if (!empty($data['end_date'])) {
+                            $query->where('start_date', '<=', $data['end_date']);
+                        }
+                        $query->where(function ($q) use ($data) {
+                            $q->whereNull('end_date')
+                              ->orWhere('end_date', '>=', $data['start_date']);
+                        });
+                    })
+                    ->first();
+
+                if ($existing) {
+                    $rangeStr = $data['start_date'] . ($data['end_date'] ? ' s.d. ' . $data['end_date'] : ' (selamanya)');
+                    throw ValidationException::withMessages([
+                        'officer_id' => [
+                            "Anggota sudah memiliki penugasan PH pada periode {$rangeStr}.",
+                        ],
+                    ]);
+                }
+            }
+
+            $assignment = Assignment::create([
+                'officer_id' => $data['officer_id'],
+                'location_id' => $data['location_id'],
+                'operation_id' => $data['operation_id'],
+                'saker_id' => $officer->saker_id, // Resolves officer's actual home saker
+                'assigned_saker_id' => $data['assigned_saker_id'], // Borrowing saker
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'] ?? null,
+                'status' => 'active',
+                'assigned_by' => $actor->id,
+            ]);
+
+            $created[] = $assignment;
+
+            $this->auditService->log('OFFICER_ASSIGNED', $assignment, [
+                'officer_id' => $data['officer_id'],
+                'location_id' => $data['location_id'],
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'] ?? null,
+            ]);
         });
 
         return $created;

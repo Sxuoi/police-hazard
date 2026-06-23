@@ -32,7 +32,6 @@ return new class extends Migration
             $table->foreign('assignment_id')->references('id')->on('assignments');
             $table->foreign('officer_id')->references('id')->on('users');
             $table->foreign('saker_id')->references('id')->on('sakers');
-            $table->foreign('reviewed_by')->references('id')->on('users');
 
             $table->index('officer_id');
             $table->index('status');
@@ -43,14 +42,14 @@ return new class extends Migration
         DB::statement("ALTER TABLE manual_bypass_approvals ADD CONSTRAINT chk_bypass_status CHECK (status IN ('pending','approved','denied','expired'))");
 
         // Append-only rules — PRD §6.1
-        DB::statement("CREATE RULE no_update_manual_bypass AS ON UPDATE TO manual_bypass_approvals DO INSTEAD NOTHING");
-        DB::statement("CREATE RULE no_delete_manual_bypass AS ON DELETE TO manual_bypass_approvals DO INSTEAD NOTHING");
+        DB::statement('CREATE RULE no_update_manual_bypass AS ON UPDATE TO manual_bypass_approvals DO INSTEAD NOTHING');
+        DB::statement('CREATE RULE no_delete_manual_bypass AS ON DELETE TO manual_bypass_approvals DO INSTEAD NOTHING');
     }
 
     public function down(): void
     {
-        DB::statement("DROP RULE IF EXISTS no_update_manual_bypass ON manual_bypass_approvals");
-        DB::statement("DROP RULE IF EXISTS no_delete_manual_bypass ON manual_bypass_approvals");
+        DB::statement('DROP RULE IF EXISTS no_update_manual_bypass ON manual_bypass_approvals');
+        DB::statement('DROP RULE IF EXISTS no_delete_manual_bypass ON manual_bypass_approvals');
         Schema::dropIfExists('manual_bypass_approvals');
     }
 };

@@ -12,6 +12,8 @@
 /.phpunit.cache
 /.vscode
 /.zed
+/.kiro
+/.claude
 /auth.json
 /node_modules
 /public/build
@@ -25,3 +27,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+graphify-out/
+.mcp.json
+.agents/
+scratch_output.png

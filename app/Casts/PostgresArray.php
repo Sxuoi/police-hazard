@@ -33,7 +33,7 @@ class PostgresArray implements CastsAttributes
         }
 
         if (is_array($value)) {
-            return '{' . implode(',', $value) . '}';
+            return '{'.implode(',', $value).'}';
         }
 
         return $value;

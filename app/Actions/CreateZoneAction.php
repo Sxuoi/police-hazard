@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Operation;
+use App\Models\Saker;
 use App\Models\User;
 use App\Models\Zone;
 use App\Services\AuditService;
@@ -17,18 +18,18 @@ class CreateZoneAction
         private readonly AuditService $auditService,
     ) {}
 
-    public function execute(array $data, User $actor): Zone
+    public function execute(array $data, Saker|User $actor): Zone
     {
         $operation = Operation::findOrFail($data['operation_id']);
 
         $zone = Zone::create([
             'operation_id' => $operation->id,
-            'saker_id'     => $actor->isGodAdmin() ? ($data['saker_id'] ?? $actor->saker_id) : $actor->saker_id,
-            'name'         => $data['name'],
-            'description'  => $data['description'] ?? null,
-            'is_active'    => true,
-            'created_by'   => $actor->id,
-            'updated_by'   => $actor->id,
+            'saker_id' => $actor->isGodAdmin() ? ($data['saker_id'] ?? $actor->saker_id) : $actor->saker_id,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'is_active' => true,
+            'created_by' => $actor->id,
+            'updated_by' => $actor->id,
         ]);
 
         $this->auditService->log('ZONE_CREATED', $zone, [

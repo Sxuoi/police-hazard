@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Operation;
+use App\Models\Saker;
 use App\Models\User;
 use App\Services\AuditService;
 use Illuminate\Validation\ValidationException;
@@ -17,8 +18,15 @@ class UpdateOperationAction
         private readonly AuditService $auditService,
     ) {}
 
-    public function execute(Operation $operation, array $data, User $actor): Operation
+    public function execute(Operation $operation, array $data, Saker|User $actor): Operation
     {
+        // Guard: operation cannot be updated if completed or archived
+        if (in_array($operation->status, ['completed', 'archived'], true)) {
+            throw ValidationException::withMessages([
+                'status' => ['Operasi yang telah selesai atau diarsipkan tidak dapat diubah.'],
+            ]);
+        }
+
         // Guard: type is immutable after first zone
         if (
             isset($data['operation_type'])
@@ -31,13 +39,13 @@ class UpdateOperationAction
         }
 
         $operation->update([
-            'name'           => $data['name'],
-            'description'    => $data['description'] ?? $operation->description,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? $operation->description,
             'operation_type' => $data['operation_type'] ?? $operation->operation_type,
-            'status'         => $data['status'] ?? $operation->status,
-            'start_time'     => $data['start_time'],
-            'end_time'       => $data['end_time'] ?? null,
-            'updated_by'     => $actor->id,
+            'status' => $data['status'] ?? $operation->status,
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'] ?? null,
+            'updated_by' => $actor->id,
         ]);
 
         $this->auditService->log('OPERATION_UPDATED', $operation, [

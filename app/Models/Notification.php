@@ -36,8 +36,8 @@ class Notification extends Model
     protected function casts(): array
     {
         return [
-            'payload'    => 'array',
-            'read_at'    => 'datetime',
+            'payload' => 'array',
+            'read_at' => 'datetime',
             'expires_at' => 'datetime',
             'created_at' => 'datetime',
         ];

@@ -25,7 +25,7 @@ class AuthenticateUserAction
     {
         $user = User::withoutGlobalScopes()->where('nrp', $nrp)->first();
 
-        if (!$user || !Hash::check($password, $user->password)) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             if ($user) {
                 $this->auditService->log('USER_LOGIN_FAILED', $user, [
                     'ip' => $ip,
@@ -38,7 +38,7 @@ class AuthenticateUserAction
             ]);
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             $this->auditService->log('USER_LOGIN_FAILED', $user, [
                 'ip' => $ip,
                 'reason' => 'account_disabled',
@@ -51,7 +51,7 @@ class AuthenticateUserAction
 
         if ($user->isOfficer()) {
             throw ValidationException::withMessages([
-                'nrp' => [__('Akun Officer hanya dapat login melalui aplikasi mobile.')],
+                'nrp' => [__('Akun Anggota tidak dapat masuk di sini. Silakan gunakan halaman /officer/login.')],
             ]);
         }
 

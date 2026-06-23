@@ -1,58 +1,144 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Mini Command Center (Police Hazard & Fitur 110)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Gambaran Umum Proyek
+Mini Command Center (Police Hazard & Fitur 110) adalah sebuah sistem terpadu berbasis web dan *mobile web* yang dibangun khusus untuk operasional institusi kepolisian. Sistem ini bertujuan untuk mendigitalkan, mengotomatisasi, dan menyatukan pemantauan presensi personel di lapangan (Police Hazard) serta sistem komando respons cepat untuk penanganan kedaruratan masyarakat (Fitur 110).
 
-## About Laravel
+Sistem ini memastikan validasi kehadiran yang ketat (menggunakan teknologi Geofence dan Anti-Spoofing GPS) dan menghasilkan bukti digital yang tidak dapat dimanipulasi (Immutable) melalui pembubuhan *watermark* otomatis pada foto pelaporan dokumentasi lapangan.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 1. Modul Police Hazard (Presensi & Penugasan)
+- **Manajemen Operasi & Shift**: Pembuatan operasi operasional dan penentuan jadwal shift untuk personel kepolisian di wilayah komando masing-masing (*Saker*).
+- **Geofencing PostGIS**: Menentukan batas radius koordinat patroli atau penjagaan (Police Hazard) secara visual di atas peta.
+- **Check-In Berbasis GPS**: Personel wajib melakukan absensi (*check-in*) di dalam radius lokasi dengan verifikasi titik lokasi yang akurat (*real-time*).
+- **Deteksi Anti-Spoofing**: Algoritma sistem akan menolak presensi jika terdeteksi penggunaan *Mock Location* (Fake GPS) pada perangkat petugas.
+- **Data Immutable**: Rekam data kehadiran (Attendance) memiliki proteksi *database-level rules* dan bersifat kebal ubah (tidak dapat dihapus atau diedit setelah terekam).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 2. Modul Fitur 110 (Respons Kedaruratan)
+- **Manajemen Tiket 110**: Operator Command Center mencatat laporan insiden darurat masyarakat, membuat tiket, dan menugaskannya ke armada (*Unit*) terdekat.
+- **Bypass Token Link (Tanpa Login)**: Petugas Pamapta di lapangan menerima tautan khusus (*URL Token*) melalui WhatsApp untuk langsung melaporkan kedatangan, titik koordinat, dan laporan lengkap tanpa perlu repot melakukan tahapan *login* klasik.
+- **Auto-Watermarking Bukti Foto**: Foto dokumentasi lapangan yang beresolusi besar dikompresi di sisi *client* dan diproses secara latar belakang (*asynchronous Queue*) di *server* untuk ditempelkan *watermark* berlapis (Berisi Logo, Nama, NRP, Waktu, Koordinat, Alamat Reverse Geocode, dan Nomor Tiket).
+- **Peta Pantauan Live (Leaflet.js)**: Menyajikan peta komando interaktif yang memvisualisasikan posisi penanganan kejadian darurat secara *live* di layar Command Center.
 
-## Learning Laravel
+### 3. Modul Sistem Keamanan & Tenancy
+- **Multi-Tenancy (SakerScope)**: Pembatasan visibilitas data agar terisolasi per wilayah operasional komando masing-masing (Polda/Polres/Polsek).
+- **God Admin & Heatmap Global**: Akses Super Admin (Propam) tingkat nasional untuk melakukan pengawasan terpadu (*Global Audit*) dan melihat sebaran Peta Panas (*Heatmap*) tanpa batasan sekat kewilayahan.
+- **Full Audit Trails**: Seluruh aktivitas pembaruan data, hingga persetujuan manipulasi izin tercatat secara otomatis dan permanen dalam riwayat `audit_logs`.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Kebutuhan Sistem (System Requirements)
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+Proyek ini dibangun menggunakan arsitektur modern berbasis PHP dan Database Relasional Geospatial.
 
-## Agentic Development
+- **Sistem Operasi**: Linux (Ubuntu/Debian) atau Windows (menggunakan WSL 2 / Laragon).
+- **Web Server**: Nginx atau Apache.
+- **PHP**: Versi **8.3** atau yang lebih baru.
+- **Database**: PostgreSQL (Versi 16+) yang wajib di-install dengan ekstensi **PostGIS (Versi 3.4+)**.
+- **Composer**: Untuk instalasi dependensi *backend* PHP.
+- **Node.js & NPM**: Untuk kompilasi (*compiling*) aset Frontend berbasis Vite dan TailwindCSS.
+- **Supervisor** (Server): Untuk menjaga *Laravel Queue Workers* tetap berjalan menangani antrean proses seperti *watermarking* gambar.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+---
 
-```bash
-composer require laravel/boost --dev
+## Panduan Instalasi Lokal (Local Development)
 
-php artisan boost:install
-```
+1. **Clone repositori proyek ini** ke dalam direktori lokal (Misal: folder `www` pada Laragon).
+2. **Install Dependensi PHP & Node.js**:
+   ```bash
+   composer install
+   npm install
+   ```
+3. **Konfigurasi Environment**:
+   Duplikat file konfigurasi `.env.example` menjadi `.env`.
+   ```bash
+   cp .env.example .env
+   ```
+   Lalu pastikan konfigurasi database sudah menggunakan Driver **PostgreSQL** dan sesuai dengan kredensial database lokal Anda:
+   ```env
+   DB_CONNECTION=pgsql
+   DB_HOST=127.0.0.1
+   DB_PORT=5432
+   DB_DATABASE=nama_database_anda
+   DB_USERNAME=user_db_anda
+   DB_PASSWORD=password_db_anda
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+   # Pastikan mengatur QUEUE_CONNECTION (database/redis)
+   QUEUE_CONNECTION=database
+   ```
+4. **Generate Application Key**:
+   ```bash
+   php artisan key:generate
+   ```
+5. **Jalankan Migrasi Database & Seeder**:
+   *(Perhatian: Ekstensi PostGIS di PostgreSQL Anda harus sudah diaktifkan sebelum menjalankan perintah ini!)*
+   ```bash
+   php artisan migrate --seed
+   ```
+6. **Hubungkan Symlink Storage**:
+   ```bash
+   php artisan storage:link
+   ```
+7. **Jalankan Queue Worker (Penting untuk Fitur 110)**:
+   Mengingat pemrosesan *watermark* foto menggunakan *background jobs*, jalankan antrean pada tab terminal terpisah:
+   ```bash
+   php artisan queue:listen
+   ```
+8. **Jalankan Aplikasi**:
+   Jalankan Vite untuk *hot-reloading* aset UI:
+   ```bash
+   npm run dev
+   ```
+   Dan jalankan server PHP:
+   ```bash
+   php artisan serve
+   ```
+   Aplikasi siap diakses pada web browser.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Panduan Deploy ke Server (Production)
 
-## Code of Conduct
+Untuk merilis aplikasi ini ke dalam Server / VPS (contoh berbasis Ubuntu):
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. **Persiapan Server**: Pastikan PHP 8.3, Nginx/Apache, PostgreSQL, dan PostGIS telah terinstal.
+2. **Konfigurasi Virtual Host**: Atur Document Root (Nginx/Apache) agar menunjuk ke *path* folder `/public` pada proyek ini.
+3. **Penyesuaian Environment**:
+   ```env
+   APP_ENV=production
+   APP_DEBUG=false
+   APP_URL=https://domain-kepolisian.go.id
+   QUEUE_CONNECTION=redis # Sangat disarankan memakai Redis di Production
+   ```
+4. **Optimasi Laravel**:
+   Jalankan rentetan perintah optimasi berikut di *production*:
+   ```bash
+   composer install --optimize-autoloader --no-dev
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   ```
+5. **Build Aset Frontend**:
+   ```bash
+   npm run build
+   ```
+6. **Supervisor untuk Queue Workers (Sangat Kritikal)**:
+   Agar sistem tidak macet saat mengirimkan foto lapangan 110, buat konfigurasi Supervisor untuk menjaga ketersediaan Queue Worker.
+   Buat file di `/etc/supervisor/conf.d/police-hazard-worker.conf`:
+   ```ini
+   [program:police-hazard-worker]
+   process_name=%(program_name)s_%(process_num)02d
+   command=php /path/to/project/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+   autostart=true
+   autorestart=true
+   user=www-data
+   numprocs=2
+   redirect_stderr=true
+   stdout_logfile=/path/to/project/storage/logs/worker.log
+   ```
+   Lalu restart supervisor:
+   ```bash
+   sudo supervisorctl reread
+   sudo supervisorctl update
+   ```
+7. **File Permissions**: Pastikan pengguna *web server* (`www-data` atau `nginx`) memiliki hak tulis pada folder `storage/` dan `bootstrap/cache/`.

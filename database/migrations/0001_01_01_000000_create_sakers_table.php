@@ -17,11 +17,14 @@ return new class extends Migration
         Schema::create('sakers', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name', 100);
+            $table->string('email', 150)->nullable()->unique();
+            $table->string('password', 255)->nullable();
             $table->string('code', 20)->unique();
             $table->string('type', 20);
             $table->uuid('parent_id')->nullable();
             $table->string('logo_path', 255)->nullable();
             $table->boolean('is_active')->default(true);
+            $table->rememberToken();
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
         });
@@ -31,8 +34,8 @@ return new class extends Migration
             $table->foreign('parent_id')->references('id')->on('sakers');
         });
 
-        // CHECK constraint for type — matches PRD exactly
-        DB::statement("ALTER TABLE sakers ADD CONSTRAINT chk_saker_type CHECK (type IN ('POLDA','POLRESTABES','POLSEK'))");
+        // CHECK constraint for type — matches PRD exactly + MABES for God Admin
+        DB::statement("ALTER TABLE sakers ADD CONSTRAINT chk_saker_type CHECK (type IN ('MABES','POLDA','POLRESTABES','POLSEK'))");
     }
 
     public function down(): void

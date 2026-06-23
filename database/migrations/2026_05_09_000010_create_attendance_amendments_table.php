@@ -26,21 +26,21 @@ return new class extends Migration
             $table->timestampTz('created_at')->useCurrent();
 
             $table->foreign('attendance_id')->references('id')->on('attendances');
-            $table->foreign('amended_by')->references('id')->on('users');
-            $table->foreign('approved_by')->references('id')->on('users');
+            $table->foreign('amended_by')->references('id')->on('sakers');
+            $table->foreign('approved_by')->references('id')->on('sakers');
 
             $table->index('attendance_id');
         });
 
         // Append-only rules
-        DB::statement("CREATE RULE no_update_amendments AS ON UPDATE TO attendance_amendments DO INSTEAD NOTHING");
-        DB::statement("CREATE RULE no_delete_amendments AS ON DELETE TO attendance_amendments DO INSTEAD NOTHING");
+        DB::statement('CREATE RULE no_update_amendments AS ON UPDATE TO attendance_amendments DO INSTEAD NOTHING');
+        DB::statement('CREATE RULE no_delete_amendments AS ON DELETE TO attendance_amendments DO INSTEAD NOTHING');
     }
 
     public function down(): void
     {
-        DB::statement("DROP RULE IF EXISTS no_update_amendments ON attendance_amendments");
-        DB::statement("DROP RULE IF EXISTS no_delete_amendments ON attendance_amendments");
+        DB::statement('DROP RULE IF EXISTS no_update_amendments ON attendance_amendments');
+        DB::statement('DROP RULE IF EXISTS no_delete_amendments ON attendance_amendments');
         Schema::dropIfExists('attendance_amendments');
     }
 };

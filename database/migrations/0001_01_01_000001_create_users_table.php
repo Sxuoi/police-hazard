@@ -19,12 +19,11 @@ return new class extends Migration
             $table->uuid('saker_id');
             $table->string('name', 100);
             $table->string('nrp', 20)->unique();
-            $table->string('email', 150)->unique()->nullable();
             $table->string('phone', 20)->nullable();
-            $table->string('role', 20);
             $table->string('safung', 50)->nullable();
             $table->string('avatar_path', 255)->nullable();
             $table->string('password', 255);
+            $table->string('role', 20)->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestampTz('last_login_at')->nullable();
             $table->timestampTz('created_at')->useCurrent();
@@ -36,17 +35,13 @@ return new class extends Migration
 
             $table->index('saker_id', 'idx_users_saker');
             $table->index('nrp', 'idx_users_nrp');
-            $table->index('role', 'idx_users_role');
         });
 
         // Self-referencing FKs added after table creation (PK must exist first)
         Schema::table('users', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('users');
-            $table->foreign('updated_by')->references('id')->on('users');
         });
 
-        // CHECK constraint for role
-        DB::statement("ALTER TABLE users ADD CONSTRAINT chk_user_role CHECK (role IN ('god_admin','saker_admin','officer'))");
+        // CHECK constraint removed as users are only officers now
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

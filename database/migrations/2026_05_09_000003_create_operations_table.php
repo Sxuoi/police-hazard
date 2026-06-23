@@ -28,8 +28,6 @@ return new class extends Migration
             $table->uuid('updated_by')->nullable();
 
             $table->foreign('saker_id')->references('id')->on('sakers');
-            $table->foreign('created_by')->references('id')->on('users');
-            $table->foreign('updated_by')->references('id')->on('users');
 
             $table->index('saker_id');
         });

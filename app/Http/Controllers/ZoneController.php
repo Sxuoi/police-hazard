@@ -39,8 +39,8 @@ class ZoneController extends Controller
     {
         $validated = $request->validate([
             'operation_id' => ['required', 'uuid', 'exists:operations,id'],
-            'name'         => ['required', 'string', 'max:150'],
-            'description'  => ['nullable', 'string', 'max:500'],
+            'name' => ['required', 'string', 'max:150'],
+            'description' => ['nullable', 'string', 'max:500'],
         ]);
 
         $zone = $this->createZone->execute($validated, $request->user());
@@ -70,9 +70,9 @@ class ZoneController extends Controller
         $zone = $this->zones->findOrFail($id);
 
         $validated = $request->validate([
-            'name'        => ['required', 'string', 'max:150'],
+            'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:500'],
-            'is_active'   => ['boolean'],
+            'is_active' => ['boolean'],
         ]);
 
         $zone->update(array_merge($validated, ['updated_by' => $request->user()->id]));

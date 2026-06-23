@@ -20,8 +20,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nrp'      => ['required', 'string', 'max:20'],
-            'password'  => ['required', 'string'],
+            'nrp' => ['required', 'string', 'max:20'],
+            'password' => ['required', 'string'],
         ];
     }
 
@@ -61,7 +61,7 @@ class LoginRequest extends FormRequest
     public function throttleKey(): string
     {
         return Str::transliterate(
-            Str::lower($this->input('nrp')) . '|' . $this->ip()
+            Str::lower($this->input('nrp')).'|'.$this->ip()
         );
     }
 }
