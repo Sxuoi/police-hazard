@@ -48,10 +48,10 @@ class OperationsSeeder extends Seeder
             ],
             [
                 'saker_id' => $polda->id,
-                'name' => 'Draft Operasi Akhir Tahun',
-                'description' => 'Rencana operasi akhir tahun 2026.',
+                'name' => 'Operasi Lilin Candi 2025',
+                'description' => 'Arsip pengamanan natal & tahun baru 2025.',
                 'operation_type' => 'PH',
-                'status' => 'draft',
+                'status' => 'archived',
                 'start_time' => '20:00',
                 'end_time' => '02:00',
                 'created_by' => $polda->id,

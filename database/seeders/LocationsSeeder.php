@@ -23,7 +23,7 @@ class LocationsSeeder extends Seeder
         $op1 = Operation::where('name', 'Operasi Keamanan Natal 2026')->sole();
         $op2 = Operation::where('name', 'Patroli Wilayah Semarang')->sole();
         $op3 = Operation::where('name', 'PH Pos Pemeriksaan Semarang Tengah')->sole();
-        $op4 = Operation::where('name', 'Draft Operasi Akhir Tahun')->sole();
+        $op4 = Operation::where('name', 'Operasi Lilin Candi 2025')->sole();
 
         // Look up zones by name + operation_id
         $zoneUtara = Zone::where('name', 'Zona Utara')->where('operation_id', $op1->id)->sole();
