@@ -144,7 +144,13 @@ class ApiProblemRenderer
             'OUTSIDE_GEOFENCE' => isset($extra['distance_meters'])
                 ? "Lokasi Anda {$extra['distance_meters']} meter dari titik tugas."
                 : 'Posisi Anda berada di luar radius geofence.',
-            'OUTSIDE_SHIFT_WINDOW' => 'Saat ini berada di luar jendela shift penugasan.',
+            'OUTSIDE_SHIFT_WINDOW' => isset($extra['shift_start'], $extra['shift_end'])
+                ? 'Saat ini berada di luar jendela shift penugasan. Shift: '
+                    .\Carbon\Carbon::parse($extra['shift_start'])->setTimezone('Asia/Jakarta')->format('H:i')
+                    .' - '
+                    .\Carbon\Carbon::parse($extra['shift_end'])->setTimezone('Asia/Jakarta')->format('H:i')
+                    .' WIB.'
+                : 'Saat ini berada di luar jendela shift penugasan.',
             'MOCK_LOCATION_DETECTED' => 'Aplikasi mendeteksi penggunaan mock location.',
             'SPOOFING_REJECTED' => 'Terdeteksi beberapa sinyal yang mengindikasikan manipulasi lokasi.',
             'CHECKIN_ALREADY_COMPLETED' => 'Anda sudah melakukan check-in untuk penugasan ini.',

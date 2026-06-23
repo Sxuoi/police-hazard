@@ -12,6 +12,7 @@ use App\Exceptions\Checkin\PhotoTooLargeException;
 use App\Exceptions\Checkin\SpoofingRejectedException;
 use App\Jobs\ProcessCheckinPhoto;
 use App\Models\Attendance;
+use App\Models\Concerns\SakerScope;
 use App\Repositories\Contracts\AssignmentRepositoryInterface;
 use App\Repositories\Contracts\AttendanceRepositoryInterface;
 use App\Services\AuditService;
@@ -84,7 +85,11 @@ class ProcessCheckinAction
             throw new AssignmentNotFoundException;
         }
 
-        $assignment->loadMissing(['location', 'operation', 'officer']);
+        $assignment->loadMissing([
+            'location' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+            'operation' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+            'officer',
+        ]);
 
         $location = $assignment->location;
         $operation = $assignment->operation;

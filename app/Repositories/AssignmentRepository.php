@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Assignment;
+use App\Models\Concerns\SakerScope;
 use App\Repositories\Contracts\AssignmentRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -27,7 +28,10 @@ class AssignmentRepository implements AssignmentRepositoryInterface
 
     public function findByOfficerAndDate(string $officerId, string $date): Collection
     {
-        return Assignment::with(['location', 'operation'])
+        return Assignment::with([
+                'location' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+                'operation' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+            ])
             ->where('officer_id', $officerId)
             ->where('start_date', '<=', $date)
             ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $date))
@@ -91,7 +95,10 @@ class AssignmentRepository implements AssignmentRepositoryInterface
         $today = $date ?? Carbon::today(config('policehazard.default_timezone', 'Asia/Jakarta'));
         $todayStr = $today->toDateString();
 
-        return Assignment::with(['location', 'operation'])
+        return Assignment::with([
+                'location' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+                'operation' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+            ])
             ->where('officer_id', $officerId)
             ->where('saker_id', $sakerId)
             ->where('start_date', '<=', $todayStr)
@@ -105,7 +112,10 @@ class AssignmentRepository implements AssignmentRepositoryInterface
         $fromStr = $from->toDateString();
         $toStr = $to->toDateString();
 
-        return Assignment::with(['location', 'operation'])
+        return Assignment::with([
+                'location' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+                'operation' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+            ])
             ->where('assignments.officer_id', $officerId)
             ->where('assignments.saker_id', $sakerId)
             ->where('assignments.start_date', '<=', $toStr)

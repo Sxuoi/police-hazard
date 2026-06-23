@@ -8,6 +8,7 @@ use App\Exceptions\Bypass\ReasonCodeNotBypassEligibleException;
 use App\Exceptions\Checkin\AssignmentNotFoundException;
 use App\Exceptions\Checkin\DuplicateCheckinException;
 use App\Exceptions\Checkin\PhotoInvalidException;
+use App\Models\Concerns\SakerScope;
 use App\Models\ManualBypassApproval;
 use App\Models\User;
 use App\Repositories\Contracts\AssignmentRepositoryInterface;
@@ -88,7 +89,10 @@ final class CreateBypassRequestAction
             throw new AssignmentNotFoundException;
         }
 
-        $assignment->loadMissing(['location', 'operation']);
+        $assignment->loadMissing([
+            'location' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+            'operation' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+        ]);
 
         // ── PH duplicate guard (same as ProcessCheckinAction step 9) ─
         if ($assignment->operation->operation_type === 'PH') {

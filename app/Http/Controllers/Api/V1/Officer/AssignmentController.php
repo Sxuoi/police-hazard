@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Officer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Concerns\SakerScope;
 use App\Repositories\Contracts\AssignmentRepositoryInterface;
 use App\Repositories\Contracts\AttendanceRepositoryInterface;
 use App\Services\GeofenceService;
@@ -60,7 +61,9 @@ class AssignmentController extends Controller
             $to,
         );
 
-        $assignments->loadMissing('location.zone');
+        $assignments->loadMissing([
+            'location.zone' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+        ]);
 
         $coordsByLocation = $this->loadLocationCoordinates(
             $assignments->pluck('location_id')->filter()->unique()->values()->all()
@@ -99,7 +102,11 @@ class AssignmentController extends Controller
             return $this->assignmentNotFound();
         }
 
-        $assignment->loadMissing(['location.padal', 'location.zone', 'operation']);
+        $assignment->loadMissing([
+            'location.padal' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+            'location.zone' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+            'operation' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+        ]);
 
         $coords = $this->loadLocationCoordinates([$assignment->location_id])[$assignment->location_id] ?? null;
         $base = $this->toAssignmentArray(
@@ -143,7 +150,9 @@ class AssignmentController extends Controller
             return $this->assignmentNotFound();
         }
 
-        $assignment->loadMissing('location');
+        $assignment->loadMissing([
+            'location' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
+        ]);
         $location = $assignment->location;
 
         $lat = (float) $request->query('latitude');
