@@ -37,6 +37,18 @@ class AssignOfficerToLocationAction
             $lockId = crc32($data['officer_id']);
             DB::statement("SELECT pg_advisory_xact_lock({$lockId})");
 
+            $officer = User::withoutGlobalScopes()->findOrFail($data['officer_id']);
+            $borrowingSaker = Saker::findOrFail($data['assigned_saker_id']);
+
+            // Hierarchical borrowing constraint check
+            if (!$borrowingSaker->canAccessSaker($officer->saker_id)) {
+                throw ValidationException::withMessages([
+                    'officer_id' => [
+                        'Anggota tidak dapat ditugaskan ke Satker penugasan ini (hanya diperbolehkan meminjam dari Satker yang setingkat atau di bawahnya).',
+                    ],
+                ]);
+            }
+
             // PH overlap guard — only for PH operations
             $operation = Operation::find($data['operation_id']);
             if ($operation && $operation->operation_type === 'PH') {
@@ -69,8 +81,8 @@ class AssignOfficerToLocationAction
                 'officer_id' => $data['officer_id'],
                 'location_id' => $data['location_id'],
                 'operation_id' => $data['operation_id'],
-                'saker_id' => $data['saker_id'],
-                'assigned_saker_id' => $data['assigned_saker_id'],
+                'saker_id' => $officer->saker_id, // Resolves officer's actual home saker
+                'assigned_saker_id' => $data['assigned_saker_id'], // Borrowing saker
                 'start_date' => $data['start_date'],
                 'end_date' => $data['end_date'] ?? null,
                 'status' => 'active',
