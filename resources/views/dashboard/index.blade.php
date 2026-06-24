@@ -362,8 +362,38 @@ document.addEventListener('alpine:init', () => {
 
                     const marker = L.marker([loc.lat, loc.lng], { icon: icon });
                     
+                    let officersHtml = '';
+                    if (loc.officers && loc.officers.length > 0) {
+                        officersHtml += '<div class="mt-3 pt-2 border-t"><h5 class="text-xs font-semibold text-gray-700 mb-2">Daftar Anggota:</h5><ul class="space-y-1.5">';
+                        loc.officers.forEach(off => {
+                            let statusBadge = '<span class="inline-flex w-2 h-2 rounded-full bg-red-400"></span>';
+                            let photoLink = '';
+                            if (off.attendance_id) {
+                                statusBadge = '<span class="inline-flex w-2 h-2 rounded-full bg-green-400"></span>';
+                                if (off.photo_status === 'processed') {
+                                    photoLink = `<a href="/dashboard/attendances/${off.attendance_id}/photo" target="_blank" class="ml-2 text-blue-500 hover:text-blue-700 underline text-[10px]">Lihat Foto</a>`;
+                                } else if (off.photo_status === 'pending') {
+                                    photoLink = `<span class="ml-2 text-gray-400 text-[10px] italic">Foto diproses...</span>`;
+                                }
+                            }
+                            officersHtml += `
+                                <li class="text-xs flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        ${statusBadge}
+                                        <span class="text-gray-800">${off.name}</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        ${off.time ? `<span class="text-gray-500 text-[10px]">${off.time}</span>` : ''}
+                                        ${photoLink}
+                                    </div>
+                                </li>
+                            `;
+                        });
+                        officersHtml += '</ul></div>';
+                    }
+
                     const popupContent = `
-                        <div class="text-sm min-w-[200px]">
+                        <div class="text-sm min-w-[220px]">
                             <h4 class="font-bold text-gray-900 border-b pb-1 mb-2">${loc.name}</h4>
                             <p class="text-gray-600 text-xs mb-2">${loc.address || 'Tanpa alamat'}</p>
                             <div class="flex justify-between items-center">
@@ -376,6 +406,7 @@ document.addEventListener('alpine:init', () => {
                                 <span class="text-gray-500">Hadir:</span>
                                 <span class="font-medium text-gray-900">${loc.present} / ${loc.total > 0 ? loc.min : 0}</span>
                             </div>
+                            ${officersHtml}
                             <div class="mt-3 text-right">
                                 <a href="/locations/${loc.id}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">Lihat Detail &rarr;</a>
                             </div>

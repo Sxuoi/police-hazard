@@ -45,32 +45,40 @@
         </div>
     </template>
 
-    {{-- State: Camera Open --}}
-    <template x-if="state === 'camera_open'">
+    {{-- State: Waiting for Photo --}}
+    <template x-if="state === 'waiting_for_photo'">
         <div class="space-y-4">
             <div class="text-center">
-                <h2 class="text-lg font-semibold text-white">Ambil Foto</h2>
-                <p class="text-sm text-gray-400 mt-1">Arahkan kamera ke wajah Anda</p>
+                <h2 class="text-lg font-semibold text-white">Ambil Foto dari Kamera</h2>
+                <p class="text-sm text-gray-400 mt-1">Gunakan kamera bawaan perangkat Anda</p>
             </div>
-            <div class="relative rounded-xl overflow-hidden bg-black aspect-[3/4]">
-                <video x-ref="video" autoplay playsinline muted class="w-full h-full object-cover"></video>
-                <button
-                    @click="toggleCamera()"
-                    type="button"
-                    class="absolute top-4 right-4 z-10 p-2.5 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/10 transition-colors cursor-pointer"
-                    title="Ganti Kamera"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 6H16m0 0v5h5" />
-                    </svg>
-                </button>
-            </div>
+
+            <template x-if="errorMessage">
+                <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg text-sm text-center mb-4" x-text="errorMessage"></div>
+            </template>
+            
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" @change="handleCapture">
+            
             <button
-                @click="capturePhoto()"
-                class="w-full py-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-semibold transition-colors"
+                @click="triggerCameraInput()"
+                class="w-full py-6 rounded-xl bg-[var(--color-surface-700)] hover:bg-[var(--color-surface-600)] border-2 border-dashed border-[var(--color-accent)] text-white font-semibold transition-colors flex flex-col items-center justify-center gap-3"
             >
-                Ambil Foto
+                <svg class="w-10 h-10 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Buka Kamera
             </button>
+        </div>
+    </template>
+
+    {{-- State: Compressing Photo --}}
+    <template x-if="state === 'compressing_photo'">
+        <div class="text-center py-12 space-y-6">
+            <div class="w-20 h-20 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center">
+                <svg class="w-10 h-10 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold text-white">Memproses Foto...</h2>
+                <p class="text-sm text-gray-400 mt-1">Mohon tunggu sebentar</p>
+            </div>
         </div>
     </template>
 
@@ -156,7 +164,6 @@
         </div>
     </template>
 
-    {{-- Hidden canvas for photo capture --}}
-    <canvas x-ref="canvas" class="hidden"></canvas>
+
 </div>
 @endsection

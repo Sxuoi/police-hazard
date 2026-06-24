@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attendance;
 use App\Models\Location;
 use App\Models\Operation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -175,6 +177,21 @@ class DashboardController extends Controller
                         });
                     }
                 }])
+                ->with(['assignments' => function ($q) use ($date, $officer) {
+                    $q->where('start_date', '<=', $date)
+                        ->where(fn ($sq) => $sq->whereNull('end_date')->orWhere('end_date', '>=', $date))
+                        ->where('status', 'active')
+                        ->with(['officer', 'attendances' => function ($aq) use ($date) {
+                            $aq->whereDate('checked_in_at', $date);
+                        }]);
+                    if ($officer) {
+                        $q->whereHas('officer', function ($oq) use ($officer) {
+                            $oq->withoutGlobalScopes()
+                                ->where('name', 'ilike', "%{$officer}%")
+                                ->orWhere('nrp', 'ilike', "%{$officer}%");
+                        });
+                    }
+                }])
                 ->get()
                 ->map(function ($loc) {
                     $status = 'no_assignment';
@@ -188,6 +205,16 @@ class DashboardController extends Controller
                         }
                     }
 
+                    $officersList = $loc->assignments->map(function($a) {
+                        $att = $a->attendances->first();
+                        return [
+                            'name' => $a->officer->name,
+                            'attendance_id' => $att?->id,
+                            'photo_status' => $att?->photo_status,
+                            'time' => $att?->checked_in_at?->format('H:i')
+                        ];
+                    })->values();
+
                     return [
                         'id' => $loc->id,
                         'name' => $loc->name,
@@ -197,6 +224,7 @@ class DashboardController extends Controller
                         'total' => $loc->total_assignments,
                         'present' => $loc->present_assignments,
                         'min' => $loc->minimum_officer,
+                        'officers' => $officersList,
                     ];
                 });
         };
@@ -210,5 +238,29 @@ class DashboardController extends Controller
         }
 
         return response()->json($locations);
+    }
+
+    public function photo(Attendance $attendance)
+    {
+        if (! $attendance->photo_path) {
+            abort(404, 'Photo not found');
+        }
+
+        $disk = config('policehazard.photo.s3_disk', 's3');
+        try {
+            $exists = Storage::disk($disk)->exists($attendance->photo_path);
+        } catch (\League\Flysystem\UnableToCheckExistence $e) {
+            $exists = false;
+        }
+
+        if (! $exists) {
+            // Fallback for local testing (maybe it's still raw)
+            if ($attendance->photo_raw_path && Storage::disk(config('policehazard.photo.private_disk', 'local'))->exists($attendance->photo_raw_path)) {
+                return Storage::disk(config('policehazard.photo.private_disk', 'local'))->response($attendance->photo_raw_path);
+            }
+            abort(404, 'Photo not found on disk');
+        }
+
+        return Storage::disk($disk)->response($attendance->photo_path);
     }
 }

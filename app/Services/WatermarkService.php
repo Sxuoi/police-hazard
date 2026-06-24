@@ -57,7 +57,7 @@ class WatermarkService
         $lines = $this->composeLines($att);
         $this->overlayBanner($image, $lines);
 
-        $encoded = (string) $image->toJpeg(quality: 85);
+        $encoded = (string) $image->encode(new \Intervention\Image\Encoders\JpegEncoder(85));
 
         $s3Key = "photos/{$att->id}.jpg";
         Storage::disk($s3Disk)->put($s3Key, $encoded, [

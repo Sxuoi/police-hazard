@@ -18,7 +18,7 @@ export function formatLocationTime(iso, tz) {
         return `${fmt} ${abbr}`;
     } catch (e) {
         console.warn('Timezone formatting failed, falling back to device locale', e);
-        return new Date(iso).toLocaleString();
+        return new Date(iso).toLocaleString('id-ID', { hour12: false });
     }
 }
 

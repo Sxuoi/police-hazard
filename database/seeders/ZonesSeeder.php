@@ -22,6 +22,7 @@ class ZonesSeeder extends Seeder
         $op2 = Operation::where('name', 'Patroli Wilayah Semarang')->sole();
         $op3 = Operation::where('name', 'PH Pos Pemeriksaan Semarang Tengah')->sole();
         $op4 = Operation::where('name', 'Operasi Lilin Candi 2025')->sole();
+        $op5 = Operation::where('name', 'Pengamanan RSUP')->sole();
 
         $zoneData = [
             [$op1, $polda, 'Zona Utara'],
@@ -32,6 +33,7 @@ class ZonesSeeder extends Seeder
             [$op3, $polsek, 'Zona Pasar Johar'],
             [$op4, $polda, 'Zona Pusat'],
             [$op4, $polda, 'Zona Barat'],
+            [$op5, $polrestabes, 'Zona RSUP'],
         ];
 
         foreach ($zoneData as [$op, $saker, $name]) {
@@ -45,6 +47,6 @@ class ZonesSeeder extends Seeder
             );
         }
 
-        $this->command->info('✓ ZonesSeeder: 8 Zones seeded.');
+        $this->command->info('✓ ZonesSeeder: 9 Zones seeded.');
     }
 }

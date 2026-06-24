@@ -48,12 +48,17 @@ class AttendanceRepository implements AttendanceRepositoryInterface
             ->count();
     }
 
-    public function verifiedExistsFor(string $assignmentId): bool
+    public function verifiedExistsFor(string $assignmentId, ?string $date = null): bool
     {
-        return Attendance::query()
+        $query = Attendance::query()
             ->where('assignment_id', $assignmentId)
-            ->whereIn('status', ['verified', 'flagged'])
-            ->exists();
+            ->whereIn('status', ['verified', 'flagged']);
+
+        if ($date) {
+            $query->whereDate('checked_in_at', $date);
+        }
+
+        return $query->exists();
     }
 
     public function insertVerified(array $data, string $checksum): Attendance

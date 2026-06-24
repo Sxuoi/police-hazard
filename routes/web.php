@@ -50,6 +50,7 @@ Route::middleware(['auth:web', 'god.admin'])->group(function () {
     Route::get('/', fn () => redirect()->route('dashboard'));
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/map-data', [DashboardController::class, 'mapData'])->name('dashboard.map-data');
+    Route::get('/dashboard/attendances/{attendance}/photo', [DashboardController::class, 'photo'])->name('dashboard.attendances.photo');
 
     // ── Operations ──────────────────────────────────────────────────
     Route::resource('operations', OperationController::class)

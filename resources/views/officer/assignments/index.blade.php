@@ -41,8 +41,8 @@
                     <h3 class="text-sm font-medium text-white" x-text="assignment.location_name"></h3>
                     <span
                         class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                        :class="statusBadgeClass(assignment.status)"
-                        x-text="statusLabel(assignment.status)"
+                        :class="assignment.already_checked_in ? 'bg-green-500/10 text-green-400' : statusBadgeClass(assignment.status)"
+                        x-text="assignment.already_checked_in ? 'Selesai' : statusLabel(assignment.status)"
                     ></span>
                 </div>
                 <div class="space-y-1">

@@ -163,7 +163,7 @@
 
                 const marker = L.marker([report.lat, report.lng], { icon: customIcon }).addTo(map);
                 
-                const formatTime = (timeStr) => timeStr ? new Date(timeStr).toLocaleString('id-ID') : '-';
+                const formatTime = (timeStr) => timeStr ? new Date(timeStr).toLocaleString('id-ID', { hour12: false }) : '-';
                 
                 let popupContent = `
                     <div class="p-1 min-w-[200px]">
