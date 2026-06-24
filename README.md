@@ -1,129 +1,175 @@
 # Mini Command Center (Police Hazard & Fitur 110)
 
-## Gambaran Umum Proyek
-Mini Command Center (Police Hazard & Fitur 110) adalah sebuah sistem terpadu berbasis web dan *mobile web* yang dibangun khusus untuk operasional institusi kepolisian. Sistem ini bertujuan untuk mendigitalkan, mengotomatisasi, dan menyatukan pemantauan presensi personel di lapangan (Police Hazard) serta sistem komando respons cepat untuk penanganan kedaruratan masyarakat (Fitur 110).
+![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Alpine.js](https://img.shields.io/badge/Alpine.js-2D3441?style=for-the-badge&logo=alpinedotjs&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
-Sistem ini memastikan validasi kehadiran yang ketat (menggunakan teknologi Geofence dan Anti-Spoofing GPS) dan menghasilkan bukti digital yang tidak dapat dimanipulasi (Immutable) melalui pembubuhan *watermark* otomatis pada foto pelaporan dokumentasi lapangan.
+Mini Command Center adalah sebuah sistem terpadu berbasis web dan *mobile web* yang dibangun khusus untuk operasional institusi kepolisian. Sistem ini diciptakan untuk mendigitalkan, mengotomatisasi, dan menyatukan pemantauan presensi personel di lapangan serta sistem komando respons cepat untuk penanganan kedaruratan masyarakat.
 
-## Fitur Utama
+Sistem ini terbagi menjadi dua ranah fungsional yang beroperasi secara independen namun terpusat di dalam satu *dashboard*: **Police Hazard** dan **Fitur 110**.
 
-### 1. Modul Police Hazard (Presensi & Penugasan)
-- **Manajemen Operasi & Shift**: Pembuatan operasi operasional dan penentuan jadwal shift untuk personel kepolisian di wilayah komando masing-masing (*Saker*).
-- **Geofencing PostGIS**: Menentukan batas radius koordinat patroli atau penjagaan (Police Hazard) secara visual di atas peta.
-- **Check-In Berbasis GPS**: Personel wajib melakukan absensi (*check-in*) di dalam radius lokasi dengan verifikasi titik lokasi yang akurat (*real-time*).
-- **Deteksi Anti-Spoofing**: Algoritma sistem akan menolak presensi jika terdeteksi penggunaan *Mock Location* (Fake GPS) pada perangkat petugas.
-- **Data Immutable**: Rekam data kehadiran (Attendance) memiliki proteksi *database-level rules* dan bersifat kebal ubah (tidak dapat dihapus atau diedit setelah terekam).
+---
 
-### 2. Modul Fitur 110 (Respons Kedaruratan)
-- **Manajemen Tiket 110**: Operator Command Center mencatat laporan insiden darurat masyarakat, membuat tiket, dan menugaskannya ke armada (*Unit*) terdekat.
-- **Bypass Token Link (Tanpa Login)**: Petugas Pamapta di lapangan menerima tautan khusus (*URL Token*) melalui WhatsApp untuk langsung melaporkan kedatangan, titik koordinat, dan laporan lengkap tanpa perlu repot melakukan tahapan *login* klasik.
-- **Auto-Watermarking Bukti Foto**: Foto dokumentasi lapangan yang beresolusi besar dikompresi di sisi *client* dan diproses secara latar belakang (*asynchronous Queue*) di *server* untuk ditempelkan *watermark* berlapis (Berisi Logo, Nama, NRP, Waktu, Koordinat, Alamat Reverse Geocode, dan Nomor Tiket).
-- **Peta Pantauan Live (Leaflet.js)**: Menyajikan peta komando interaktif yang memvisualisasikan posisi penanganan kejadian darurat secara *live* di layar Command Center.
+## 📑 Daftar Isi
+1. [Modul 1: Police Hazard (Presensi & Penugasan)](#1-modul-police-hazard-presensi--penugasan)
+2. [Modul 2: Fitur 110 (Respons Kedaruratan)](#2-modul-fitur-110-respons-kedaruratan)
+3. [Keamanan & Multi-Tenancy](#3-keamanan--multi-tenancy)
+4. [Kebutuhan Sistem (System Requirements)](#kebutuhan-sistem-system-requirements)
+5. [Panduan Instalasi (Development)](#panduan-instalasi-development)
+6. [Panduan Deploy (Production)](#panduan-deploy-production)
 
-### 3. Modul Sistem Keamanan & Tenancy
-- **Multi-Tenancy (SakerScope)**: Pembatasan visibilitas data agar terisolasi per wilayah operasional komando masing-masing (Polda/Polres/Polsek).
-- **God Admin & Heatmap Global**: Akses Super Admin (Propam) tingkat nasional untuk melakukan pengawasan terpadu (*Global Audit*) dan melihat sebaran Peta Panas (*Heatmap*) tanpa batasan sekat kewilayahan.
-- **Full Audit Trails**: Seluruh aktivitas pembaruan data, hingga persetujuan manipulasi izin tercatat secara otomatis dan permanen dalam riwayat `audit_logs`.
+---
+
+## 1. Modul Police Hazard (Presensi & Penugasan)
+
+Modul Police Hazard didesain untuk memastikan kedisiplinan dan kehadiran fisik personel di titik-titik rawan secara presisi. Modul ini menjamin validasi kehadiran yang sangat ketat dan menghasilkan bukti digital yang tidak dapat dimanipulasi (Immutable).
+
+### ✨ Fitur Lengkap Police Hazard
+- **Manajemen Operasi & Shift**: Pembuatan operasi keamanan berskala wilayah, pembagian zona (Zone), dan penentuan jadwal shift untuk personel kepolisian di bawah Satuan Kerja (*Saker*) masing-masing.
+- **Visual Geofencing**: Penentuan batas radius operasional (Geofence) secara presisi dengan menggambar / memosisikan koordinat langsung di atas peta komando.
+- **Check-In Berbasis GPS Real-time**: Petugas wajib membuka aplikasi via telepon pintar dan melakukan *check-in* di dalam area radius lokasi. Jarak petugas ke titik pusat dihitung secara *real-time*.
+- **Anti-Spoofing & Fake GPS Detection**: Algoritma berlapis mendeteksi jika petugas menggunakan *Mock Location* (Fake GPS). Presensi akan otomatis ditolak (*auto-reject*) atau ditandai mencurigakan (*flagged*) jika terdeteksi anomali.
+- **Log Kehadiran Immutable**: Data presensi dikunci menggunakan aturan di level *database*. Setelah data masuk, data tersebut bersifat permanen dan tidak dapat diedit maupun dihapus oleh siapapun.
+- **Live Rekapitulasi**: *Dashboard* analitik dan pencarian mutakhir untuk melihat *progress* persentase kehadiran per wilayah secara langsung.
+
+### 🛠 Teknologi Utama (Police Hazard)
+- **PostgreSQL & PostGIS**: Mesin utama yang menangani data spasial. Menggunakan fungsi `ST_DWithin` dan tipe data `GEOGRAPHY` untuk kalkulasi jarak radius melengkung bumi secara hiper-akurat, jauh lebih baik dari kalkulasi matematis standar.
+- **Alpine.js & TailwindCSS**: Membangun antarmuka *Mobile Web App* untuk gawai petugas yang sangat responsif, memiliki *state management* yang reaktif (seperti *native app*), tanpa *overhead* framework berat.
+- **PostgreSQL Database Triggers**: Keamanan tingkat database yang mengunci baris data (Row-Level Lock) pada tabel *attendances* untuk mencegah *Data Tampering*.
+
+---
+
+## 2. Modul Fitur 110 (Respons Kedaruratan)
+
+Modul ini adalah pusat penanganan kejadian darurat secara *live* yang memfasilitasi komunikasi antara Operator Command Center dan Unit/Petugas (Pamapta) di lokasi insiden.
+
+### ✨ Fitur Lengkap Fitur 110
+- **Manajemen Tiket Kedaruratan**: Pencatatan pelaporan dari masyarakat secara terstruktur, pendistribusian tugas kepada armada terdekat, dan pembaruan status penyelesaian (Open, In Progress, Resolved).
+- **Bypass Token Link (Login-less Action)**: Operator mengirimkan *link* unik via WhatsApp kepada petugas di lapangan. *Link* ini mengandung Token rahasia dengan batas kadaluarsa (TTL) yang memungkinkan petugas melaporkan foto dan titik koordinat tanpa perlu melalui proses *login* yang memakan waktu di saat darurat.
+- **Auto-Watermarking Bukti Foto**: Setiap foto dokumentasi yang dikirim oleh petugas di lapangan akan secara otomatis dicetak *watermark* digital berlapis yang berisi:
+  - Logo Institusi
+  - Nama & NRP Petugas
+  - Nomor Tiket 110
+  - Koordinat Akurat
+  - Alamat (Hasil Reverse Geocoding)
+  - Waktu (Terikat pada *Timezone* lokasi setempat)
+- **EXIF Metadata Stripping**: Demi keamanan, *metadata* asli gambar dikosongkan selama kompresi untuk menghindari kebocoran data gawai pelapor.
+- **Peta Pantauan Live (Leaflet.js)**: Menyajikan peta interaktif yang menampilkan penempatan Unit secara *live* dan insiden 110 aktif di wilayah tersebut.
+
+### 🛠 Teknologi Utama (Fitur 110)
+- **Intervention Image (v3/v4) & GD Library**: Pustaka pemrosesan gambar mutakhir yang menangani *downsizing*, *compression*, dan *text rendering* untuk *watermark* foto.
+- **Laravel Queues & Supervisor**: Mengingat manipulasi gambar mengkonsumsi *resource* tinggi, pemrosesan ini dilimpahkan kepada *Background Jobs* secara asinkron. Hal ini menjamin gawai petugas tidak mengalami *freeze* saat mengirim gambar resolusi tinggi.
+- **AWS S3 / Cloud Storage**: Arsitektur penyimpanan modular. Dapat menyimpan foto ke sistem lokal (Local Disk) atau secara transparan diunggah ke AWS S3 Bucket dengan skema URL terkunci batas waktu (*Presigned URLs*) demi keamanan ekstra.
+
+---
+
+## 3. Keamanan & Multi-Tenancy
+
+Selain dua modul fungsional di atas, aplikasi ini dibekali dengan modul arsitektur *backend* yang tangguh:
+- **Multi-Tenancy (SakerScope)**: Menerapkan Global Scope di Laravel untuk membatasi visibilitas data. Admin Polsek hanya dapat melihat data Polseknya, sementara Admin Polres membawahi Polsek. Hal ini menjamin isolasi data secara ketat.
+- **God Admin (Propam/Mabes)**: Hak akses tertinggi tanpa batas kewilayahan yang mampu memantau Peta Panas (*Heatmap*) kehadiran di seluruh penjuru negeri secara terpusat.
+- **Rate Limiting & Brute Force Protection**: Membatasi laju unggahan foto dan permintaan *bypass token* untuk mencegah serangan *Denial of Service* (DoS).
+- **Full Audit Trails**: Setiap perubahan sensitif, manipulasi penugasan, atau pencabutan status dicatat ke dalam `audit_logs` secara otomatis yang melacak *User ID*, alamat IP, dan perubahan atribut asli (*diff*).
 
 ---
 
 ## Kebutuhan Sistem (System Requirements)
 
-Proyek ini dibangun menggunakan arsitektur modern berbasis PHP dan Database Relasional Geospatial.
-
 - **Sistem Operasi**: Linux (Ubuntu/Debian) atau Windows (menggunakan WSL 2 / Laragon).
 - **Web Server**: Nginx atau Apache.
 - **PHP**: Versi **8.3** atau yang lebih baru.
-- **Database**: PostgreSQL (Versi 16+) yang wajib di-install dengan ekstensi **PostGIS (Versi 3.4+)**.
-- **Composer**: Untuk instalasi dependensi *backend* PHP.
-- **Node.js & NPM**: Untuk kompilasi (*compiling*) aset Frontend berbasis Vite dan TailwindCSS.
-- **Supervisor** (Server): Untuk menjaga *Laravel Queue Workers* tetap berjalan menangani antrean proses seperti *watermarking* gambar.
+- **Database**: PostgreSQL (Versi 16+) terpasang ekstensi **PostGIS (Versi 3.4+)**. *(Sistem tidak akan bekerja di MySQL/MariaDB)*.
+- **Package Manager**: Composer (Backend PHP) dan Node.js/NPM (Frontend UI).
+- **Layanan Antrean (Queue)**: Redis sangat direkomendasikan untuk produksi.
+- **Lainnya**: Supervisor (untuk menjaga Queue Worker tetap hidup di latar belakang).
 
 ---
 
-## Panduan Instalasi Lokal (Local Development)
+## Panduan Instalasi (Development)
 
-1. **Clone repositori proyek ini** ke dalam direktori lokal (Misal: folder `www` pada Laragon).
-2. **Install Dependensi PHP & Node.js**:
-   ```bash
-   composer install
-   npm install
-   ```
-3. **Konfigurasi Environment**:
-   Duplikat file konfigurasi `.env.example` menjadi `.env`.
-   ```bash
-   cp .env.example .env
-   ```
-   Lalu pastikan konfigurasi database sudah menggunakan Driver **PostgreSQL** dan sesuai dengan kredensial database lokal Anda:
-   ```env
-   DB_CONNECTION=pgsql
-   DB_HOST=127.0.0.1
-   DB_PORT=5432
-   DB_DATABASE=nama_database_anda
-   DB_USERNAME=user_db_anda
-   DB_PASSWORD=password_db_anda
+Berikut adalah langkah-langkah untuk menyiapkan aplikasi di lingkungan lokal Anda.
 
-   # Pastikan mengatur QUEUE_CONNECTION (database/redis)
-   QUEUE_CONNECTION=database
-   ```
-4. **Generate Application Key**:
-   ```bash
-   php artisan key:generate
-   ```
-5. **Jalankan Migrasi Database & Seeder**:
-   *(Perhatian: Ekstensi PostGIS di PostgreSQL Anda harus sudah diaktifkan sebelum menjalankan perintah ini!)*
-   ```bash
-   php artisan migrate --seed
-   ```
-6. **Hubungkan Symlink Storage**:
-   ```bash
-   php artisan storage:link
-   ```
-7. **Jalankan Queue Worker (Penting untuk Fitur 110)**:
-   Mengingat pemrosesan *watermark* foto menggunakan *background jobs*, jalankan antrean pada tab terminal terpisah:
-   ```bash
-   php artisan queue:listen
-   ```
-8. **Jalankan Aplikasi**:
-   Jalankan Vite untuk *hot-reloading* aset UI:
-   ```bash
-   npm run dev
-   ```
-   Dan jalankan server PHP:
-   ```bash
-   php artisan serve
-   ```
-   Aplikasi siap diakses pada web browser.
+### 1. Kloning & Instalasi Dependensi
+Clone repositori ke dalam folder lokal (Misal: `C:\laragon\www\Police-Hazard`).
+```bash
+composer install
+npm install
+```
+
+### 2. Konfigurasi Database & Environment
+Duplikat file contoh konfigurasi dan buat *Application Key* yang baru.
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+Sesuaikan isi `.env` Anda. Pastikan driver yang digunakan adalah `pgsql` dan cocok dengan kredensial PostgreSQL Anda:
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=police_hazard
+DB_USERNAME=postgres
+DB_PASSWORD=secret
+
+QUEUE_CONNECTION=database
+PH_PHOTO_DISK=local
+```
+*(**Penting:** Mengatur `PH_PHOTO_DISK=local` akan menginstruksikan sistem untuk menyimpan gambar di *hard drive* PC Anda daripada memaksa unggahan S3 yang membutuhkan kredensial AWS.)*
+
+### 3. Eksekusi Database Migrasi & Seeder
+Pastikan Anda sudah mengaktifkan `CREATE EXTENSION postgis;` pada database Anda sebelum tahap ini.
+```bash
+php artisan migrate:fresh --seed
+```
+
+### 4. Konfigurasi Penyimpanan (Symlink)
+Menghubungkan folder publik dengan direktori penyimpanan agar foto dapat ditampilkan oleh browser:
+```bash
+php artisan storage:link
+```
+
+### 5. Menjalankan Aplikasi (Local vs Mobile Testing)
+
+**Opsi A: Pengembangan Normal di Laptop**
+Gunakan opsi ini jika Anda mengedit kode CSS/JS (akan ada efek *Hot Reloading*).
+1. Buka terminal 1: `npm run dev`
+2. Buka terminal 2: `php artisan serve`
+3. Buka terminal 3: `php artisan queue:listen`
+
+**Opsi B: Pengujian via Handphone & Ngrok (Sangat Disarankan)**
+Jika Anda menggunakan **Ngrok** untuk mengetes kamera HP ke *localhost* Anda, *Hot Reloading* dari Vite akan merusak tampilan CSS di HP Anda. Oleh karena itu, gunakan perintah spesial ini:
+```bash
+composer dev:mobile
+```
+*Perintah `dev:mobile` di atas akan otomatis mem-*build* CSS statis, lalu langsung menyalakan `php artisan serve` dan `php artisan queue:listen` di terminal yang sama. Cukup biarkan perintah ini menyala lalu buka Ngrok.*
 
 ---
 
-## Panduan Deploy ke Server (Production)
+## Panduan Deploy (Production)
 
-Untuk merilis aplikasi ini ke dalam Server / VPS (contoh berbasis Ubuntu):
+Untuk merilis aplikasi ini ke dalam Server / VPS Linux (contoh berbasis Ubuntu):
 
-1. **Persiapan Server**: Pastikan PHP 8.3, Nginx/Apache, PostgreSQL, dan PostGIS telah terinstal.
-2. **Konfigurasi Virtual Host**: Atur Document Root (Nginx/Apache) agar menunjuk ke *path* folder `/public` pada proyek ini.
-3. **Penyesuaian Environment**:
+1. **Persiapan**: Pastikan PHP 8.3, Nginx, PostgreSQL, dan PostGIS telah terinstal. Atur Document Root Nginx agar menunjuk ke `/public`.
+2. **Ubah Environment**:
    ```env
    APP_ENV=production
    APP_DEBUG=false
    APP_URL=https://domain-kepolisian.go.id
-   QUEUE_CONNECTION=redis # Sangat disarankan memakai Redis di Production
+   QUEUE_CONNECTION=redis
+   PH_PHOTO_DISK=s3  # (Jika menggunakan AWS S3 Cloud)
    ```
-4. **Optimasi Laravel**:
-   Jalankan rentetan perintah optimasi berikut di *production*:
+3. **Optimasi Tingkat Produksi**:
+   Jalankan perintah ini agar Laravel berjalan jauh lebih cepat tanpa overhead:
    ```bash
    composer install --optimize-autoloader --no-dev
    php artisan config:cache
    php artisan route:cache
    php artisan view:cache
-   ```
-5. **Build Aset Frontend**:
-   ```bash
    npm run build
    ```
-6. **Supervisor untuk Queue Workers (Sangat Kritikal)**:
-   Agar sistem tidak macet saat mengirimkan foto lapangan 110, buat konfigurasi Supervisor untuk menjaga ketersediaan Queue Worker.
+4. **Konfigurasi Supervisor (Kritikal!)**:
+   Agar sistem tidak macet saat antrean foto menumpuk, jadikan antrean latar belakang sebagai layanan abadi menggunakan Supervisor.
    Buat file di `/etc/supervisor/conf.d/police-hazard-worker.conf`:
    ```ini
    [program:police-hazard-worker]
@@ -136,9 +182,14 @@ Untuk merilis aplikasi ini ke dalam Server / VPS (contoh berbasis Ubuntu):
    redirect_stderr=true
    stdout_logfile=/path/to/project/storage/logs/worker.log
    ```
-   Lalu restart supervisor:
+   Lalu terapkan konfigurasinya:
    ```bash
    sudo supervisorctl reread
    sudo supervisorctl update
+   sudo supervisorctl start police-hazard-worker:*
    ```
-7. **File Permissions**: Pastikan pengguna *web server* (`www-data` atau `nginx`) memiliki hak tulis pada folder `storage/` dan `bootstrap/cache/`.
+5. **Izin Folder**: Pastikan pengguna *web server* memiliki hak tulis:
+   ```bash
+   sudo chown -R www-data:www-data storage bootstrap/cache
+   sudo chmod -R 775 storage bootstrap/cache
+   ```
