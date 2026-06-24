@@ -281,6 +281,7 @@ class ProcessCheckinAction
                 'photo_raw_path' => $photoRawPath,
                 'photo_status' => 'pending',
                 'created_at' => now(),
+                'checkin_coordinates' => DB::raw("ST_SetSRID(ST_MakePoint({$dto->longitude}, {$dto->latitude}), 4326)"),
             ];
 
             return $this->attendanceRepo->insertVerified($data, $checksum);
@@ -293,6 +294,9 @@ class ProcessCheckinAction
 
             // Invalidate dashboard cache
             $this->dashboardCacheInvalidator->invalidateFor($attendance);
+
+            // Refresh the materialized view for dashboard metrics
+            \App\Jobs\RefreshDailyAttendanceSummary::dispatch();
 
             // Audit CHECKIN_VERIFIED (R3.18)
             $this->auditService->log('CHECKIN_VERIFIED', $attendance, [

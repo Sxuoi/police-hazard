@@ -8,7 +8,7 @@
 
     {{-- Filter Form --}}
     <div class="bg-[var(--color-surface-800)] rounded-2xl border border-[var(--color-surface-600)] p-6">
-        <form method="GET" action="{{ route('reports.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+        <form method="GET" action="{{ route('reports.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
             
             <div>
                 <label class="block text-sm font-medium text-gray-400 mb-2">Operasi</label>
@@ -18,6 +18,12 @@
                         <option value="{{ $op->id }}" @selected(request('operation_id') === $op->id)>{{ $op->name }}</option>
                     @endforeach
                 </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-2">Petugas</label>
+                <input type="text" name="officer" value="{{ request('officer') }}" placeholder="Cari NRP / Nama"
+                       class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white" />
             </div>
 
             <div>
@@ -64,44 +70,46 @@
                         <th class="p-4 font-medium">Tanggal</th>
                         <th class="p-4 font-medium">Petugas</th>
                         <th class="p-4 font-medium">Lokasi & Waktu</th>
-                        <th class="p-4 font-medium">Status</th>
+                        <th class="p-4 font-medium text-center">Status</th>
                         <th class="p-4 font-medium">Waktu Hadir</th>
+                        <th class="p-4 font-medium text-center">Foto</th>
                     </tr>
                 </thead>
                 <tbody class="text-sm">
-                    @forelse($assignments as $assignment)
+                    @forelse($paginator as $report)
                         <tr class="border-b border-[var(--color-surface-600)]/50 hover:bg-[var(--color-surface-700)]/50 transition-colors">
                             <td class="p-4">
-                                <div class="text-white">
-                                    {{ $assignment->start_date->format('d M Y') }}
-                                    @if($assignment->end_date)
-                                        s/d {{ $assignment->end_date->format('d M Y') }}
-                                    @else
-                                        (Aktif)
-                                    @endif
+                                <div class="text-white font-medium">
+                                    {{ $report->date->format('d M Y') }}
                                 </div>
                             </td>
                             <td class="p-4">
-                                <div class="font-medium text-white">{{ $assignment->officer->name ?? '-' }}</div>
-                                <div class="text-xs text-gray-400">{{ $assignment->officer->nrp ?? '-' }}</div>
+                                <div class="font-medium text-white">{{ $report->assignment->officer->name ?? '-' }}</div>
+                                <div class="text-xs text-gray-400">{{ $report->assignment->officer->nrp ?? '-' }}</div>
                             </td>
                             <td class="p-4">
-                                <div class="text-white">{{ $assignment->location->name ?? '-' }}</div>
-                                <div class="text-xs text-[var(--color-accent)]">Waktu: {{ substr($assignment->operation->start_time ?? '', 0, 5) }} - {{ $assignment->operation->end_time ? substr($assignment->operation->end_time, 0, 5) : '23:59' }}</div>
+                                <div class="text-white">{{ $report->assignment->location->name ?? '-' }}</div>
+                                <div class="text-xs text-[var(--color-accent)]">Waktu: {{ substr($report->assignment->operation->start_time ?? '', 0, 5) }} - {{ $report->assignment->operation->end_time ? substr($report->assignment->operation->end_time, 0, 5) : '23:59' }}</div>
                             </td>
-                            <td class="p-4">
-                                @if($assignment->status === 'attended')
+                            <td class="p-4 text-center">
+                                @if($report->status === 'attended')
                                     <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">Hadir</span>
-                                @elseif($assignment->status === 'missed')
-                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">Tidak Hadir</span>
-                                @elseif($assignment->status === 'cancelled')
-                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-500/10 text-gray-400 border border-gray-500/20">Batal</span>
                                 @else
-                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">Pending</span>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">Tidak Hadir</span>
                                 @endif
                             </td>
                             <td class="p-4 text-gray-400">
-                                {{ $assignment->attended_at ? $assignment->attended_at->format('H:i:s') : '-' }}
+                                {{ $report->attendance ? $report->attendance->checked_in_at->format('H:i:s') : '-' }}
+                            </td>
+                            <td class="p-4 text-center">
+                                @if($report->attendance && $report->attendance->photo_path)
+                                    <a href="{{ route('dashboard.attendances.photo', $report->attendance->id) }}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[var(--color-surface-600)] hover:bg-[var(--color-surface-500)] text-white text-xs font-medium rounded-lg transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                        Foto
+                                    </a>
+                                @else
+                                    <span class="text-gray-500 text-xs">-</span>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -115,9 +123,9 @@
             </table>
         </div>
 
-        @if($assignments->hasPages())
+        @if($paginator->hasPages())
             <div class="p-4 border-t border-[var(--color-surface-600)]">
-                {{ $assignments->links() }}
+                {{ $paginator->links() }}
             </div>
         @endif
     </div>

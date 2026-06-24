@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Assignment;
+use App\Models\Attendance;
 use App\Repositories\Contracts\AssignmentRepositoryInterface;
 use App\Repositories\Contracts\OperationRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -18,44 +21,141 @@ class ReportController extends Controller
 
     public function index(Request $request): View
     {
-        // Provide filters to the view
         $operations = $this->operations->allActive();
 
-        $filters = $request->only(['operation_id', 'start_date', 'end_date', 'status']);
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', Carbon::now()->toDateString());
 
-        $assignments = $this->assignments->paginate(
-            perPage: 50,
-            filters: $filters
-        );
+        $rawQuery = DB::table('assignments as a')
+            ->select('a.id as assignment_id', 'a.officer_id', 'a.location_id', 'a.operation_id', 'd.active_date')
+            ->join(DB::raw("LATERAL (SELECT generate_series(GREATEST(a.start_date, ?::date), LEAST(COALESCE(a.end_date, CURRENT_DATE), ?::date), '1 day'::interval)::date as active_date) d"), function($join) {
+                $join->on(DB::raw('1'), '=', DB::raw('1'));
+            })
+            ->addBinding($startDate, 'join')
+            ->addBinding($endDate, 'join')
+            ->where('a.status', '!=', 'cancelled')
+            ->where('a.start_date', '<=', $endDate)
+            ->where(function($q) use ($startDate) {
+                $q->whereNull('a.end_date')
+                  ->orWhere('a.end_date', '>=', $startDate);
+            });
 
-        return view('reports.index', compact('assignments', 'operations'));
+        if ($request->filled('operation_id')) {
+            $rawQuery->where('a.operation_id', $request->operation_id);
+        }
+
+        if ($request->filled('officer')) {
+            $officerSearch = strtolower($request->officer);
+            $rawQuery->join('users as u', 'a.officer_id', '=', 'u.id')
+                     ->where(function($q) use ($officerSearch) {
+                         $q->whereRaw('LOWER(u.name) LIKE ?', ["%{$officerSearch}%"])
+                           ->orWhereRaw('LOWER(u.nrp) LIKE ?', ["%{$officerSearch}%"]);
+                     });
+        }
+
+        $paginator = $rawQuery->orderBy('d.active_date', 'desc')->paginate(50)->withQueryString();
+
+        $assignmentIds = $paginator->pluck('assignment_id')->unique();
+        $assignmentsMap = Assignment::with(['officer', 'location', 'operation'])
+            ->whereIn('id', $assignmentIds)
+            ->get()
+            ->keyBy('id');
+
+        $officerIds = $paginator->pluck('officer_id')->unique();
+        $attendancesMap = Attendance::whereIn('officer_id', $officerIds)
+            ->whereBetween('checked_in_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->get()
+            ->groupBy(function($att) {
+                return $att->officer_id . '_' . $att->checked_in_at->format('Y-m-d');
+            });
+
+        $reports = $paginator->getCollection()->map(function($row) use ($assignmentsMap, $attendancesMap) {
+            $assignment = $assignmentsMap->get($row->assignment_id);
+            $attendance = $attendancesMap->get($row->officer_id . '_' . $row->active_date)?->first();
+
+            return (object) [
+                'date' => Carbon::parse($row->active_date),
+                'assignment' => $assignment,
+                'attendance' => $attendance,
+                'status' => $attendance ? 'attended' : 'missed'
+            ];
+        });
+
+        // Apply status filter in memory (since status depends on attendance existence)
+        if ($request->filled('status')) {
+            $reports = $reports->filter(fn($r) => $r->status === $request->status);
+        }
+
+        $paginator->setCollection($reports);
+
+        return view('reports.index', compact('paginator', 'operations', 'startDate', 'endDate'));
     }
 
     public function export(Request $request): StreamedResponse
     {
-        $filters = $request->only(['operation_id', 'start_date', 'end_date', 'status']);
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', Carbon::now()->toDateString());
 
-        // Fetch all matching assignments without pagination
-        $query = Assignment::with(['officer', 'location', 'operation', 'saker']);
+        $rawQuery = DB::table('assignments as a')
+            ->select('a.id as assignment_id', 'a.officer_id', 'a.location_id', 'a.operation_id', 'd.active_date')
+            ->join(DB::raw("LATERAL (SELECT generate_series(GREATEST(a.start_date, ?::date), LEAST(COALESCE(a.end_date, CURRENT_DATE), ?::date), '1 day'::interval)::date as active_date) d"), function($join) {
+                $join->on(DB::raw('1'), '=', DB::raw('1'));
+            })
+            ->addBinding($startDate, 'join')
+            ->addBinding($endDate, 'join')
+            ->where('a.status', '!=', 'cancelled')
+            ->where('a.start_date', '<=', $endDate)
+            ->where(function($q) use ($startDate) {
+                $q->whereNull('a.end_date')
+                  ->orWhere('a.end_date', '>=', $startDate);
+            });
 
-        if (isset($filters['operation_id'])) {
-            $query->where('operation_id', $filters['operation_id']);
-        }
-        if (isset($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-        if (isset($filters['start_date'])) {
-            $query->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $filters['start_date']));
-        }
-        if (isset($filters['end_date'])) {
-            $query->where('start_date', '<=', $filters['end_date']);
+        if ($request->filled('operation_id')) {
+            $rawQuery->where('a.operation_id', $request->operation_id);
         }
 
-        // Saker scoping is handled globally by SakerScope for non-God admins,
-        // but let's ensure it's explicitly ordered
-        $assignments = $query->orderBy('start_date', 'desc')->get();
+        if ($request->filled('officer')) {
+            $officerSearch = strtolower($request->officer);
+            $rawQuery->join('users as u', 'a.officer_id', '=', 'u.id')
+                     ->where(function($q) use ($officerSearch) {
+                         $q->whereRaw('LOWER(u.name) LIKE ?', ["%{$officerSearch}%"])
+                           ->orWhereRaw('LOWER(u.nrp) LIKE ?', ["%{$officerSearch}%"]);
+                     });
+        }
 
-        $fileName = 'rekap_penugasan_'.date('Ymd_His').'.csv';
+        $rows = $rawQuery->orderBy('d.active_date', 'desc')->get();
+
+        $assignmentIds = $rows->pluck('assignment_id')->unique();
+        $assignmentsMap = Assignment::with(['officer', 'location', 'operation'])
+            ->whereIn('id', $assignmentIds)
+            ->get()
+            ->keyBy('id');
+
+        $officerIds = $rows->pluck('officer_id')->unique();
+        $attendancesMap = Attendance::whereIn('officer_id', $officerIds)
+            ->whereBetween('checked_in_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->get()
+            ->groupBy(function($att) {
+                return $att->officer_id . '_' . $att->checked_in_at->format('Y-m-d');
+            });
+
+        $reports = $rows->map(function($row) use ($assignmentsMap, $attendancesMap) {
+            $assignment = $assignmentsMap->get($row->assignment_id);
+            $attendance = $attendancesMap->get($row->officer_id . '_' . $row->active_date)?->first();
+
+            return (object) [
+                'date' => Carbon::parse($row->active_date),
+                'assignment' => $assignment,
+                'attendance' => $attendance,
+                'status' => $attendance ? 'attended' : 'missed'
+            ];
+        });
+
+        if ($request->filled('status')) {
+            $reports = $reports->filter(fn($r) => $r->status === $request->status);
+        }
+
+        $fileName = 'rekap_harian_'.date('Ymd_His').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -65,7 +165,7 @@ class ReportController extends Controller
             'Expires' => '0',
         ];
 
-        return response()->stream(function () use ($assignments) {
+        return response()->stream(function () use ($reports) {
             $file = fopen('php://output', 'w');
 
             // Add BOM for UTF-8 Excel support
@@ -73,7 +173,6 @@ class ReportController extends Controller
 
             // CSV Header
             fputcsv($file, [
-                'ID Penugasan',
                 'Tanggal',
                 'Operasi',
                 'Lokasi',
@@ -82,24 +181,25 @@ class ReportController extends Controller
                 'Nama Petugas',
                 'Status',
                 'Waktu Hadir',
+                'Foto'
             ]);
 
             // CSV Data
-            foreach ($assignments as $assignment) {
-                $dateString = $assignment->start_date->format('Y-m-d') . ($assignment->end_date ? ' s/d ' . $assignment->end_date->format('Y-m-d') : ' - Selesai');
+            foreach ($reports as $report) {
+                $assignment = $report->assignment;
                 $waktuString = $assignment->operation
                     ? substr($assignment->operation->start_time, 0, 5) . ' - ' . ($assignment->operation->end_time ? substr($assignment->operation->end_time, 0, 5) : '23:59')
                     : '-';
                 fputcsv($file, [
-                    $assignment->id,
-                    $dateString,
+                    $report->date->format('Y-m-d'),
                     $assignment->operation->name ?? '-',
                     $assignment->location->name ?? '-',
                     $waktuString,
                     $assignment->officer->nrp ?? '-',
                     $assignment->officer->name ?? '-',
-                    strtoupper($assignment->status),
-                    $assignment->attended_at ? $assignment->attended_at->format('H:i:s') : '-',
+                    strtoupper($report->status),
+                    $report->attendance ? $report->attendance->checked_in_at->format('H:i:s') : '-',
+                    $report->attendance && $report->attendance->photo_path ? route('dashboard.attendances.photo', $report->attendance->id) : '-'
                 ]);
             }
 

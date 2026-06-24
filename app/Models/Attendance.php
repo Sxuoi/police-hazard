@@ -43,6 +43,7 @@ class Attendance extends Model
         'photo_status',
         'checksum',
         'created_at',
+        'checkin_coordinates',
     ];
 
     protected function casts(): array
