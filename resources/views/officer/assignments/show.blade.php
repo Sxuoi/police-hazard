@@ -26,8 +26,8 @@
                     <h2 class="text-lg font-semibold text-white" x-text="assignment.location_name"></h2>
                     <span
                         class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                        :class="statusBadgeClass(assignment.status)"
-                        x-text="statusLabel(assignment.status)"
+                        :class="assignment.already_checked_in ? 'bg-green-500/10 text-green-400' : statusBadgeClass(assignment.status)"
+                        x-text="assignment.already_checked_in ? 'Selesai' : statusLabel(assignment.status)"
                     ></span>
                 </div>
                 <div class="space-y-2 text-sm text-gray-400">
@@ -77,13 +77,13 @@
             <a
                 :href="'/officer/checkin/' + assignment.assignment_id"
                 class="block w-full py-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-semibold text-center transition-colors"
-                x-show="assignment.status !== 'attended'"
+                x-show="!assignment.already_checked_in"
             >
                 Check-In
             </a>
 
             <div
-                x-show="assignment.status === 'attended'"
+                x-show="assignment.already_checked_in"
                 class="block w-full py-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 font-semibold text-center"
             >
                 ✓ Sudah Check-In

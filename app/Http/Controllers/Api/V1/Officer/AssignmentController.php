@@ -69,10 +69,11 @@ class AssignmentController extends Controller
             $assignments->pluck('location_id')->filter()->unique()->values()->all()
         );
 
-        $data = $assignments->map(function ($assignment) use ($attRepo, $coordsByLocation) {
+        $data = $assignments->map(function ($assignment) use ($attRepo, $coordsByLocation, $target, $today) {
+            $checkDate = isset($target) ? $target->format('Y-m-d') : $today->format('Y-m-d');
             return $this->toAssignmentArray(
                 $assignment,
-                $attRepo->verifiedExistsFor($assignment->id),
+                $attRepo->verifiedExistsFor($assignment->id, $checkDate),
                 $coordsByLocation[$assignment->location_id] ?? null,
             );
         })->values();
@@ -111,7 +112,7 @@ class AssignmentController extends Controller
         $coords = $this->loadLocationCoordinates([$assignment->location_id])[$assignment->location_id] ?? null;
         $base = $this->toAssignmentArray(
             $assignment,
-            $attRepo->verifiedExistsFor($assignment->id),
+            $attRepo->verifiedExistsFor($assignment->id, Carbon::today(config('policehazard.default_timezone', 'Asia/Jakarta'))->format('Y-m-d')),
             $coords,
         );
 

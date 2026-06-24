@@ -48,8 +48,8 @@ class ReportController extends Controller
             $officerSearch = strtolower($request->officer);
             $rawQuery->join('users as u', 'a.officer_id', '=', 'u.id')
                      ->where(function($q) use ($officerSearch) {
-                         $q->whereRaw('LOWER(u.name) LIKE ?', ["%{$officerSearch}%"])
-                           ->orWhereRaw('LOWER(u.nrp) LIKE ?', ["%{$officerSearch}%"]);
+                         $q->where('u.name', 'ilike', "%{$officerSearch}%")
+                           ->orWhere('u.nrp', 'ilike', "%{$officerSearch}%");
                      });
         }
 
@@ -118,8 +118,8 @@ class ReportController extends Controller
             $officerSearch = strtolower($request->officer);
             $rawQuery->join('users as u', 'a.officer_id', '=', 'u.id')
                      ->where(function($q) use ($officerSearch) {
-                         $q->whereRaw('LOWER(u.name) LIKE ?', ["%{$officerSearch}%"])
-                           ->orWhereRaw('LOWER(u.nrp) LIKE ?', ["%{$officerSearch}%"]);
+                         $q->where('u.name', 'ilike', "%{$officerSearch}%")
+                           ->orWhere('u.nrp', 'ilike', "%{$officerSearch}%");
                      });
         }
 

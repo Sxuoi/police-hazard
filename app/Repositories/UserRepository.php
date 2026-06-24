@@ -88,6 +88,7 @@ class UserRepository implements UserRepositoryInterface
             ->withExists([
                 'assignments as has_today_assignment' => fn ($q) => $q->where('start_date', '<=', $date)
                     ->where(fn ($sq) => $sq->whereNull('end_date')->orWhere('end_date', '>=', $date)),
+                'attendances as has_attended_today' => fn ($q) => $q->whereDate('checked_in_at', $date),
             ])
             ->when(isset($filters['search']), fn ($q) => $q->where(function ($sq) use ($filters) {
                 $sq->where('name', 'ilike', "%{$filters['search']}%")

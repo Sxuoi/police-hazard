@@ -247,7 +247,13 @@ class DashboardController extends Controller
         }
 
         $disk = config('policehazard.photo.s3_disk', 's3');
-        if (! Storage::disk($disk)->exists($attendance->photo_path)) {
+        try {
+            $exists = Storage::disk($disk)->exists($attendance->photo_path);
+        } catch (\League\Flysystem\UnableToCheckExistence $e) {
+            $exists = false;
+        }
+
+        if (! $exists) {
             // Fallback for local testing (maybe it's still raw)
             if ($attendance->photo_raw_path && Storage::disk(config('policehazard.photo.private_disk', 'local'))->exists($attendance->photo_raw_path)) {
                 return Storage::disk(config('policehazard.photo.private_disk', 'local'))->response($attendance->photo_raw_path);

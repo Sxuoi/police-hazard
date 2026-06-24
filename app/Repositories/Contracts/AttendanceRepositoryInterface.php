@@ -25,7 +25,7 @@ interface AttendanceRepositoryInterface
     /**
      * Check if a verified/flagged attendance already exists for the assignment.
      */
-    public function verifiedExistsFor(string $assignmentId): bool;
+    public function verifiedExistsFor(string $assignmentId, ?string $date = null): bool;
 
     /**
      * Insert a verified attendance with lockForUpdate on the assignment row (PH duplicate guard).

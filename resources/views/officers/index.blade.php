@@ -29,7 +29,7 @@
                         <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">NRP</th>
                         <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Satfung</th>
                         <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Saker</th>
-                        <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                        <th class="px-5 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status & Kehadiran</th>
                         <th class="px-5 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
@@ -51,9 +51,20 @@
                             <td class="px-5 py-4 text-gray-400 text-sm">{{ $officer->safung ?? '—' }}</td>
                             <td class="px-5 py-4"><x-badge color="gray">{{ $officer->saker->code ?? '—' }}</x-badge></td>
                             <td class="px-5 py-4">
-                                <x-badge color="{{ $officer->is_active ? 'green' : 'red' }}">
-                                    {{ $officer->is_active ? 'Aktif' : 'Nonaktif' }}
-                                </x-badge>
+                                <div class="flex flex-col gap-1 items-start">
+                                    <x-badge color="{{ $officer->is_active ? 'green' : 'red' }}">
+                                        {{ $officer->is_active ? 'Aktif' : 'Nonaktif' }}
+                                    </x-badge>
+                                    @if($officer->has_today_assignment)
+                                        @if($officer->has_attended_today)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-500/10 text-green-400 border border-green-500/20">Hadir Hari Ini</span>
+                                        @else
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">Belum Hadir</span>
+                                        @endif
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-500/10 text-gray-400 border border-gray-500/20">Tidak Ada Tugas</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-5 py-4">
                                 <div class="flex items-center justify-end gap-2">
