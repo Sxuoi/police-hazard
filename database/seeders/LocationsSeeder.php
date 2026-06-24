@@ -25,6 +25,8 @@ class LocationsSeeder extends Seeder
         $op3 = Operation::where('name', 'PH Pos Pemeriksaan Semarang Tengah')->sole();
         $op4 = Operation::where('name', 'Operasi Lilin Candi 2025')->sole();
 
+        $op5 = Operation::where('name', 'Pengamanan RSUP')->sole();
+
         // Look up zones by name + operation_id
         $zoneUtara = Zone::where('name', 'Zona Utara')->where('operation_id', $op1->id)->sole();
         $zoneSelatan = Zone::where('name', 'Zona Selatan')->where('operation_id', $op1->id)->sole();
@@ -32,6 +34,7 @@ class LocationsSeeder extends Seeder
         $zoneBanyumanik = Zone::where('name', 'Zona Banyumanik')->where('operation_id', $op2->id)->sole();
         $zoneSimpangLima = Zone::where('name', 'Zona Simpang Lima')->where('operation_id', $op3->id)->sole();
         $zonePasarJohar = Zone::where('name', 'Zona Pasar Johar')->where('operation_id', $op3->id)->sole();
+        $zoneRsup = Zone::where('name', 'Zona RSUP')->where('operation_id', $op5->id)->sole();
 
         $locationData = [
             // Zone Utara (POLDA)
@@ -56,6 +59,8 @@ class LocationsSeeder extends Seeder
             // Zone Pasar Johar (POLSEK)
             [$zonePasarJohar, $polsek, 'Pasar Johar', -6.9740, 110.4243, 'Jl. KH. Agus Salim'],
             [$zonePasarJohar, $polsek, 'Kota Lama', -6.9680, 110.4276, 'Jl. Letjen Suprapto'],
+            // Zona RSUP (POLRESTABES)
+            [$zoneRsup, $polrestabes, 'RSUP Dr. Kariadi Semarang', -6.9926, 110.4058, 'Jl. Dr. Sutomo No. 16'],
         ];
 
         foreach ($locationData as [$zone, $saker, $name, $lat, $lng, $address]) {
@@ -94,6 +99,6 @@ class LocationsSeeder extends Seeder
             ', [$id, $zone->id, $saker->id, $name, $address, $lng, $lat, $radius, $minOfficer, $padalId, $timezone, $godAdmin->id]);
         }
 
-        $this->command->info('✓ LocationsSeeder: 15 Locations seeded.');
+        $this->command->info('✓ LocationsSeeder: 16 Locations seeded.');
     }
 }

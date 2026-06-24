@@ -119,91 +119,207 @@ export function checkinScreen() {
             });
         },
 
-        async openCamera() {
+        openCamera() {
+            this.state = 'waiting_for_photo';
+        },
+
+        triggerCameraInput() {
+            const input = document.getElementById('cameraInput');
+            if (input) input.click();
+        },
+
+        async handleCapture(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            this.state = 'compressing_photo';
+            this.errorMessage = '';
+
             try {
-                this.stopStream(); // Ensure previous stream is stopped
-                this.stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: this.facingMode, width: { ideal: 720 }, height: { ideal: 960 } },
-                    audio: false,
-                });
-                this.state = 'camera_open';
-
-                // Wait one tick so the <template x-if="state === 'camera_open'">
-                // actually renders the <video> element, then attach the stream
-                // and explicitly call play() (some browsers, especially in
-                // privacy modes, won't autoplay even with the autoplay attr).
-                await this.$nextTick();
-                await this.attachStreamToVideo();
-            } catch (err) {
-                this.stopStream();
-                this.errorMessage = err && err.name === 'NotAllowedError'
-                    ? 'Izin kamera ditolak. Aktifkan kamera di pengaturan browser.'
-                    : 'Tidak dapat mengakses kamera: ' + (err?.message || 'unknown');
-                this.state = 'error';
-            }
-        },
-
-        async toggleCamera() {
-            if (this.state !== 'camera_open') return;
-            this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
-            await this.openCamera();
-        },
-
-        async attachStreamToVideo() {
-            // The <template x-if> may need a render cycle or two before the
-            // video element exists. Poll briefly so we don't lose the stream.
-            for (let i = 0; i < 15; i++) {
-                const video = this.$refs.video || this.$el.querySelector('video') || document.querySelector('video');
-                if (video) {
-                    video.srcObject = this.stream;
-                    video.muted = true;
-                    video.playsInline = true;
-                    try { await video.play(); } catch { /* ignore */ }
+                const qualityCheck = await this.analyzePhotoQuality(file);
+                if (!qualityCheck.valid) {
+                    this.errorMessage = qualityCheck.reason;
+                    this.state = 'waiting_for_photo';
                     return;
                 }
-                await new Promise(r => setTimeout(r, 50));
+
+                const compressedBlob = await this.compressImage(file, 1200, 0.7);
+                this.photoBlob = compressedBlob;
+                if (this.photoDataUrl) {
+                    URL.revokeObjectURL(this.photoDataUrl);
+                }
+                this.photoDataUrl = URL.createObjectURL(compressedBlob);
+                
+                this.state = 'photo_preview';
+            } catch (err) {
+                console.error('Compression failed:', err);
+                this.errorMessage = 'Gagal memproses foto. Silakan coba lagi.';
+                this.state = 'waiting_for_photo';
+            } finally {
+                event.target.value = '';
             }
         },
 
-        async capturePhoto() {
-            const video = this.$refs.video || this.$el.querySelector('video') || document.querySelector('video');
-            const canvas = this.$refs.canvas;
-            if (!video || !canvas) return;
+        analyzePhotoQuality(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        // Shrink to 300x300 max for fast analysis
+                        const canvas = document.createElement('canvas');
+                        const maxSize = 300;
+                        let w = img.width, h = img.height;
+                        if (w > h) {
+                            if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+                        } else {
+                            if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        const imageData = ctx.getImageData(0, 0, w, h);
+                        const data = imageData.data;
 
-            // If the video isn't actually playing yet, the captured frame
-            // will be 0x0 / blank. Wait for it briefly before snapping.
-            if (!video.videoWidth || !video.videoHeight) {
-                for (let i = 0; i < 20; i++) {
-                    if (video.videoWidth && video.videoHeight) break;
-                    await new Promise(r => setTimeout(r, 100));
-                }
-            }
-            if (!video.videoWidth || !video.videoHeight) {
-                this.errorMessage = 'Kamera belum siap. Coba lagi.';
-                this.state = 'error';
-                return;
-            }
+                        // 1. Darkness Check (95th percentile)
+                        const brightnesses = [];
+                        for (let i = 0; i < data.length; i += 4) {
+                            // Luminance formula
+                            const brightness = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+                            brightnesses.push(brightness);
+                        }
+                        brightnesses.sort((a, b) => a - b);
+                        const p95Index = Math.floor(brightnesses.length * 0.95);
+                        const p95Brightness = brightnesses[p95Index];
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
+                        if (p95Brightness < 15) {
+                            resolve({ valid: false, reason: 'Foto terlalu gelap atau kamera tertutup. Silakan cari tempat lebih terang dan coba lagi.' });
+                            return;
+                        }
 
-            // Build the data URL (for preview) and the Blob (for upload)
-            // BEFORE switching state, and wait for the Blob to actually be
-            // produced — otherwise submit fires with photoBlob still null.
-            this.photoDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-            this.photoBlob = await new Promise((resolve) => {
-                canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
+                        // 2. Blur Check (Laplacian Variance)
+                        const gray = new Uint8Array(w * h);
+                        for (let i = 0; i < w * h; i++) {
+                            gray[i] = 0.299 * data[i*4] + 0.587 * data[i*4+1] + 0.114 * data[i*4+2];
+                        }
+
+                        // 3x3 Laplacian kernel
+                        const laplacian = new Int32Array(w * h);
+                        let sum = 0;
+                        for (let y = 1; y < h - 1; y++) {
+                            for (let x = 1; x < w - 1; x++) {
+                                const idx = y * w + x;
+                                const val = 
+                                    gray[(y - 1) * w + x] +
+                                    gray[(y + 1) * w + x] +
+                                    gray[y * w + (x - 1)] +
+                                    gray[y * w + (x + 1)] -
+                                    4 * gray[idx];
+                                laplacian[idx] = val;
+                                sum += val;
+                            }
+                        }
+                        const mean = sum / ((w - 2) * (h - 2));
+                        let varianceSum = 0;
+                        for (let y = 1; y < h - 1; y++) {
+                            for (let x = 1; x < w - 1; x++) {
+                                const val = laplacian[y * w + x];
+                                varianceSum += Math.pow(val - mean, 2);
+                            }
+                        }
+                        const variance = varianceSum / ((w - 2) * (h - 2));
+
+                        // Very conservative threshold to avoid rejecting night photos
+                        if (variance < 20) {
+                            resolve({ valid: false, reason: 'Foto terlalu buram (blur). Harap pegang kamera dengan stabil dan ambil foto ulang.' });
+                            return;
+                        }
+
+                        resolve({ valid: true });
+                    };
+                    img.onerror = () => resolve({ valid: false, reason: 'Gagal memproses foto. Silakan ambil foto ulang.' });
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => resolve({ valid: false, reason: 'Gagal memuat file foto.' });
+                reader.readAsDataURL(file);
             });
+        },
 
-            this.stopStream();
-            this.state = 'photo_preview';
+        compressImage(file, maxWidth, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > maxWidth) {
+                            h = Math.round(h * maxWidth / w);
+                            w = maxWidth;
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+
+                        const drawTextAndResolve = () => {
+                            // Draw bottom banner
+                            const bannerHeight = 110;
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                            ctx.fillRect(0, h - bannerHeight, w, bannerHeight);
+
+                            // Draw text
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = 'bold 20px Arial';
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+                            
+                            const now = new Date();
+                            const dateStr = now.toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) + ' ' + 
+                                            now.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false});
+                            const latStr = this.latitude ? this.latitude.toFixed(6) : '-';
+                            const lngStr = this.longitude ? this.longitude.toFixed(6) : '-';
+                            const accStr = this.accuracy ? this.accuracy.toFixed(0) : '-';
+                            
+                            ctx.fillText(`Waktu: ${dateStr}`, 20, h - 85);
+                            ctx.fillText(`Lokasi: ${latStr}, ${lngStr}`, 20, h - 55);
+                            ctx.fillText(`Akurasi GPS: ${accStr} meter`, 20, h - 25);
+
+                            canvas.toBlob(
+                                (blob) => blob ? resolve(blob) : reject(new Error('toBlob failed')),
+                                'image/jpeg',
+                                quality
+                            );
+                        };
+
+                        const logo = new Image();
+                        logo.onload = () => {
+                            // Draw logo at top left with padding
+                            const logoWidth = 100;
+                            const logoHeight = (logo.height / logo.width) * logoWidth;
+                            ctx.drawImage(logo, 20, 20, logoWidth, logoHeight);
+                            drawTextAndResolve();
+                        };
+                        logo.onerror = () => {
+                            drawTextAndResolve();
+                        };
+                        logo.src = '/images/logo_libas.png';
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
         },
 
         retakePhoto() {
-            this.photoDataUrl = null;
             this.photoBlob = null;
+            if (this.photoDataUrl) {
+                URL.revokeObjectURL(this.photoDataUrl);
+                this.photoDataUrl = null;
+            }
             this.openCamera();
         },
 
@@ -278,11 +394,5 @@ export function checkinScreen() {
             }));
         },
 
-        stopStream() {
-            if (this.stream) {
-                this.stream.getTracks().forEach(track => track.stop());
-                this.stream = null;
-            }
-        },
     };
 }

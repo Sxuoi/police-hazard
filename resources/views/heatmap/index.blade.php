@@ -331,7 +331,7 @@
                         }).addTo(spoofingGroup);
 
                         const signals = Object.keys(item.spoofing_signals).join(', ') || '-';
-                        const time = new Date(item.checked_in_at).toLocaleString('id-ID');
+                        const time = new Date(item.checked_in_at).toLocaleString('id-ID', { hour12: false });
 
                         const popupContent = `
                             <div class="p-2 min-w-[240px]">

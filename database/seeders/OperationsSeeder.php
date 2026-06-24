@@ -56,6 +56,16 @@ class OperationsSeeder extends Seeder
                 'end_time' => '02:00',
                 'created_by' => $polda->id,
             ],
+            [
+                'saker_id' => $polrestabes->id,
+                'name' => 'Pengamanan RSUP',
+                'description' => 'Pengamanan area rumah sakit.',
+                'operation_type' => 'PH',
+                'status' => 'active',
+                'start_time' => '00:00',
+                'end_time' => '23:59',
+                'created_by' => $polrestabes->id,
+            ],
         ];
 
         foreach ($operations as $opData) {
@@ -65,6 +75,6 @@ class OperationsSeeder extends Seeder
             );
         }
 
-        $this->command->info('✓ OperationsSeeder: 4 Operations seeded.');
+        $this->command->info('✓ OperationsSeeder: 5 Operations seeded.');
     }
 }

@@ -48,7 +48,7 @@ class CheckinController extends Controller
             distanceFromPoint: 0.0,
             spoofingScore: 0,
             spoofingSignals: [],
-            deviceMetadata: $validated['device_metadata'] ?? null,
+            deviceMetadata: $validated['device_metadata'] ?? [],
             shiftWindowStart: $now,
             shiftWindowEnd: $now,
             status: 'verified',
