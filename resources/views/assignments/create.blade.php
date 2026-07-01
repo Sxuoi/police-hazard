@@ -224,15 +224,15 @@ document.addEventListener('alpine:init', () => {
         searchResults: [],
         
         // Form states
-        operation_id: '',
+        operation_id: @json(old('operation_id', '')),
         operationStart: '',
         operationEnd: '',
         zone_id: '',
-        location_id: '',
-        start_date: new Date().toISOString().split('T')[0],
-        end_date: '',
+        location_id: @json(old('location_id', '')),
+        start_date: @json(old('start_date', now()->toDateString())),
+        end_date: @json(old('end_date', '')),
         searchQuery: '',
-        selectedOfficers: [],
+        selectedOfficers: @json(old('officer_ids') ? collect(old('officer_ids'))->map(fn($id) => ['id' => $id, 'name' => \App\Models\User::withoutGlobalScopes()->find($id)?->name ?? '', 'nrp' => \App\Models\User::withoutGlobalScopes()->find($id)?->nrp ?? ''])->values() : []),
         
         // Loading states
         isLoadingZones: false,
@@ -241,6 +241,20 @@ document.addEventListener('alpine:init', () => {
         
         get canProceedToStep2() {
             return this.operation_id && this.zone_id && this.location_id && this.start_date;
+        },
+
+        async init() {
+            // After a validation-error redirect, re-hydrate cascade dropdowns
+            if (this.operation_id) {
+                await this.fetchZones();
+                @if(old('zone_id'))
+                    this.zone_id = @json(old('zone_id'));
+                    await this.fetchLocations();
+                    @if(old('location_id'))
+                        this.location_id = @json(old('location_id'));
+                    @endif
+                @endif
+            }
         },
 
         onOperationChange(event) {

@@ -52,6 +52,14 @@ class AssignmentRepository implements AssignmentRepositoryInterface
             'operation:id,name,operation_type',
         ]);
 
+        if (! empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->whereHas('officer', function ($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('nrp', 'ilike', "%{$search}%");
+            });
+        }
+
         if (! empty($filters['operation_id'])) {
             $query->where('operation_id', $filters['operation_id']);
         }
@@ -95,16 +103,20 @@ class AssignmentRepository implements AssignmentRepositoryInterface
         $today = $date ?? Carbon::today(config('policehazard.default_timezone', 'Asia/Jakarta'));
         $todayStr = $today->toDateString();
 
-        return Assignment::with([
+        $query = Assignment::with([
                 'location' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
                 'operation' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
             ])
             ->where('officer_id', $officerId)
-            ->where('saker_id', $sakerId)
             ->where('start_date', '<=', $todayStr)
             ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $todayStr))
-            ->whereIn('status', ['active', 'pending'])
-            ->first();
+            ->whereIn('status', ['active', 'pending']);
+
+        if (request() && request()->input('assignment_id')) {
+            $query->where('id', request()->input('assignment_id'));
+        }
+
+        return $query->first();
     }
 
     public function listForOfficer(string $officerId, string $sakerId, Carbon $from, Carbon $to): Collection
@@ -117,7 +129,6 @@ class AssignmentRepository implements AssignmentRepositoryInterface
                 'operation' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
             ])
             ->where('assignments.officer_id', $officerId)
-            ->where('assignments.saker_id', $sakerId)
             ->where('assignments.start_date', '<=', $toStr)
             ->where(fn ($q) => $q->whereNull('assignments.end_date')->orWhere('assignments.end_date', '>=', $fromStr))
             ->where('assignments.status', '!=', 'cancelled')

@@ -35,7 +35,12 @@
                             </td>
                             <td class="px-5 py-4">
                                 <div class="text-gray-300">{{ $loc->zone->name ?? '—' }}</div>
-                                <div class="text-xs text-gray-500">{{ $loc->zone->operation->name ?? '—' }}</div>
+                                <div class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                    {{ $loc->zone->operation->name ?? '—' }}
+                                    @if(($loc->zone->operation->status ?? '') === 'archived')
+                                        <x-badge color="red">Archived</x-badge>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-5 py-4 text-gray-300">{{ $loc->radius_meters }}m</td>
                             <td class="px-5 py-4 text-gray-300">{{ $loc->minimum_officer }}</td>

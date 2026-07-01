@@ -13,6 +13,19 @@
                 </div>
             @endif
 
+            @if(auth()->user()->isGodAdmin())
+            <div class="mb-5">
+                <label for="saker_id" class="block text-sm font-medium text-gray-300 mb-2">Satuan Kerja (Saker) <span class="text-red-400">*</span></label>
+                <select id="saker_id" name="saker_id" required
+                        class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]">
+                    <option value="">Pilih Satuan Kerja</option>
+                    @foreach($sakers as $saker)
+                        <option value="{{ $saker->id }}" @selected(old('saker_id', auth()->user()->saker_id) === $saker->id)>{{ $saker->name }} ({{ $saker->code }})</option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
+
             <div class="mb-5">
                 <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Nama Lengkap <span class="text-red-400">*</span></label>
                 <input type="text" id="name" name="name" value="{{ old('name') }}" required maxlength="150"

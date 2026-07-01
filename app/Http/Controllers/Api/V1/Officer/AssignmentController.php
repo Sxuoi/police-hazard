@@ -62,6 +62,7 @@ class AssignmentController extends Controller
         );
 
         $assignments->loadMissing([
+            'location' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
             'location.zone' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
         ]);
 
@@ -94,16 +95,16 @@ class AssignmentController extends Controller
 
         $assignment = $repo->find($id);
 
-        // R2.9 — 404 when not found, cross-tenant, or not owned.
+        // R2.9 — 404 when not found or not owned.
         if (
             ! $assignment
             || $assignment->officer_id !== $officer->id
-            || $assignment->saker_id !== $officer->saker_id
         ) {
             return $this->assignmentNotFound();
         }
 
         $assignment->loadMissing([
+            'location' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
             'location.padal' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
             'location.zone' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
             'operation' => fn ($q) => $q->withoutGlobalScopes([SakerScope::class]),
@@ -117,10 +118,10 @@ class AssignmentController extends Controller
         );
 
         // R2.8 additions.
-        $padal = $assignment->location->padal ?? null;
+        $padal = $assignment->location?->padal ?? null;
         $base['padal_name'] = $padal?->name;
         $base['padal_phone'] = $padal?->phone;
-        $base['operating_hours'] = $assignment->location->operating_hours;
+        $base['operating_hours'] = $assignment->location?->operating_hours;
 
         return response()->json(['data' => $base], 200);
     }
@@ -146,7 +147,6 @@ class AssignmentController extends Controller
         if (
             ! $assignment
             || $assignment->officer_id !== $officer->id
-            || $assignment->saker_id !== $officer->saker_id
         ) {
             return $this->assignmentNotFound();
         }

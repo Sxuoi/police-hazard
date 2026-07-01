@@ -21,6 +21,9 @@
 
     {{-- Filters --}}
     <form method="GET" class="flex flex-wrap gap-3">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Nama / NRP..."
+               class="px-4 py-2 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
+
         <input type="date" name="date" value="{{ request('date', now()->format('Y-m-d')) }}"
                class="px-4 py-2 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
 
@@ -41,7 +44,7 @@
         <button type="submit" class="px-4 py-2 bg-[var(--color-surface-600)] hover:bg-[var(--color-surface-500)] text-white text-sm rounded-xl transition-colors cursor-pointer">
             Filter
         </button>
-        @if(request()->hasAny(['operation_id','status']) || request('date') !== now()->format('Y-m-d'))
+        @if(request()->hasAny(['operation_id','status','search']) || request('date') !== now()->format('Y-m-d'))
             <a href="{{ route('assignments.index') }}" class="px-4 py-2 text-gray-400 hover:text-white text-sm transition-colors">Reset</a>
         @endif
     </form>

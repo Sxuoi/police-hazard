@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\RevokeOfficerTokensAction;
+use App\Models\Saker;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\AuditService;
 use Illuminate\Http\RedirectResponse;
@@ -32,22 +33,36 @@ class OfficerController extends Controller
 
     public function create(): View
     {
-        return view('officers.create');
+        $sakers = auth()->user()->isGodAdmin()
+            ? Saker::where('is_active', true)->orderBy('name')->get()
+            : collect();
+
+        return view('officers.create', compact('sakers'));
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:150'],
             'nrp' => ['required', 'string', 'max:20', 'unique:users,nrp'],
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:150', 'unique:users,email'],
             'safung' => ['nullable', 'string', 'max:100'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        ];
+
+        if (auth()->user()->isGodAdmin()) {
+            $rules['saker_id'] = ['required', 'uuid', 'exists:sakers,id'];
+        }
+
+        $validated = $request->validate($rules);
+
+        $sakerId = auth()->user()->isGodAdmin() && !empty($validated['saker_id'])
+            ? $validated['saker_id']
+            : auth()->user()->saker_id;
 
         $officer = $this->users->create(array_merge($validated, [
-            'saker_id' => auth()->user()->saker_id,
+            'saker_id' => $sakerId,
             'is_active' => true,
             'password' => Hash::make($validated['password']),
         ]));
@@ -69,21 +84,37 @@ class OfficerController extends Controller
     public function edit(string $id): View
     {
         $officer = $this->users->findOrFail($id);
+        $sakers = auth()->user()->isGodAdmin()
+            ? Saker::where('is_active', true)->orderBy('name')->get()
+            : collect();
 
-        return view('officers.edit', compact('officer'));
+        return view('officers.edit', compact('officer', 'sakers'));
     }
 
     public function update(Request $request, string $id): RedirectResponse
     {
         $officer = $this->users->findOrFail($id);
 
-        $validated = $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:150'],
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:150', "unique:users,email,{$officer->id}"],
             'safung' => ['nullable', 'string', 'max:100'],
             'is_active' => ['boolean'],
-        ]);
+        ];
+
+        if (auth()->user()->isGodAdmin()) {
+            $rules['saker_id'] = ['required', 'uuid', 'exists:sakers,id'];
+            $rules['password'] = ['nullable', 'string', 'min:8', 'confirmed'];
+        }
+
+        $validated = $request->validate($rules);
+
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
 
         $wasActive = $officer->is_active;
 

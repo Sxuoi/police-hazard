@@ -48,8 +48,13 @@ class LocationRepository implements LocationRepositoryInterface
 
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        $query = Location::with(['zone:id,name', 'zone.operation:id,name,operation_type'])
+        $query = Location::with(['zone:id,name,operation_id', 'zone.operation:id,name,operation_type,status'])
             ->where('is_active', true);
+
+        // Hide locations from archived operations by default
+        if (empty($filters['operation_id'])) {
+            $query->whereHas('zone.operation', fn ($q) => $q->where('status', '!=', 'archived'));
+        }
 
         if (! empty($filters['zone_id'])) {
             $query->where('zone_id', $filters['zone_id']);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Location;
 use App\Models\User;
 use App\Repositories\Contracts\LocationRepositoryInterface;
 use App\Repositories\Contracts\OperationRepositoryInterface;
@@ -10,6 +11,7 @@ use App\Services\AuditService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Ramsey\Uuid\Uuid;
 
@@ -54,6 +56,21 @@ class LocationController extends Controller
             'padal_id' => ['nullable', 'uuid', 'exists:users,id'],
             'description' => ['nullable', 'string'],
         ]);
+
+        if (! empty($validated['padal_id'])) {
+            $otherZoneLocation = Location::withoutGlobalScopes()
+                ->where('padal_id', $validated['padal_id'])
+                ->where('zone_id', '!=', $validated['zone_id'])
+                ->with('zone')
+                ->first();
+
+            if ($otherZoneLocation) {
+                $zoneName = $otherZoneLocation->zone?->name ?? 'lain';
+                throw ValidationException::withMessages([
+                    'padal_id' => "Perwira Pengendali (Padal) ini sudah ditugaskan di Zona {$zoneName}. Padal hanya dapat menangani banyak lokasi di dalam 1 zona yang sama.",
+                ]);
+            }
+        }
 
         $zone = $this->zones->findOrFail($validated['zone_id']);
         $id = Uuid::uuid7()->toString();
@@ -138,6 +155,22 @@ class LocationController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        if (! empty($validated['padal_id'])) {
+            $otherZoneLocation = Location::withoutGlobalScopes()
+                ->where('padal_id', $validated['padal_id'])
+                ->where('id', '!=', $location->id)
+                ->where('zone_id', '!=', $location->zone_id)
+                ->with('zone')
+                ->first();
+
+            if ($otherZoneLocation) {
+                $zoneName = $otherZoneLocation->zone?->name ?? 'lain';
+                throw ValidationException::withMessages([
+                    'padal_id' => "Perwira Pengendali (Padal) ini sudah ditugaskan di Zona {$zoneName}. Padal hanya dapat menangani banyak lokasi di dalam 1 zona yang sama.",
+                ]);
+            }
+        }
 
         $updates = [
             'name' => $validated['name'],

@@ -32,7 +32,14 @@
                             <td class="px-5 py-4">
                                 <div class="text-gray-300 text-sm">{{ $zone->operation->name ?? '—' }}</div>
                                 @if($zone->operation)
-                                    <x-badge color="{{ $zone->operation->operation_type === 'PH' ? 'indigo' : 'blue' }}">{{ $zone->operation->operation_type }}</x-badge>
+                                    <div class="flex items-center gap-1 mt-1">
+                                        <x-badge color="{{ $zone->operation->operation_type === 'PH' ? 'indigo' : 'blue' }}">{{ $zone->operation->operation_type }}</x-badge>
+                                        @if($zone->operation->status === 'archived')
+                                            <x-badge color="red">Archived</x-badge>
+                                        @elseif($zone->operation->status === 'draft')
+                                            <x-badge color="orange">Draft</x-badge>
+                                        @endif
+                                    </div>
                                 @endif
                             </td>
                             <td class="px-5 py-4"><x-badge color="gray">{{ $zone->saker->code ?? '—' }}</x-badge></td>

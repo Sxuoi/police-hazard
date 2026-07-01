@@ -61,17 +61,17 @@ class ReportController extends Controller
             ->get()
             ->keyBy('id');
 
-        $officerIds = $paginator->pluck('officer_id')->unique();
-        $attendancesMap = Attendance::whereIn('officer_id', $officerIds)
+        $assignmentIds2 = $paginator->pluck('assignment_id')->unique();
+        $attendancesMap = Attendance::whereIn('assignment_id', $assignmentIds2)
             ->whereBetween('checked_in_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->get()
             ->groupBy(function($att) {
-                return $att->officer_id . '_' . $att->checked_in_at->format('Y-m-d');
+                return $att->assignment_id . '_' . $att->checked_in_at->format('Y-m-d');
             });
 
         $reports = $paginator->getCollection()->map(function($row) use ($assignmentsMap, $attendancesMap) {
             $assignment = $assignmentsMap->get($row->assignment_id);
-            $attendance = $attendancesMap->get($row->officer_id . '_' . $row->active_date)?->first();
+            $attendance = $attendancesMap->get($row->assignment_id . '_' . $row->active_date)?->first();
 
             return (object) [
                 'date' => Carbon::parse($row->active_date),
@@ -131,17 +131,16 @@ class ReportController extends Controller
             ->get()
             ->keyBy('id');
 
-        $officerIds = $rows->pluck('officer_id')->unique();
-        $attendancesMap = Attendance::whereIn('officer_id', $officerIds)
+        $attendancesMap = Attendance::whereIn('assignment_id', $assignmentIds)
             ->whereBetween('checked_in_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->get()
             ->groupBy(function($att) {
-                return $att->officer_id . '_' . $att->checked_in_at->format('Y-m-d');
+                return $att->assignment_id . '_' . $att->checked_in_at->format('Y-m-d');
             });
 
         $reports = $rows->map(function($row) use ($assignmentsMap, $attendancesMap) {
             $assignment = $assignmentsMap->get($row->assignment_id);
-            $attendance = $attendancesMap->get($row->officer_id . '_' . $row->active_date)?->first();
+            $attendance = $attendancesMap->get($row->assignment_id . '_' . $row->active_date)?->first();
 
             return (object) [
                 'date' => Carbon::parse($row->active_date),

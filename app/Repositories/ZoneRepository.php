@@ -45,11 +45,14 @@ class ZoneRepository implements ZoneRepositoryInterface
 
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        $query = Zone::with(['operation:id,name,operation_type', 'saker:id,code,type'])
+        $query = Zone::with(['operation:id,name,operation_type,status', 'saker:id,code,type'])
             ->withCount('locations');
 
         if (! empty($filters['operation_id'])) {
             $query->where('operation_id', $filters['operation_id']);
+        } else {
+            // Hide zones from archived operations by default
+            $query->whereHas('operation', fn ($q) => $q->where('status', '!=', 'archived'));
         }
 
         if (! empty($filters['search'])) {

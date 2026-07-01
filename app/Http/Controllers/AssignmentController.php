@@ -31,7 +31,7 @@ class AssignmentController extends Controller
     {
         $assignments = $this->assignments->paginate(
             perPage: 20,
-            filters: $request->only(['operation_id', 'location_id', 'officer_id', 'date', 'status']),
+            filters: $request->only(['operation_id', 'location_id', 'officer_id', 'date', 'status', 'search']),
         );
 
         $operations = $this->operations->allActive();

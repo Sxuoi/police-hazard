@@ -14,6 +14,19 @@
                 </div>
             @endif
 
+            @if(auth()->user()->isGodAdmin())
+            <div class="mb-5">
+                <label for="saker_id" class="block text-sm font-medium text-gray-300 mb-2">Satuan Kerja (Saker) <span class="text-red-400">*</span></label>
+                <select id="saker_id" name="saker_id" required
+                        class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]">
+                    <option value="">Pilih Satuan Kerja</option>
+                    @foreach($sakers as $saker)
+                        <option value="{{ $saker->id }}" @selected(old('saker_id', $officer->saker_id) === $saker->id)>{{ $saker->name }} ({{ $saker->code }})</option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
+
             <div class="mb-5">
                 <label class="block text-sm font-medium text-gray-300 mb-2">NRP</label>
                 <input type="text" value="{{ $officer->nrp }}" disabled
@@ -45,6 +58,27 @@
                 <input type="text" id="safung" name="safung" value="{{ old('safung', $officer->safung) }}" maxlength="100"
                        class="w-full px-4 py-3 bg-[var(--color-surface-700)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
             </div>
+
+            @if(auth()->user()->isGodAdmin())
+            <div class="bg-[var(--color-surface-700)] p-5 rounded-xl border border-[var(--color-surface-500)] mb-6">
+                <h3 class="text-sm font-semibold text-white mb-1">Ubah Password Petugas (Super Admin)</h3>
+                <p class="text-xs text-gray-400 mb-4">Password saat ini tersimpan secara terenkripsi (one-way hash) sehingga tidak dapat dilihat. Isi kolom di bawah ini hanya jika Anda ingin mengubah atau mereset password petugas.</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="password" class="block text-xs font-medium text-gray-300 mb-1">Password Baru</label>
+                        <input type="password" id="password" name="password" minlength="8"
+                               placeholder="Minimal 8 karakter"
+                               class="w-full px-4 py-2.5 bg-[var(--color-surface-800)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
+                    </div>
+                    <div>
+                        <label for="password_confirmation" class="block text-xs font-medium text-gray-300 mb-1">Konfirmasi Password Baru</label>
+                        <input type="password" id="password_confirmation" name="password_confirmation" minlength="8"
+                               placeholder="Ulangi password baru"
+                               class="w-full px-4 py-2.5 bg-[var(--color-surface-800)] border border-[var(--color-surface-500)] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <div class="mb-6">
                 <label class="flex items-center gap-3 cursor-pointer">
